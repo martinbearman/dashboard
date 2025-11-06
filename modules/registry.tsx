@@ -30,7 +30,7 @@ const DateTimeModule: DashboardModule = {
   type: "datetime",
   displayName: "Date & Time",
   description: "Display current date and time",
-  defaultGridSize: { w: 2, h: 1 },
+  defaultGridSize: { w: 2, h: 2 },
   component: () => <div className="p-4 bg-yellow-100 rounded">DateTime Module</div>,
 };
 
