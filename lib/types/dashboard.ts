@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 export interface ModuleInstance {
   id: string;
   type: string;
+  gridPosition: { x: number; y: number; w: number; h: number };
 }
 
 /**
