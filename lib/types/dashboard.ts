@@ -1,22 +1,11 @@
 import { ReactNode } from "react";
 
 /**
- * Grid position for a module on the 12-column grid
- */
-export interface GridPosition {
-  x: number; // Column start (0-11)
-  y: number; // Row start
-  w: number; // Width in columns (1-12)
-  h: number; // Height in grid units
-}
-
-/**
  * A module instance on a dashboard
  */
 export interface ModuleInstance {
   id: string;
   type: string;
-  gridPosition: GridPosition;
 }
 
 /**

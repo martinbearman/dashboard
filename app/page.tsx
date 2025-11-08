@@ -2,9 +2,7 @@
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
- 
-// Page-level composition: keep data selection and module mapping here
-// so `DashboardContainer` can focus purely on layout concerns.
+
 import DashboardTabs from "@/components/layout/DashboardTabs";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
@@ -23,14 +21,14 @@ export default function Home() {
 
   const layouts = {
     lg:
-      (active?.modules.map((m) => ({
+      active?.modules.map<Layout>((m) => ({
         i: m.id,
         x: m.gridPosition.x,
         y: m.gridPosition.y,
         w: m.gridPosition.w,
         h: m.gridPosition.h,
-      })) as Layout[]) || [],
-  } as const;
+      })) ?? [],
+  };
 
   function handleLayoutChange(current: Layout[]) {
     if (!active) return;
@@ -71,7 +69,6 @@ export default function Home() {
             return (
               <div
                 key={m.id}
-                className="h-full"
                 data-grid={{
                   x: m.gridPosition.x,
                   y: m.gridPosition.y,
@@ -79,7 +76,7 @@ export default function Home() {
                   h: m.gridPosition.h,
                 }}
               >
-                <ModuleWrapper moduleId={m.id} gridPosition={m.gridPosition}>
+                <ModuleWrapper>
                   <ModuleComp moduleId={m.id} />
                 </ModuleWrapper>
               </div>
