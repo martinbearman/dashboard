@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { moduleRegistry } from "@/modules/registry";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { addModule } from "@/lib/store/slices/dashboardsSlice";
+import { setModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 
+// Decide where to place the next module in the grid so it doesn't overlap.
 function nextPosition(existing: { x: number; y: number; w: number; h: number }[]) {
   // Simple heuristic: place next item after the last one, wrap at 12 columns
   if (existing.length === 0) return { x: 0, y: 0, w: 3, h: 2 };
@@ -30,7 +32,7 @@ export default function AddModuleButton() {
         m.description.toLowerCase().includes(q)
     );
   }, [query]);
-
+  
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -41,6 +43,8 @@ export default function AddModuleButton() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  
+  // Called when the user chooses a module type from the modal list.
   const handleAdd = (type: string) => {
     if (!activeDashboardId) return;
     const dash = dashboards[activeDashboardId];
@@ -51,16 +55,28 @@ export default function AddModuleButton() {
       ? nextPosition(positions)
       : { x: 0, y: 0, w: size.w, h: size.h };
 
+    // Each module needs a stable ID so its layout entry and config line up.
+    const moduleId = crypto.randomUUID();
+
     dispatch(
       addModule({
         dashboardId: activeDashboardId,
         module: {
-          id: crypto.randomUUID(),
+          id: moduleId,
           type,
           gridPosition: { x: pos.x, y: pos.y, w: size.w, h: size.h },
         },
       })
     );
+    // Seed the module's config immediately so downstream selectors/renderers
+    // can assume an entry exists (ensureModuleConfig fills in defaults).
+    dispatch(
+      setModuleConfig({
+        moduleId,
+        config: {},
+      })
+    );
+    // Close the modal now that the module and config have been created.
     setOpen(false);
   };
 

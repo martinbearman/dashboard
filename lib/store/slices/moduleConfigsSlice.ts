@@ -1,11 +1,20 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+export type ModuleConfig = Record<string, any> & {
+  locked: boolean;
+};
+
 export interface ModuleConfigsState {
-  configs: Record<string, Record<string, any>>; // moduleId -> config object
+  configs: Record<string, ModuleConfig>; // moduleId -> config object
 }
 
 export const createInitialModuleConfigsState = (): ModuleConfigsState => ({
   configs: {},
+});
+
+const ensureModuleConfig = (config?: Record<string, any>): ModuleConfig => ({
+  locked: false,
+  ...config,
 });
 
 const initialState: ModuleConfigsState = createInitialModuleConfigsState();
@@ -18,19 +27,20 @@ const moduleConfigsSlice = createSlice({
       state,
       action: PayloadAction<{ moduleId: string; config: Record<string, any> }>
     ) => {
-      state.configs[action.payload.moduleId] = action.payload.config;
+      state.configs[action.payload.moduleId] = ensureModuleConfig(
+        action.payload.config
+      );
     },
     updateModuleConfig: (
       state,
       action: PayloadAction<{ moduleId: string; config: Partial<Record<string, any>> }>
     ) => {
-      if (!state.configs[action.payload.moduleId]) {
-        state.configs[action.payload.moduleId] = {};
-      }
-      state.configs[action.payload.moduleId] = {
-        ...state.configs[action.payload.moduleId],
+      const existing =
+        state.configs[action.payload.moduleId] ?? ensureModuleConfig();
+      state.configs[action.payload.moduleId] = ensureModuleConfig({
+        ...existing,
         ...action.payload.config,
-      };
+      });
     },
     removeModuleConfig: (state, action: PayloadAction<string>) => {
       delete state.configs[action.payload];
