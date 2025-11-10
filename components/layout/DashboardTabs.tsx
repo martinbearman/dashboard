@@ -102,7 +102,6 @@ export default function DashboardTabs() {
             aria-label="Add dashboard"
           >
             <span className="text-lg leading-none">+</span>
-            <span>New board</span>
           </button>
         </div>
       </div>

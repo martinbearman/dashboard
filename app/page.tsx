@@ -65,6 +65,7 @@ export default function Home() {
           rowHeight={32}
           margin={[16, 16]}
           compactType="vertical"
+          draggableCancel=".module-actions-interactive"
           preventCollision={false}
           onLayoutChange={(layout, allLayouts) => handleLayoutChange(layout, allLayouts as Layouts)}
         >
@@ -74,7 +75,7 @@ export default function Home() {
             const ModuleComp = meta.component;
             return (
               <div key={m.id}>
-                <ModuleWrapper>
+                <ModuleWrapper moduleId={m.id}>
                   <ModuleComp moduleId={m.id} />
                 </ModuleWrapper>
               </div>
