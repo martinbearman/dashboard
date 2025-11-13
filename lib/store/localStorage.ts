@@ -26,6 +26,27 @@ export function loadState(): Partial<RootState> | null {
     const defaultGlobalConfig = createInitialGlobalConfigState();
     const defaultModuleConfigs = createInitialModuleConfigsState();
 
+    // Timer module initial states
+    const defaultTimerState = {
+      timeRemaining: 1500,
+      isRunning: false,
+      isBreak: false,
+      studyDuration: 1500,
+      breakDuration: 420,
+      studyElapsedTime: 0,
+      breakElapsedTime: 0,
+      showBreakPrompt: false,
+      breakMode: 'manual' as const,
+    };
+    
+    const defaultGoalState = {
+      goals: [],
+      sessions: [],
+      currentGoalId: null,
+      totalStudyTime: 0,
+      totalSessions: 0,
+    };
+
     return {
       dashboards: {
         ...defaultDashboards,
@@ -44,6 +65,16 @@ export function loadState(): Partial<RootState> | null {
       moduleConfigs: {
         ...defaultModuleConfigs,
         ...(parsed.moduleConfigs ?? {}),
+      },
+      timer: {
+        ...defaultTimerState,
+        ...(parsed.timer ?? {}),
+      },
+      goal: {
+        ...defaultGoalState,
+        ...(parsed.goal ?? {}),
+        goals: parsed.goal?.goals ?? defaultGoalState.goals,
+        sessions: parsed.goal?.sessions ?? defaultGoalState.sessions,
       },
     };
   } catch (error) {
