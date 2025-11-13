@@ -1,15 +1,16 @@
-import React from "react";
 import { DashboardModule } from "@/lib/types/dashboard";
+import TimerModuleComponent from "./timer/TimerModule";
 
-// Placeholder components - you'll implement these later
+// Timer module - component lives in modules/timer/ folder
 const TimerModule: DashboardModule = {
   type: "timer",
   displayName: "Timer",
   description: "Pomodoro-style timer for focused work sessions",
   defaultGridSize: { w: 3, h: 2 },
-  component: () => <div className="p-4 bg-blue-100 rounded text-black">Timer Module</div>,
+  component: TimerModuleComponent,
 };
 
+// Placeholder modules - create folders for these when implementing
 const TodoModule: DashboardModule = {
   type: "todo",
   displayName: "Todo List",
