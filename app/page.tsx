@@ -20,13 +20,23 @@ export default function Home() {
   // Read the active dashboard and all dashboards from Redux
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
+  const moduleConfigs = useAppSelector((s) => s.moduleConfigs.configs);
   const dispatch = useAppDispatch();
 
   // react-grid-layout expects a layout array for every breakpoint; start with empty defaults
   const defaultLayouts: Layouts = { lg: [], md: [], sm: [], xs: [], xxs: [] };
   // Merge the stored layouts (if any) with the empty defaults so missing breakpoints still exist
-  const layouts: Layouts =
+  const baseLayouts: Layouts =
     active?.layouts ? ({ ...defaultLayouts, ...active.layouts } as Layouts) : defaultLayouts;
+  
+  // Mark locked modules as static (non-draggable)
+  const layouts: Layouts = Object.keys(baseLayouts).reduce((acc, bp) => {
+    acc[bp as keyof Layouts] = baseLayouts[bp as keyof Layouts].map((item) => ({
+      ...item,
+      static: moduleConfigs[item.i]?.locked ?? false,
+    }));
+    return acc;
+  }, {} as Layouts);
 
   function handleLayoutChange(current: Layout[], allLayouts: Layouts) {
     if (!active) return;
@@ -65,6 +75,7 @@ export default function Home() {
           rowHeight={32}
           margin={[16, 16]}
           compactType="vertical"
+          draggableHandle=".module-drag-handle"
           draggableCancel=".module-actions-interactive"
           preventCollision={false}
           onLayoutChange={(layout, allLayouts) => handleLayoutChange(layout, allLayouts as Layouts)}
