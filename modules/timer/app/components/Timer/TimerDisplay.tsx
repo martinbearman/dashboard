@@ -131,19 +131,20 @@ export default function TimerDisplay() {
         </div>
       )}
 
-      <div className="relative">
-        <Image 
-          src="/icons/tomato-timer.png" 
-          alt="Timer" 
-          width={300}
-          height={300}
-          className="max-w-[300px] h-auto object-contain mx-auto" 
-          priority
-        />
-        <hr className="w-full border-t-[15px]" />
-        <p className="absolute top-[38%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold font-mono text-white drop-shadow-lg">
-          {formattedTime}
-        </p>
+      <div className="relative w-full flex flex-col items-center">
+        <div className="relative" style={{ width: '120px', height: '120px' }}>
+          <Image 
+            src="/icons/tomato-too.svg" 
+            alt="Timer" 
+            width={120}
+            height={120}
+            style={{ objectFit: 'contain' }}
+          />
+          <p className="absolute text-2xl font-bold font-mono text-white [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] pointer-events-none whitespace-nowrap z-10" style={{ top: '50%', left: 'calc(50% + 10px)', transform: 'translate(-50%, -50%)' }}>
+            {formattedTime}
+          </p>
+        </div>
+        <hr className="w-full border-t-[15px] mt-0" />
         
         {/* Break Mode Indicator */}
         {isBreak && (

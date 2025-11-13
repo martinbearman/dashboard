@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import { Lexend } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "@/lib/store/StoreProvider";
+
+const lexend = Lexend({
+  subsets: ["latin"],
+  variable: "--font-lexend",
+});
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -14,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className={lexend.variable}>
         <StoreProvider>{children}</StoreProvider>
       </body>
     </html>
