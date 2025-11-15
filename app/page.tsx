@@ -66,7 +66,7 @@ export default function Home() {
         <DashboardTabs />
       </div>
 
-      <div className="container mx-auto px-4 pb-24">
+      <div className="mx-auto px-4 pb-24 max-w-full">
         <ResponsiveGridLayout
           className="layout"
           layouts={layouts}

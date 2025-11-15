@@ -25,7 +25,7 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching quote:", error);
     return NextResponse.json(
-      { error: "Failed to fetch quote" },
+      { error: "Oh, failed to fetch quote" },
       { status: 500 }
     );
   }

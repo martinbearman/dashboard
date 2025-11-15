@@ -103,7 +103,7 @@ export function ModuleDragHandle({ moduleId, locked, moduleName }: ModuleDragHan
     <>
       <div
         ref={containerRef}
-        className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200 rounded-t-lg"
+        className="flex items-center justify-between px-3 py-2 bg-gray-100 border-b border-gray-300 rounded-t-lg"
       >
       {/* Module name with drag indicator - only this part is draggable */}
       <div 
