@@ -140,7 +140,7 @@ export default function TimerDisplay() {
             height={180}
             style={{ objectFit: 'contain' }}
           />
-          <p className="absolute top-[calc(50%+10px)] left-[calc(50%+18px)] -translate-x-1/2 -translate-y-1/2 text-[2.5rem] font-bold font-mono text-white pointer-events-none whitespace-nowrap z-10 [text-shadow:3px_3px_6px_rgba(0,0,0,0.7),1px_1px_2px_rgba(0,0,0,0.9)]">
+          <p className="absolute top-[calc(50%+10px)] left-[calc(50%+18px)] -translate-x-1/2 -translate-y-1/2 text-[2.5rem] font-mono text-white pointer-events-none whitespace-nowrap z-10 [text-shadow:3px_3px_6px_rgba(0,0,0,0.7),1px_1px_2px_rgba(0,0,0,0.9)]">
             {formattedTime}
           </p>
         </div>

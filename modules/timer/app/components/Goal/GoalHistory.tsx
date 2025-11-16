@@ -34,7 +34,7 @@ export default function GoalHistory() {
 
   return (
     <div>
-      <h2 className='text-2xl font-bold mb-4'>Goal History</h2>
+      <h2 className='text-2xl mb-4'>Goal History</h2>
       {sortedGoals.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           <p className="text-lg">Set a goal to get started!</p>
