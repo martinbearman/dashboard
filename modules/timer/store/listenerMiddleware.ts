@@ -1,7 +1,7 @@
 import { createListenerMiddleware } from '@reduxjs/toolkit'
 import type { RootState } from '@/lib/store/store'
 import { setTimeRemaining, showBreakPrompt, startBreak, updateElapsedTime } from './slices/timerSlice'
-import { completeSession } from './slices/goalSlice'
+import { completeSession } from '@/lib/store/slices/todoSlice'
 
 // Create the middleware instance
 export const timerListenerMiddleware = createListenerMiddleware()
@@ -14,7 +14,8 @@ timerListenerMiddleware.startListening({
     const state = listenerApi.getState() as RootState
     
     // Check if timer reached 0 and we have an active goal
-    if (state.goal.currentGoalId && action.payload === 0 && state.timer.isRunning) {
+    const activeTodo = state.todo.todos.find(todo => todo.isActiveGoal);
+    if (activeTodo && action.payload === 0 && state.timer.isRunning) {
       // Calculate actual elapsed time (duration - time remaining)
       const totalDuration = state.timer.isBreak ? state.timer.breakDuration : state.timer.studyDuration;
       const elapsedTime = totalDuration - action.payload; // action.payload is 0 when timer completes
@@ -25,6 +26,7 @@ timerListenerMiddleware.startListening({
       // Timer completed - record the session if it was a study session
       if (!state.timer.isBreak) {
         listenerApi.dispatch(completeSession({
+          todoId: activeTodo.id,
           duration: elapsedTime,
           completed: true
         }))

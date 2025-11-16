@@ -2,6 +2,7 @@ import { DashboardModule } from "@/lib/types/dashboard";
 import TimerModuleComponent from "./timer/TimerModule";
 import TimerConfigPanel from "./timer/app/components/Settings/TimerConfigPanel";
 import QuoteModuleComponent from "./quote/QuoteModule";
+import TodoModuleComponent from "./todo/TodoModule";
 
 // Timer module - component lives in modules/timer/ folder
 const TimerModule: DashboardModule = {
@@ -13,13 +14,13 @@ const TimerModule: DashboardModule = {
   configPanel: TimerConfigPanel,
 };
 
-// Placeholder modules - create folders for these when implementing
+// Todo module - component lives in modules/todo/ folder
 const TodoModule: DashboardModule = {
   type: "todo",
   displayName: "Todo List",
   description: "Manage your tasks and stay organized",
   defaultGridSize: { w: 4, h: 3 },
-  component: () => <div className="p-4 bg-green-100 rounded">Todo Module</div>,
+  component: TodoModuleComponent,
 };
 
 const QuoteModule: DashboardModule = {

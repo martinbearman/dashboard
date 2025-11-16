@@ -46,6 +46,10 @@ export function loadState(): Partial<RootState> | null {
       totalStudyTime: 0,
       totalSessions: 0,
     };
+    
+    const defaultTodoState = {
+      todos: [],
+    };
 
     return {
       dashboards: {
@@ -75,6 +79,11 @@ export function loadState(): Partial<RootState> | null {
         ...(parsed.goal ?? {}),
         goals: parsed.goal?.goals ?? defaultGoalState.goals,
         sessions: parsed.goal?.sessions ?? defaultGoalState.sessions,
+      },
+      todo: {
+        ...defaultTodoState,
+        ...(parsed.todo ?? {}),
+        todos: parsed.todo?.todos ?? defaultTodoState.todos,
       },
     };
   } catch (error) {

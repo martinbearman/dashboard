@@ -9,29 +9,21 @@
 
 import TimerDisplay from './components/Timer/TimerDisplay';
 import GoalInput from './components/Goal/GoalInput';
-import GoalHistory from './components/Goal/GoalHistory';
 
 export default function TimerModulePage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Two-column layout: Timer on left, Goals on right */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
+      {/* Single column layout: Timer centered */}
+      <div className="flex flex-col h-full">
         
-        {/* Left Column - Timer */}
-        <div className="card text-center flex flex-col min-h-0">
+        {/* Timer Section */}
+        <div className="card text-center flex flex-col min-h-0 flex-1">
           <div className="flex-1 flex flex-col justify-center min-h-0">
             <TimerDisplay />
           </div>
           <div className="mt-4">
             <GoalInput />
-          </div>
-        </div>
-
-        {/* Right Column - Goals */}
-        <div className="flex flex-col min-h-0">
-          <div className="card bg-gray-50 flex-1 overflow-auto">
-            <GoalHistory />
           </div>
         </div>
 

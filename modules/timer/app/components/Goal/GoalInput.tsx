@@ -2,7 +2,7 @@
 
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { useState } from 'react';
-import { createGoal, clearCurrentGoal, completeSession } from '../../../store/slices/goalSlice';
+import { createTodo, clearActiveGoal, completeSession } from '@/lib/store/slices/todoSlice';
 import { start, pause, reset, skipBreak } from '../../../store/slices/timerSlice';
 
 export default function GoalInput() {
@@ -13,10 +13,9 @@ export default function GoalInput() {
   const studyDuration = useAppSelector(state => state.timer.studyDuration);
   const isBreak = useAppSelector(state => state.timer.isBreak);
   
-  // Get current goal using currentGoalId
-  const currentGoalId = useAppSelector(state => state.goal.currentGoalId);
+  // Get current active todo (goal)
   const currentGoal = useAppSelector(state => 
-    state.goal.goals.find(goal => goal.id === currentGoalId)
+    state.todo.todos.find(todo => todo.isActiveGoal)
   );
   // Check if the button is disabled based on the current state
   const isButtonDisabled = !currentGoal && goalText.trim() === '';
@@ -27,7 +26,11 @@ export default function GoalInput() {
   };
   // Start a new session
   const handleStartSession = () => {
-    dispatch(createGoal(goalText));  // Just pass the description
+    // Create a new todo and set it as active goal
+    dispatch(createTodo({ 
+      description: goalText,
+      setAsActive: true  // Set this todo as the active goal
+    }));
     dispatch(reset());
     dispatch(start());
     setGoalText('');
@@ -61,15 +64,17 @@ export default function GoalInput() {
   }
   // Save the current session and start a new one
   const handleSaveForLater = () => {
-    //const state = store.getState();
+    if (!currentGoal) return;
+    
     const elapsedTime = studyDuration - timeRemaining;
     
     dispatch(completeSession({
+      todoId: currentGoal.id,
       duration: elapsedTime,
       completed: true
     }))
     
-    dispatch(clearCurrentGoal())
+    dispatch(clearActiveGoal())
     dispatch(reset())
     console.log("handleSaveForLater called");
   }
@@ -100,7 +105,7 @@ export default function GoalInput() {
       {/* Current Goal Display */}
       <div className="text-center mt-4">
         {currentGoal && (
-          <p className="text-3xl text-red-600">{currentGoal.goalDescription}</p>
+          <p className="text-3xl text-red-600">{currentGoal.description}</p>
         )}
       </div>
 
