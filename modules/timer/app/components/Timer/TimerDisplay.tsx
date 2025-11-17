@@ -132,7 +132,7 @@ export default function TimerDisplay() {
       )}
 
       <div className="relative w-full flex flex-col items-center">
-        <div className="relative" style={{ width: '180px' }}>
+        <div className="relative z-20" style={{ width: '180px', marginBottom: '-8px' }}>
           <Image 
             src="/icons/tomato-too.svg" 
             alt="Timer" 
@@ -144,7 +144,26 @@ export default function TimerDisplay() {
             {formattedTime}
           </p>
         </div>
-        <hr className="w-full mt-0 h-2 bg-gray-300 border-0" />
+        {/* 3D Shelf (Trapezium) */}
+        <div className="relative w-full mt-0 z-10" style={{ height: '20px' }}>
+          {/* Top surface of shelf */}
+          <div 
+            className="absolute w-full bg-gray-300"
+            style={{
+              height: '12px',
+              clipPath: 'polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          />
+          {/* Front face of shelf for 3D effect */}
+          <div 
+            className="absolute bottom-0 w-full bg-gray-400"
+            style={{
+              height: '8px',
+              clipPath: 'polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%)',
+            }}
+          />
+        </div>
         
         {/* Break Mode Indicator */}
         {isBreak && (
