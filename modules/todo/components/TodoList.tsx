@@ -26,8 +26,14 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
   const [showInput, setShowInput] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sort todos by creation date (newest first)
-  const sortedTodos = [...todos].sort((a, b) => b.createdAt - a.createdAt);
+  // Sort todos: active goal first (only one can be active), then by creation date (newest first)
+  const sortedTodos = [...todos].sort((a, b) => {
+    // Active goal always comes first
+    if (a.isActiveGoal) return -1;
+    if (b.isActiveGoal) return 1;
+    // Otherwise sort by creation date (newest first)
+    return b.createdAt - a.createdAt;
+  });
 
   const handleTodoClick = (todoId: string) => {
     // Only allow switching if timer is NOT running
