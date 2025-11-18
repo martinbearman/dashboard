@@ -5,6 +5,9 @@ import { useState } from 'react';
 import { createTodo, clearActiveGoal, completeSession } from '@/lib/store/slices/todoSlice';
 import { start, pause, reset, skipBreak } from '../../../store/slices/timerSlice';
 
+const MAX_GOAL_DESCRIPTION_LENGTH = 40;
+const DISPLAY_MAX_LENGTH = 20;
+
 export default function GoalInput() {
   const dispatch = useAppDispatch();
   const [goalText, setGoalText] = useState('');
@@ -19,6 +22,15 @@ export default function GoalInput() {
   );
   // Check if the button is disabled based on the current state
   const isButtonDisabled = !currentGoal && goalText.trim() === '';
+  const remainingChars = MAX_GOAL_DESCRIPTION_LENGTH - goalText.length;
+
+  // Truncate description for display
+  const getDisplayText = (text: string) => {
+    if (text.length <= DISPLAY_MAX_LENGTH) {
+      return text;
+    }
+    return text.slice(0, DISPLAY_MAX_LENGTH) + '...';
+  };
 
   // Handle skip break
   const handleSkipBreak = () => {
@@ -105,23 +117,33 @@ export default function GoalInput() {
       {/* Current Goal Display */}
       <div className="text-center mt-4">
         {currentGoal && (
-          <p className="text-3xl text-red-600">{currentGoal.description}</p>
+          <p className="text-3xl text-red-600">{getDisplayText(currentGoal.description)}</p>
         )}
       </div>
 
       {/* Goal Input Section */}
       <div>
         {!currentGoal && (
-          <input
-            id="goal-input"
-            type="text"
-            value={goalText}
-            onChange={(e) => setGoalText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter your next goal..."
-            aria-label="Enter your next goal"
-            className="py-5 px-4 text-xl text-center block w-full my-4"
-          />
+          <div className="relative">
+            <input
+              id="goal-input"
+              type="text"
+              value={goalText}
+              onChange={(e) => {
+                if (e.target.value.length <= MAX_GOAL_DESCRIPTION_LENGTH) {
+                  setGoalText(e.target.value);
+                }
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter your next goal..."
+              aria-label="Enter your next goal"
+              maxLength={MAX_GOAL_DESCRIPTION_LENGTH}
+              className="py-5 px-4 text-xl text-center block w-full my-4"
+            />
+            <div className="absolute bottom-0 right-0 text-xs text-gray-400 mb-1 mr-2">
+              {remainingChars}
+            </div>
+          </div>
         )}
         
         <div className="flex gap-3">

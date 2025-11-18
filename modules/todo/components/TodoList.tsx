@@ -6,6 +6,9 @@ import { setTimeRemaining } from "@/modules/timer/store/slices/timerSlice";
 import { formatTime, formatTimeStamp, isToday } from "@/modules/timer/lib/utils";
 import { useState, useRef, useEffect } from "react";
 
+const MAX_GOAL_DESCRIPTION_LENGTH = 40;
+const DISPLAY_MAX_LENGTH = 20;
+
 interface TodoListProps {
   moduleId: string;
   config?: Record<string, any>;
@@ -75,7 +78,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     if (newTodoText.trim() === "") return;
     
     dispatch(createTodo({
-      description: newTodoText.trim()
+      description: newTodoText.trim().slice(0, MAX_GOAL_DESCRIPTION_LENGTH)
     }));
     
     setNewTodoText("");
@@ -99,6 +102,14 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     }
   };
 
+  // Truncate description for display
+  const getDisplayText = (text: string) => {
+    if (text.length <= DISPLAY_MAX_LENGTH) {
+      return text;
+    }
+    return text.slice(0, DISPLAY_MAX_LENGTH) + '...';
+  };
+
   return (
     <div className="relative h-full flex flex-col">
       {/* Todos List - Scrollable */}
@@ -114,12 +125,12 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
               key={todo.id}
               onClick={() => handleTodoClick(todo.id)}
               className={`
-                relative p-4 rounded-lg border transition-all duration-200 hover:shadow-md
+                relative p-4 rounded-lg border transition-all duration-200 hover:shadow-xl hover:scale-[1.02]
                 ${todo.isActiveGoal
-                  ? 'bg-red-100 border-red-300 shadow-md cursor-pointer'  // Highlight active goal
+                  ? 'bg-red-100 border-red-300 shadow-md cursor-pointer hover:shadow-xl hover:scale-[1.02]'  // Highlight active goal
                   : todo.completed
                   ? 'bg-gray-50 border-gray-200 cursor-default'
-                  : 'bg-white border-gray-200 hover:border-gray-300 cursor-pointer'
+                  : 'bg-white border-gray-200 hover:border-gray-400 hover:bg-gray-50 cursor-pointer'
                 }
               `}
             >
@@ -154,7 +165,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
                     ? 'text-red-800' 
                     : 'text-gray-800'
                 }`}>
-                  {todo.description}
+                  {getDisplayText(todo.description)}
                 </h3>
                 <div className="flex items-center gap-2">
                   {todo.isActiveGoal && (
@@ -192,20 +203,33 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
       </div>
 
       {/* Bottom Section - Button and Input */}
+      {showInput && (
+        <div className="absolute bottom-0 left-0 right-0 h-[80px] bg-gradient-to-b from-transparent to-white pointer-events-none z-10"></div>
+      )}
       <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-end gap-2 z-20 max-w-full">
         {/* Todo Creation Input - Shown when + button is clicked */}
         {showInput && (
           <div className="flex gap-2 transition-all duration-200 flex-1 max-w-[calc(100%-3rem)]">
-            <input
-              ref={inputRef}
-              type="text"
-              value={newTodoText}
-              onChange={(e) => setNewTodoText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Add a new todo..."
-              className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              aria-label="Add a new todo"
-            />
+            <div className="flex-1 min-w-0 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={newTodoText}
+                onChange={(e) => {
+                  if (e.target.value.length <= MAX_GOAL_DESCRIPTION_LENGTH) {
+                    setNewTodoText(e.target.value);
+                  }
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Add a new todo..."
+                maxLength={MAX_GOAL_DESCRIPTION_LENGTH}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                aria-label="Add a new todo"
+              />
+              <div className="absolute bottom-0 right-0 text-xs text-gray-400 mb-1 mr-2">
+                {MAX_GOAL_DESCRIPTION_LENGTH - newTodoText.length}
+              </div>
+            </div>
             <button
               onClick={handleCreateTodo}
               disabled={newTodoText.trim() === ""}
