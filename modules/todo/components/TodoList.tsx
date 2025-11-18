@@ -1,9 +1,10 @@
 "use client";
 
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
-import { setActiveGoal, deleteTodo, clearActiveGoal } from "@/lib/store/slices/todoSlice";
+import { setActiveGoal, deleteTodo, clearActiveGoal, createTodo } from "@/lib/store/slices/todoSlice";
 import { setTimeRemaining } from "@/modules/timer/store/slices/timerSlice";
 import { formatTime, formatTimeStamp, isToday } from "@/modules/timer/lib/utils";
+import { useState, useRef, useEffect } from "react";
 
 interface TodoListProps {
   moduleId: string;
@@ -21,6 +22,9 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
   const isRunning = useAppSelector(state => state.timer.isRunning);
   const studyDuration = useAppSelector(state => state.timer.studyDuration);
   const dispatch = useAppDispatch();
+  const [newTodoText, setNewTodoText] = useState("");
+  const [showInput, setShowInput] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Sort todos by creation date (newest first)
   const sortedTodos = [...todos].sort((a, b) => b.createdAt - a.createdAt);
@@ -54,15 +58,52 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     dispatch(deleteTodo(todoId));
   };
 
+  // Auto-focus input when it appears
+  useEffect(() => {
+    if (showInput && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [showInput]);
+
+  const handleCreateTodo = () => {
+    if (newTodoText.trim() === "") return;
+    
+    dispatch(createTodo({
+      description: newTodoText.trim()
+    }));
+    
+    setNewTodoText("");
+    setShowInput(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleCreateTodo();
+    } else if (e.key === "Escape") {
+      setNewTodoText("");
+      setShowInput(false);
+    }
+  };
+
+  const handleToggleInput = () => {
+    setShowInput(!showInput);
+    if (!showInput) {
+      // Clear text when opening
+      setNewTodoText("");
+    }
+  };
+
   return (
-    <div className="p-4">
-      {sortedTodos.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <p className="text-lg">No todos yet. Create one to get started!</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {sortedTodos.map((todo) => (
+    <div className="relative h-full flex flex-col">
+      {/* Todos List - Scrollable */}
+      <div className="flex-1 overflow-auto pb-20 px-4 pt-4">
+        {sortedTodos.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p className="text-lg">No todos yet. Click the + button to create one!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedTodos.map((todo) => (
             <div
               key={todo.id}
               onClick={() => handleTodoClick(todo.id)}
@@ -140,8 +181,67 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
               </div>
             </div>
           ))}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Section - Button and Input */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-end gap-2 z-20 max-w-full">
+        {/* Todo Creation Input - Shown when + button is clicked */}
+        {showInput && (
+          <div className="flex gap-2 transition-all duration-200 flex-1 max-w-[calc(100%-3rem)]">
+            <input
+              ref={inputRef}
+              type="text"
+              value={newTodoText}
+              onChange={(e) => setNewTodoText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Add a new todo..."
+              className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              aria-label="Add a new todo"
+            />
+            <button
+              onClick={handleCreateTodo}
+              disabled={newTodoText.trim() === ""}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors flex-shrink-0 ${
+                newTodoText.trim() === ""
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-red-500 hover:bg-red-600 text-white"
+              }`}
+              aria-label="Create todo"
+            >
+              Add
+            </button>
+          </div>
+        )}
+        
+        {/* Circular Add Button - Bottom Right */}
+        <button
+          onClick={handleToggleInput}
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 ${
+            showInput
+              ? "bg-gray-400 hover:bg-gray-500 text-white rotate-45"
+              : "bg-red-500 hover:bg-red-600 text-white"
+          }`}
+          aria-label={showInput ? "Cancel" : "Add new todo"}
+          title={showInput ? "Cancel" : "Add new todo"}
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-6 w-6" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M12 4v16m8-8H4" 
+            />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
