@@ -327,7 +327,7 @@ describe('GoalHistory Component', () => {
     // Check that formatted time is displayed
     const timeHeading = screen.getByText('Total Time')
     const timeContainer = timeHeading.closest('div')
-    expect(timeContainer).toHaveTextContent('01:02') // minutes:seconds format
+    expect(timeContainer).toHaveTextContent('1:02:03') // hours:minutes:seconds format
   })
 })
 

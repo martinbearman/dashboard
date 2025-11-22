@@ -27,6 +27,25 @@ export function formatTime(seconds: number): string {
 }
 
 /**
+ * Format seconds into HH:MM:SS format for total time display
+ * 
+ * @param seconds - Total seconds to format
+ * @returns Formatted time string (e.g., "1:25:30", "00:05:30", "0:00:05")
+ * 
+ * Example:
+ * formatTotalTime(3723) => "1:02:03"  (1 hour, 2 minutes, 3 seconds)
+ * formatTotalTime(90) => "0:01:30"    (1 minute, 30 seconds)
+ * formatTotalTime(5) => "0:00:05"     (5 seconds)
+ */
+export function formatTotalTime(seconds: number): string {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+  
+  return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+}
+
+/**
  * Convert minutes to seconds
  * 
  * @param minutes - Number of minutes

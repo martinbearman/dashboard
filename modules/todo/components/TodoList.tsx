@@ -33,6 +33,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
   const dispatch = useAppDispatch();
   const [newTodoText, setNewTodoText] = useState("");
   const [showInput, setShowInput] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Sort todos: active goal first (only one can be active), then by creation date (oldest first, so new todos appear at end)
@@ -117,6 +118,34 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
 
   return (
     <div className="relative h-full flex flex-col">
+      {/* Details Toggle - Only shown when there are todos */}
+      {sortedTodos.length > 0 && (
+        <div className="flex justify-end px-4 pt-2 pb-2">
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+            aria-label={showDetails ? "Hide details" : "Show details"}
+            title={showDetails ? "Hide details" : "Show details"}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-4 w-4 transition-transform duration-200 ${showDetails ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+            <span>{showDetails ? "Hide Details" : "Show Details"}</span>
+          </button>
+        </div>
+      )}
+      
       {/* Todos List - Scrollable */}
       <div className="flex-1 overflow-auto pb-20 px-4 pt-4">
         {sortedTodos.length === 0 ? (
@@ -131,6 +160,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
                 todo={todo}
                 onCardClick={() => handleTodoClick(todo.id)}
                 onDelete={handleDeleteTodo}
+                showDetails={showDetails}
                 actionSlot={
                   <button
                     onClick={(e) => {

@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import { Todo } from "@/lib/store/slices/todoSlice";
-import { formatTime, formatTimeStamp, isToday } from "@/modules/timer/lib/utils";
+import { formatTotalTime, formatTimeStamp, isToday } from "@/modules/timer/lib/utils";
 
 interface TodoCardProps {
   todo: Todo;
@@ -24,7 +24,7 @@ export default function TodoCard({
   onCardClick,
   onDelete,
   actionSlot,
-  showDetails = true, // Default to showing details for backwards compatibility
+  showDetails = false, // Default to hiding details for cleaner UI
 }: TodoCardProps) {
 
   const handleDeleteClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -110,7 +110,7 @@ export default function TodoCard({
           <div>
             <span className="text-gray-500 block">Total Time</span>
             <span className="text-gray-700 font-medium">
-              {formatTime(todo.totalTimeStudied)}
+              {formatTotalTime(todo.totalTimeStudied)}
             </span>
           </div>
           <div>

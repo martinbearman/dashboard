@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
-import { formatTime, formatTimeStamp, isToday } from '../../../lib/utils'
+import { formatTotalTime, formatTimeStamp, isToday } from '../../../lib/utils'
 import { setCurrentGoal } from '../../../store/slices/goalSlice'
 import { setTimeRemaining } from '../../../store/slices/timerSlice'
 
@@ -73,7 +73,7 @@ export default function GoalHistory() {
                 </div>
                 <div>
                   <span className="text-gray-500 block">Total Time</span>
-                  <span className="text-gray-700 font-medium">{formatTime(goal.totalTimeStudied)}</span>
+                  <span className="text-gray-700 font-medium">{formatTotalTime(goal.totalTimeStudied)}</span>
                 </div>
                 <div>
                   <span className="text-gray-500 block">Sessions</span>
