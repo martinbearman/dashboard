@@ -8,5 +8,25 @@
     "description": "In Escher's world, a wall may very well also be a floor. One of the best illustrations of this Escher phenomenon can be seen in Relativity. Here he brings together three worlds, each with its own gravity field. What is at the bottom can be seen as the top from another perspective, and horizontal can suddenly become vertical. This wondrous space is populated by various human figures. They use the same stairs, but some are walking up them while others are descending. Their position in space is always relative. In the perspective of their own world, everything is correct, but they cannot place themselves in the perspective of the others; they would fall. They literally and figuratively live separately alongside each other. Escher made both a lithograph and a woodcut of this print. The work is one of a series of prints in which he has combined various perspectives and viewpoints in one single image.",
     "imageUrl": "/artworks/1-relativity.webp",
     "museum": "Various collections worldwide"
+  },
+  {
+    "id": "2",
+    "title": "San Giorgio Maggiore at Dusk",
+    "artist": "Claude Monet",
+    "year": "1908–1912",
+    "medium": "Oil on canvas",
+    "description": "San Giorgio Maggiore at Dusk (French: Saint-Georges Majeur au Crépuscule, Italian: San Giorgio Maggiore al crepuscolo) is one of Claude Monet's iconic Venetian paintings. Created during his visit to Venice in 1908, this work captures the famous church of San Giorgio Maggiore as seen from across the Grand Canal during the magical hours of twilight. Monet's masterful use of color and light transforms the scene into a dreamlike vision, with the church's silhouette emerging from the shimmering waters and the warm, atmospheric sky. The painting demonstrates Monet's Impressionist technique at its finest, with loose brushstrokes that capture the fleeting effects of light and atmosphere rather than precise architectural details.",
+    "imageUrl": "/artworks/2_Claude_Monet,_Saint-Georges_majeur_au_crépuscule.jpg",
+    "museum": "National Museum Cardiff, Cardiff, Wales"
+  },
+  {
+    "id": "3",
+    "title": "Sunflowers",
+    "artist": "Vincent van Gogh",
+    "year": "1888",
+    "medium": "Oil on canvas",
+    "description": "Sunflowers is one of Vincent van Gogh's most celebrated series of paintings, created in 1888 during his time in Arles, France. This particular work, measuring 92.1 × 73 cm, showcases van Gogh's distinctive post-impressionist style with bold, expressive brushstrokes and vibrant yellow hues. The painting depicts a bouquet of sunflowers in a vase, rendered with intense color and emotional depth. Van Gogh painted multiple versions of sunflowers, considering them a symbol of gratitude and friendship. This masterpiece, signed by the artist and acquired by the National Gallery in 1924, exemplifies van Gogh's revolutionary approach to color and form, where the flowers seem to pulse with life and energy. The work is displayed in a 17th-century Italian frame, adding to its historical significance.",
+    "imageUrl": "/artworks/3_Vincent_Van_Gogh_Sunflowers.jpg",
+    "museum": "National Gallery, London (Room 43)"
   }
 ]
