@@ -143,7 +143,7 @@ export default function ArtDisplay({ moduleId, config }: ModuleProps) {
         <div className="flex flex-col items-center justify-center h-full gap-4">
           <div className="text-red-600 text-sm">{error}</div>
           <button
-            onClick={fetchArtwork}
+            onClick={() => fetchArtwork()}
             className="px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
           >
             Try Again
@@ -223,7 +223,7 @@ export default function ArtDisplay({ moduleId, config }: ModuleProps) {
           {/* Footer with New Artwork button */}
           <div className="mt-4 pt-4 border-t border-gray-700 flex-shrink-0">
             <button
-              onClick={fetchArtwork}
+              onClick={() => fetchArtwork()}
               className="w-full px-3 py-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
               aria-label="Get new artwork"
