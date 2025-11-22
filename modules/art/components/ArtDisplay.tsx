@@ -16,6 +16,38 @@ interface Artwork {
   museum: string;
 }
 
+const ARTWORK_INDEX_KEY = "artwork-current-index";
+
+function getCurrentArtworkIndex(): number {
+  if (typeof window === "undefined") {
+    return 0;
+  }
+  try {
+    const stored = localStorage.getItem(ARTWORK_INDEX_KEY);
+    return stored !== null ? parseInt(stored, 10) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function setCurrentArtworkIndex(index: number): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    localStorage.setItem(ARTWORK_INDEX_KEY, index.toString());
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
+function getNextArtworkIndex(): number {
+  const currentIndex = getCurrentArtworkIndex();
+  const nextIndex = currentIndex + 1;
+  setCurrentArtworkIndex(nextIndex);
+  return nextIndex;
+}
+
 export default function ArtDisplay({ moduleId, config }: ModuleProps) {
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +58,7 @@ export default function ArtDisplay({ moduleId, config }: ModuleProps) {
   } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const fetchArtwork = async () => {
+  const fetchArtwork = async (useNextIndex: boolean = true) => {
     // Cancel any existing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -40,7 +72,9 @@ export default function ArtDisplay({ moduleId, config }: ModuleProps) {
     setError(null);
 
     try {
-      const response = await fetch("/api/art", {
+      // Get the next artwork index for linear rotation
+      const artworkIndex = useNextIndex ? getNextArtworkIndex() : getCurrentArtworkIndex();
+      const response = await fetch(`/api/art?index=${artworkIndex}`, {
         signal: controller.signal,
       });
 
@@ -82,7 +116,8 @@ export default function ArtDisplay({ moduleId, config }: ModuleProps) {
   };
 
   useEffect(() => {
-    fetchArtwork();
+    // On initial load, use current index (don't increment)
+    fetchArtwork(false);
 
     return () => {
       // Cancel any pending request when component unmounts

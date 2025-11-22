@@ -4,8 +4,6 @@ import { ReactNode } from "react";
 import { Todo } from "@/lib/store/slices/todoSlice";
 import { formatTime, formatTimeStamp, isToday } from "@/modules/timer/lib/utils";
 
-const DISPLAY_MAX_LENGTH = 40;
-
 interface TodoCardProps {
   todo: Todo;
   onCardClick?: () => void;
@@ -28,10 +26,6 @@ export default function TodoCard({
   actionSlot,
   showDetails = true, // Default to showing details for backwards compatibility
 }: TodoCardProps) {
-  const displayDescription =
-    todo.description.length > DISPLAY_MAX_LENGTH
-      ? `${todo.description.slice(0, DISPLAY_MAX_LENGTH)}...`
-      : todo.description;
 
   const handleDeleteClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -83,7 +77,7 @@ export default function TodoCard({
               : "text-gray-800"
           }`}
         >
-          {displayDescription}
+          {todo.description}
         </h3>
         <div className="flex items-center gap-2 flex-shrink-0">
           {todo.isActiveGoal && !todo.completed && (
