@@ -4,6 +4,7 @@ import TimerConfigPanel from "./timer/app/components/Settings/TimerConfigPanel";
 import QuoteModuleComponent from "./quote/QuoteModule";
 import TodoModuleComponent from "./todo/TodoModule";
 import CompletedModuleComponent from "./completed/CompletedModule";
+import ArtModuleComponent from "./art/ArtModule";
 
 // Timer module - component lives in modules/timer/ folder
 const TimerModule: DashboardModule = {
@@ -48,6 +49,16 @@ const QuoteModule: DashboardModule = {
   component: QuoteModuleComponent,
 };
 
+const ArtModule: DashboardModule = {
+  type: "art",
+  displayName: "Artwork",
+  description: "Discover beautiful works of art from around the world",
+  defaultGridSize: { w: 3, h: 5 },
+  minGridSize: { w: 2, h: 4 },
+  maxGridSize: { w: 6, h: 8 },
+  component: ArtModuleComponent,
+};
+
 const DateTimeModule: DashboardModule = {
   type: "datetime",
   displayName: "Date & Time",
@@ -73,6 +84,7 @@ export const moduleRegistry: DashboardModule[] = [
   TodoModule,
   CompletedModule,
   QuoteModule,
+  ArtModule,
   // DateTimeModule, // Not built yet
   // WeatherModule, // Not built yet
 ];
