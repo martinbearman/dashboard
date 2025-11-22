@@ -3,6 +3,7 @@ import TimerModuleComponent from "./timer/TimerModule";
 import TimerConfigPanel from "./timer/app/components/Settings/TimerConfigPanel";
 import QuoteModuleComponent from "./quote/QuoteModule";
 import TodoModuleComponent from "./todo/TodoModule";
+import CompletedModuleComponent from "./completed/CompletedModule";
 
 // Timer module - component lives in modules/timer/ folder
 const TimerModule: DashboardModule = {
@@ -25,6 +26,16 @@ const TodoModule: DashboardModule = {
   minGridSize: { w: 2, h: 2 },
   maxGridSize: { w: 8, h: 6 },
   component: TodoModuleComponent,
+};
+
+const CompletedModule: DashboardModule = {
+  type: "completed",
+  displayName: "Completed Tasks",
+  description: "View your finished work at a glance",
+  defaultGridSize: { w: 3, h: 3 },
+  minGridSize: { w: 2, h: 2 },
+  maxGridSize: { w: 8, h: 6 },
+  component: CompletedModuleComponent,
 };
 
 const QuoteModule: DashboardModule = {
@@ -60,6 +71,7 @@ const WeatherModule: DashboardModule = {
 export const moduleRegistry: DashboardModule[] = [
   TimerModule,
   TodoModule,
+  CompletedModule,
   QuoteModule,
   // DateTimeModule, // Not built yet
   // WeatherModule, // Not built yet

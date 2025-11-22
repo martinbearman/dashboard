@@ -10,9 +10,10 @@ import { getModuleByType } from "@/modules/registry";
 type ModuleActionsMenuProps = {
   moduleId: string;
   locked: boolean;
+  moduleName: string;
 };
 
-export function ModuleActionsMenu({ moduleId, locked }: ModuleActionsMenuProps) {
+export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const dispatch = useAppDispatch();
@@ -46,7 +47,14 @@ export function ModuleActionsMenu({ moduleId, locked }: ModuleActionsMenuProps) 
   // Toggle the popover visibility when the trigger button is pressed.
   const handleToggle = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    event.preventDefault();
     setIsOpen((prev) => !prev);
+  };
+
+  // Prevent drag initiation when interacting with menu elements
+  const handleMenuInteraction = (event: React.MouseEvent | React.PointerEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
   };
 
   const handleConfigure = (event: MouseEvent<HTMLButtonElement>) => {
@@ -95,15 +103,52 @@ export function ModuleActionsMenu({ moduleId, locked }: ModuleActionsMenuProps) 
     <>
       <div
         ref={containerRef}
-        className="absolute top-2 right-2 z-20 module-actions-interactive"
+        className="flex items-center justify-between px-3 py-2 bg-gray-100 border-b border-gray-300 rounded-t-lg"
+      >
+      {/* Module name with drag indicator - only this part is draggable */}
+      <div 
+        className={`module-drag-handle flex items-center gap-2 text-sm flex-1 ${
+          locked ? "cursor-default text-gray-500" : "cursor-move text-gray-700"
+        }`}
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className={locked ? "text-gray-400" : "text-gray-500"}
+        >
+          <circle cx="2" cy="2" r="1" fill="currentColor" />
+          <circle cx="6" cy="2" r="1" fill="currentColor" />
+          <circle cx="10" cy="2" r="1" fill="currentColor" />
+          <circle cx="2" cy="6" r="1" fill="currentColor" />
+          <circle cx="6" cy="6" r="1" fill="currentColor" />
+          <circle cx="10" cy="6" r="1" fill="currentColor" />
+          <circle cx="2" cy="10" r="1" fill="currentColor" />
+          <circle cx="6" cy="10" r="1" fill="currentColor" />
+          <circle cx="10" cy="10" r="1" fill="currentColor" />
+        </svg>
+        <span className="text-sm font-medium">
+          {moduleName}
+          {locked && <span className="text-gray-400 font-normal"> (locked)</span>}
+        </span>
+      </div>
+
+      {/* Menu button - separate from drag handle */}
+      <div 
+        className="relative z-30 module-actions-interactive"
+        onMouseDown={handleMenuInteraction}
+        onPointerDown={handleMenuInteraction}
       >
         <button
           type="button"
-          className="module-actions-interactive relative z-20 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:bg-gray-100"
+          className="relative z-30 flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50 hover:border-gray-400 hover:scale-110"
           aria-label="Open module menu"
           aria-haspopup="menu"
           aria-expanded={isOpen}
-          onPointerDown={(event) => event.stopPropagation()}
+          onMouseDown={handleMenuInteraction}
+          onPointerDown={handleMenuInteraction}
           onClick={handleToggle}
         >
           ⋮
@@ -111,12 +156,16 @@ export function ModuleActionsMenu({ moduleId, locked }: ModuleActionsMenuProps) 
         {isOpen ? (
           <div
             role="menu"
-            className="module-actions-interactive absolute right-0 mt-2 w-40 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg z-10"
+            className="module-actions-interactive absolute right-0 mt-2 w-40 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg z-30"
+            onMouseDown={handleMenuInteraction}
+            onPointerDown={handleMenuInteraction}
           >
             <button
               type="button"
               role="menuitem"
               className="w-full px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+              onMouseDown={handleMenuInteraction}
+              onPointerDown={handleMenuInteraction}
               onClick={withMenuClose(handleConfigure)}
               disabled={!ConfigPanel}
             >
@@ -126,6 +175,8 @@ export function ModuleActionsMenu({ moduleId, locked }: ModuleActionsMenuProps) 
               type="button"
               role="menuitem"
               className="w-full px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100"
+              onMouseDown={handleMenuInteraction}
+              onPointerDown={handleMenuInteraction}
               onClick={withMenuClose(handleToggleLock)}
             >
               {locked ? "Unlock" : "Lock"}
@@ -134,15 +185,18 @@ export function ModuleActionsMenu({ moduleId, locked }: ModuleActionsMenuProps) 
               type="button"
               role="menuitem"
               className="w-full px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+              onMouseDown={handleMenuInteraction}
+              onPointerDown={handleMenuInteraction}
               onClick={withMenuClose(handleRemove)}
               disabled={locked}
               aria-disabled={locked}
             >
-              Remove
+              Close
             </button>
           </div>
         ) : null}
       </div>
+    </div>
 
       {/* Configuration Modal */}
       {showConfigModal && ConfigPanel && (

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ModuleDragHandle } from "@/components/modules/ModuleDragHandle";
+import { ModuleActionsMenu } from "@/components/modules/ModuleActionsMenu";
 import { useAppSelector } from "@/lib/store/hooks";
 import { getModuleByType } from "@/modules/registry";
 
@@ -29,7 +29,7 @@ export default function ModuleWrapper({
       className="bg-white rounded-lg shadow-md text-black relative w-full h-full flex flex-col overflow-hidden"
       data-locked={locked}
     >
-      <ModuleDragHandle moduleId={moduleId} locked={locked} moduleName={moduleName} />
+      <ModuleActionsMenu moduleId={moduleId} locked={locked} moduleName={moduleName} />
       <div className="flex-1 p-4 overflow-auto">{children}</div>
     </div>
   );

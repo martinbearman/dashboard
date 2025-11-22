@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit'
+import type { RootState } from '../store'
 
 /**
  * Priority levels for todos
@@ -157,6 +158,7 @@ const todoSlice = createSlice({
   }
 })
 
+// Slice action creators expose core todo behaviors used throughout the app.
 export const { 
   createTodo, 
   toggleTodo, 
@@ -170,4 +172,18 @@ export const {
   loadTodos 
 } = todoSlice.actions
 export default todoSlice.reducer
+
+/**
+ * Selectors for querying todo data subsets (all, incomplete-only, completed-only).
+ * These keep filtering logic centralized so modules can consume the precise view they need.
+ */
+export const selectTodos = (state: RootState) => state.todo.todos
+export const selectIncompleteTodos = createSelector(
+  selectTodos,
+  todos => todos.filter(todo => !todo.completed)
+)
+export const selectCompletedTodos = createSelector(
+  selectTodos,
+  todos => todos.filter(todo => todo.completed)
+)
 

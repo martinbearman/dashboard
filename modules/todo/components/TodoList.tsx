@@ -1,13 +1,19 @@
 "use client";
 
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
-import { setActiveGoal, deleteTodo, clearActiveGoal, createTodo } from "@/lib/store/slices/todoSlice";
+import { 
+  setActiveGoal, 
+  deleteTodo, 
+  clearActiveGoal, 
+  createTodo,
+  selectIncompleteTodos,
+  toggleTodo
+} from "@/lib/store/slices/todoSlice";
 import { setTimeRemaining } from "@/modules/timer/store/slices/timerSlice";
-import { formatTime, formatTimeStamp, isToday } from "@/modules/timer/lib/utils";
 import { useState, useRef, useEffect } from "react";
+import TodoCard from "./TodoCard";
 
 const MAX_GOAL_DESCRIPTION_LENGTH = 40;
-const DISPLAY_MAX_LENGTH = 40;
 
 interface TodoListProps {
   moduleId: string;
@@ -21,7 +27,7 @@ interface TodoListProps {
  * Shows todos with timer-related information and allows switching active goals.
  */
 export default function TodoList({ moduleId, config }: TodoListProps) {
-  const todos = useAppSelector(state => state.todo.todos);
+  const todos = useAppSelector(selectIncompleteTodos);
   const isRunning = useAppSelector(state => state.timer.isRunning);
   const studyDuration = useAppSelector(state => state.timer.studyDuration);
   const dispatch = useAppDispatch();
@@ -52,9 +58,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     }
   };
 
-  const handleDeleteTodo = (e: React.MouseEvent, todoId: string) => {
-    e.stopPropagation(); // Prevent triggering the todo click handler
-    
+  const handleDeleteTodo = (todoId: string) => {
     const todo = todos.find(t => t.id === todoId);
     if (!todo) return;
     
@@ -62,9 +66,18 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     if (todo.isActiveGoal) {
       dispatch(clearActiveGoal());
     }
-    
-    // Delete the todo
     dispatch(deleteTodo(todoId));
+  };
+
+  const handleCompleteTodo = (todoId: string) => {
+    const todo = todos.find(t => t.id === todoId);
+    if (!todo || todo.completed) return;
+
+    if (todo.isActiveGoal) {
+      dispatch(clearActiveGoal());
+    }
+
+    dispatch(toggleTodo(todoId));
   };
 
   // Auto-focus input when it appears
@@ -102,14 +115,6 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     }
   };
 
-  // Truncate description for display
-  const getDisplayText = (text: string) => {
-    if (text.length <= DISPLAY_MAX_LENGTH) {
-      return text;
-    }
-    return text.slice(0, DISPLAY_MAX_LENGTH) + '...';
-  };
-
   return (
     <div className="relative h-full flex flex-col">
       {/* Todos List - Scrollable */}
@@ -121,83 +126,39 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
         ) : (
           <div className="space-y-3">
             {sortedTodos.map((todo) => (
-            <div
-              key={todo.id}
-              onClick={() => handleTodoClick(todo.id)}
-              className={`
-                relative p-4 rounded-lg border transition-all duration-200 hover:shadow-xl hover:scale-[1.02]
-                ${todo.isActiveGoal
-                  ? 'bg-red-100 border-red-300 shadow-md cursor-pointer hover:shadow-xl hover:scale-[1.02]'  // Highlight active goal
-                  : todo.completed
-                  ? 'bg-gray-50 border-gray-200 cursor-default'
-                  : 'bg-white border-gray-200 hover:border-gray-400 hover:bg-gray-50 cursor-pointer'
+              <TodoCard
+                key={todo.id}
+                todo={todo}
+                onCardClick={() => handleTodoClick(todo.id)}
+                onDelete={handleDeleteTodo}
+                actionSlot={
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCompleteTodo(todo.id);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md border border-gray-400 px-3 py-1 text-sm font-medium text-gray-600 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
+                    aria-label="Mark todo done"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Done
+                  </button>
                 }
-              `}
-            >
-              {/* Circular delete button positioned on the edge */}
-              <button
-                onClick={(e) => handleDeleteTodo(e, todo.id)}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-colors shadow-sm hover:shadow-md z-10"
-                aria-label="Delete todo"
-                title="Delete todo"
-              >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-4 w-4" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M6 18L18 6M6 6l12 12" 
-                  />
-                </svg>
-              </button>
-              
-              <div className="flex justify-between items-start mb-2">
-                <h3 className={`font-semibold text-lg flex-1 ${
-                  todo.completed 
-                    ? 'line-through text-gray-400' 
-                    : todo.isActiveGoal 
-                    ? 'text-red-800' 
-                    : 'text-gray-800'
-                }`}>
-                  {getDisplayText(todo.description)}
-                </h3>
-                <div className="flex items-center gap-2">
-                  {todo.isActiveGoal && (
-                    <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                      Current
-                    </span>
-                  )}
-                  {todo.completed && (
-                    <span className="text-green-500 text-xl">✓</span>
-                  )}
-                </div>
-              </div>
-              
-              {/* Timer-related information */}
-              <div className="grid grid-cols-3 gap-4 text-sm mt-3">
-                <div>
-                  <span className="text-gray-500 block">Created</span>
-                  <span className="text-gray-700" suppressHydrationWarning>
-                    {formatTimeStamp(todo.createdAt)} {isToday(todo.createdAt) ? '(today)' : ''}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-500 block">Total Time</span>
-                  <span className="text-gray-700 font-medium">{formatTime(todo.totalTimeStudied)}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500 block">Sessions</span>
-                  <span className="text-gray-700 font-medium">{todo.sessions.length}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+              />
+            ))}
           </div>
         )}
       </div>
