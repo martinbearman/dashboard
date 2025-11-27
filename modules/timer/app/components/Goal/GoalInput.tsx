@@ -17,9 +17,11 @@ export default function GoalInput() {
   const isBreak = useAppSelector(state => state.timer.isBreak);
   
   // Get current active todo (goal)
-  const currentGoal = useAppSelector(state => 
-    state.todo.todos.find(todo => todo.isActiveGoal)
-  );
+  const currentGoal = useAppSelector(state => {
+    const allTodos = Object.values(state.todo.todosByList).flat();
+    return allTodos.find(todo => todo.isActiveGoal);
+  });
+  
   // Check if the button is disabled based on the current state
   const isButtonDisabled = !currentGoal && goalText.trim() === '';
   const remainingChars = MAX_GOAL_DESCRIPTION_LENGTH - goalText.length;
@@ -88,7 +90,6 @@ export default function GoalInput() {
     
     dispatch(clearActiveGoal())
     dispatch(reset())
-    console.log("handleSaveForLater called");
   }
 
   // Get the button click handler based on the current state

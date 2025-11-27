@@ -128,8 +128,6 @@ export function formatTimeStamp(timestamp: number): string {
   return `${dateString} at ${timeString}`
 }
 
-console.log(formatTimeStamp(Date.now()))
-
 /**
  * Check if a timestamp is today
  * 
@@ -143,5 +141,3 @@ export function isToday(timestamp: number): boolean {
 
   return date.toDateString() === today.toDateString()
 }
-
-console.log(isToday(Date.now()))

@@ -64,7 +64,10 @@ const goalSlice = createSlice({
     },
     // Set the current goal to the goal with the given id
     setCurrentGoal: (state, action: PayloadAction<string>) => {
-      state.currentGoalId = action.payload
+      const goalExists = state.goals.some(g => g.id === action.payload)
+      if (goalExists) {
+        state.currentGoalId = action.payload
+      }
     },
     // Clear the current goal
     clearCurrentGoal: (state) => {
@@ -104,9 +107,6 @@ const goalSlice = createSlice({
       // Update global stats
       state.totalStudyTime += action.payload.duration
       state.totalSessions += 1
-
-      console.trace("completeSession called", action.payload);
-
     },
     
     // Load goals from database
