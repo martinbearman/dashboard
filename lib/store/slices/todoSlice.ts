@@ -22,6 +22,7 @@ export interface TodoSession {
  */
 export interface Todo {
   id: string
+  listId: string            // The list this todo belongs to, default is DEFAULT_LIST_ID
   description: string
   completed: boolean
   createdAt: number
@@ -36,15 +37,21 @@ export interface Todo {
 /**
  * Todo State Interface
  */
+
+const DEFAULT_TODO_LIST_ID = 'default'
+
 export interface TodoState {
-  todos: Todo[]
+  todosByList: Record<string, Todo[]>
 }
 
-/**
- * Initial State
- */
 const initialState: TodoState = {
-  todos: []
+  todosByList: {
+    [DEFAULT_TODO_LIST_ID]: [],
+  },
+}
+
+const getAllTodos = (state: TodoState): Todo[] => {
+  return Object.values(state.todosByList).flat()
 }
 
 const todoSlice = createSlice({
@@ -53,20 +60,24 @@ const todoSlice = createSlice({
   reducers: {
     // Create a new todo
     createTodo: (state, action: PayloadAction<{
+      listId?: string // optional for backwards compatibility
       description: string
       priority?: TodoPriority
       dueDate?: number | null
       setAsActive?: boolean  // Optionally set this todo as the active goal
     }>) => {
-      // If setting as active, clear all other active goals first
+      // Get the target list id
+      const targetListId = action.payload.listId ?? DEFAULT_TODO_LIST_ID
+      // If setting as active, clear all other active goals first (across all lists)
       if (action.payload.setAsActive) {
-        state.todos.forEach(todo => {
+        getAllTodos(state).forEach(todo => {
           todo.isActiveGoal = false
         })
       }
       
       const newTodo: Todo = {
         id: crypto.randomUUID(),
+        listId: targetListId,
         description: action.payload.description,
         completed: false,
         createdAt: Date.now(),
@@ -77,11 +88,16 @@ const todoSlice = createSlice({
         sessions: [],
         isActiveGoal: action.payload.setAsActive ?? false
       }
-      state.todos.push(newTodo)
+      if (!state.todosByList[targetListId]) {
+        state.todosByList[targetListId] = []
+      }
+      state.todosByList[targetListId].push(newTodo)
     },
     // Toggle todo completion status
     toggleTodo: (state, action: PayloadAction<string>) => {
-      const todo = state.todos.find(todo => todo.id === action.payload)
+      // Search across all lists to find the todo
+      const allTodos = getAllTodos(state)
+      const todo = allTodos.find(todo => todo.id === action.payload)
       if (todo) {
         todo.completed = !todo.completed
       }
@@ -177,7 +193,8 @@ export default todoSlice.reducer
  * Selectors for querying todo data subsets (all, incomplete-only, completed-only).
  * These keep filtering logic centralized so modules can consume the precise view they need.
  */
-export const selectTodos = (state: RootState) => state.todo.todos
+
+export const selectTodos = (state: RootState) => getAllTodos(state.todo)
 export const selectIncompleteTodos = createSelector(
   selectTodos,
   todos => todos.filter(todo => !todo.completed)

@@ -98,6 +98,35 @@ describe('MyComponent', () => {
 /modules               # Module definitions/registry
 ```
 
+## Documentation
+
+### For Understanding the Project
+
+- **[QUICK_START.md](./QUICK_START.md)** - Start here! Quick overview and getting started guide
+- **[ARCHITECTURE_GUIDE.md](./ARCHITECTURE_GUIDE.md)** - Complete architecture documentation
+  - State structure and interactions
+  - Component hierarchy
+  - Module system architecture
+  - Extension patterns and best practices
+
+### For Extending the Project
+
+- **[EXTENSION_CHECKLIST.md](./EXTENSION_CHECKLIST.md)** - Step-by-step extension guide
+  - Pre-development planning
+  - Test-driven development workflow
+  - Code review checklist
+  - Extension templates
+
+### For Visualizing State
+
+- **[DATA_FLOW_DIAGRAM.md](./DATA_FLOW_DIAGRAM.md)** - Visual data flow diagrams
+- **State Inspection Script:**
+  ```bash
+  node scripts/inspect-state.js        # Full overview
+  node scripts/inspect-state.js slices # Just slices
+  node scripts/inspect-state.js modules # Just modules
+  ```
+
 ## Development Roadmap
 
 - [x] Project setup and configuration
