@@ -155,7 +155,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
       {/* Todos List - Scrollable */}
       <div className="flex-1 overflow-auto pb-20 px-4 pt-4">
         {sortedTodos.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="h-full flex items-center justify-center text-center text-gray-500">
             <p className="text-lg">No items yet. Click the + button to add one!</p>
           </div>
         ) : (

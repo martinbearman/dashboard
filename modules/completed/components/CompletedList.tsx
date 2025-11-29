@@ -46,8 +46,8 @@ export default function CompletedList({ moduleId, config }: CompletedListProps) 
 
   if (sortedTodos.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-500 px-6 text-center">
-        <p>No completed tasks yet. Mark tasks as done to see them here.</p>
+      <div className="h-full flex items-center justify-center text-center text-gray-500">
+        <p className="text-lg">No completed tasks yet.</p>
       </div>
     );
   }
