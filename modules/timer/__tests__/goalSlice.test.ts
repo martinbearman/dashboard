@@ -41,7 +41,7 @@ describe('goalSlice', () => {
     const stateWithGoal: GoalState = {
       ...initialState,
       goals: [
-        { id: 'goal-1', goalDescription: 'Goal 1', goalTimeStamp: Date.now(), totalTimeStudied: 0 }
+        { id: 'goal-1', goalDescription: 'Goal 1', goalTimeStamp: Date.now(), totalTimeStudied: 0, completedAt: null, isActive: false }
       ]
     }
     const actual = goalReducer(stateWithGoal, setCurrentGoal('goal-1'))
@@ -63,7 +63,14 @@ describe('goalSlice', () => {
     const stateWithCurrentGoal: GoalState = {
       ...initialState,
       goals: [
-        { id: 'goal-1', goalDescription: 'Goal 1', goalTimeStamp: Date.now(), totalTimeStudied: 0 }
+        { 
+          id: 'goal-1', 
+          goalDescription: 'Goal 1', 
+          goalTimeStamp: Date.now(), 
+          totalTimeStudied: 0,
+          completedAt: null,
+          isActive: false
+        }
       ],
       currentGoalId: 'goal-1'
     }
@@ -90,7 +97,14 @@ describe('goalSlice', () => {
     const stateWithGoal: GoalState = {
       ...initialState,
       goals: [
-        { id: 'goal-1', goalDescription: 'Goal 1', goalTimeStamp: Date.now(), totalTimeStudied: 0 }
+        { 
+          id: 'goal-1', 
+          goalDescription: 'Goal 1', 
+          goalTimeStamp: Date.now(), 
+          totalTimeStudied: 0,
+          completedAt: null,
+          isActive: false
+         }
       ],
       currentGoalId: 'goal-1'
     }
@@ -108,7 +122,14 @@ describe('goalSlice', () => {
     const stateWithGoal: GoalState = {
       ...initialState,
       goals: [
-        { id: 'goal-1', goalDescription: 'Goal 1', goalTimeStamp: Date.now(), totalTimeStudied: 0 }
+        { 
+          id: 'goal-1', 
+          goalDescription: 'Goal 1', 
+          goalTimeStamp: Date.now(), 
+          totalTimeStudied: 0,
+          completedAt: null,
+          isActive: false
+        }
       ],
       currentGoalId: 'goal-1'
     }
@@ -125,7 +146,13 @@ describe('goalSlice', () => {
     const stateWithGoal: GoalState = {
       ...initialState,
       goals: [
-        { id: 'goal-1', goalDescription: 'Goal 1', goalTimeStamp: Date.now(), totalTimeStudied: 0 }
+        { id: 'goal-1', 
+          goalDescription: 'Goal 1', 
+          goalTimeStamp: Date.now(), 
+          totalTimeStudied: 0,
+          completedAt: null,
+          isActive: false
+        }
       ],
       currentGoalId: 'goal-1'
     }

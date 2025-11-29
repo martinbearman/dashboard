@@ -5,7 +5,7 @@ import ModuleWrapper from '../ModuleWrapper';
 describe('ModuleWrapper', () => {
   it('renders children correctly', () => {
     render(
-      <ModuleWrapper>
+      <ModuleWrapper moduleId="test-module-1">
         <div>Test Content</div>
       </ModuleWrapper>
     );
@@ -15,7 +15,7 @@ describe('ModuleWrapper', () => {
 
   it('supports rerendering with new children', () => {
     const { rerender } = render(
-      <ModuleWrapper>
+      <ModuleWrapper moduleId="test-module-1">
         <div>Content 1</div>
       </ModuleWrapper>
     );
@@ -23,7 +23,7 @@ describe('ModuleWrapper', () => {
     expect(screen.getByText('Content 1')).toBeInTheDocument();
 
     rerender(
-      <ModuleWrapper>
+      <ModuleWrapper moduleId="test-module-1">
         <div>Content 2</div>
       </ModuleWrapper>
     );

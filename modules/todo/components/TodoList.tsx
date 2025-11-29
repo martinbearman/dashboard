@@ -6,7 +6,7 @@ import {
   deleteTodo, 
   clearActiveGoal, 
   createTodo,
-  selectIncompleteTodos,
+  selectIncompleteTodosByListId,
   toggleTodo
 } from "@/lib/store/slices/todoSlice";
 import { setTimeRemaining } from "@/modules/timer/store/slices/timerSlice";
@@ -27,7 +27,12 @@ interface TodoListProps {
  * Shows todos with timer-related information and allows switching active goals.
  */
 export default function TodoList({ moduleId, config }: TodoListProps) {
-  const todos = useAppSelector(selectIncompleteTodos);
+  const listId = (config?.listId as string) ?? "default";
+
+  const todos = useAppSelector((state) =>
+    selectIncompleteTodosByListId(state, listId)
+  );
+
   const isRunning = useAppSelector(state => state.timer.isRunning);
   const studyDuration = useAppSelector(state => state.timer.studyDuration);
   const dispatch = useAppDispatch();
@@ -92,7 +97,8 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     if (newTodoText.trim() === "") return;
     
     dispatch(createTodo({
-      description: newTodoText.trim().slice(0, MAX_GOAL_DESCRIPTION_LENGTH)
+      description: newTodoText.trim().slice(0, MAX_GOAL_DESCRIPTION_LENGTH),
+      listId,
     }));
     
     setNewTodoText("");
@@ -149,8 +155,8 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
       {/* Todos List - Scrollable */}
       <div className="flex-1 overflow-auto pb-20 px-4 pt-4">
         {sortedTodos.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p className="text-lg">No todos yet. Click the + button to create one!</p>
+          <div className="h-full flex items-center justify-center text-center text-gray-500">
+            <p className="text-lg">No items yet. Click the + button to add one!</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -168,7 +174,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
                       handleCompleteTodo(todo.id);
                     }}
                     className="inline-flex items-center gap-1 rounded-md border border-gray-400 px-3 py-1 text-sm font-medium text-gray-600 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
-                    aria-label="Mark todo done"
+                    aria-label="Mark item done"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -198,7 +204,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
         <div className="absolute bottom-0 left-0 right-0 h-[80px] bg-gradient-to-b from-transparent to-white pointer-events-none z-10"></div>
       )}
       <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-end gap-2 z-20 max-w-full">
-        {/* Todo Creation Input - Shown when + button is clicked */}
+        {/* Item Creation Input - Shown when + button is clicked */}
         {showInput && (
           <div className="flex gap-2 transition-all duration-200 flex-1 max-w-[calc(100%-3rem)]">
             <div className="flex-1 min-w-0 relative">
@@ -212,10 +218,10 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
                   }
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Add a new todo..."
+                placeholder="Add a new item..."
                 maxLength={MAX_GOAL_DESCRIPTION_LENGTH}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                aria-label="Add a new todo"
+                aria-label="Add a new item"
               />
               <div className="absolute bottom-0 right-0 text-xs text-gray-400 mb-1 mr-2">
                 {MAX_GOAL_DESCRIPTION_LENGTH - newTodoText.length}
@@ -229,7 +235,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-red-500 hover:bg-red-600 text-white"
               }`}
-              aria-label="Create todo"
+              aria-label="Add item"
             >
               Add
             </button>
@@ -244,8 +250,8 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
               ? "bg-gray-400 hover:bg-gray-500 text-white rotate-45"
               : "bg-red-500 hover:bg-red-600 text-white"
           }`}
-          aria-label={showInput ? "Cancel" : "Add new todo"}
-          title={showInput ? "Cancel" : "Add new todo"}
+          aria-label={showInput ? "Cancel" : "Add new item"}
+          title={showInput ? "Cancel" : "Add new item"}
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 

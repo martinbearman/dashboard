@@ -6,6 +6,11 @@ import { completeSession } from '@/lib/store/slices/todoSlice'
 // Create the middleware instance
 export const timerListenerMiddleware = createListenerMiddleware()
 
+// Helper to get all todos (same as in todoSlice)
+const getAllTodos = (todoState: { todosByList: Record<string, any[]> }) => {
+  return Object.values(todoState.todosByList).flat();
+};
+
 // Add a listener for the setTimeRemaining action (fires every second when timer is running)
 timerListenerMiddleware.startListening({
   actionCreator: setTimeRemaining,  // Listen for the setTimeRemaining action
@@ -14,7 +19,7 @@ timerListenerMiddleware.startListening({
     const state = listenerApi.getState() as RootState
     
     // Check if timer reached 0 and we have an active goal
-    const activeTodo = state.todo.todos.find(todo => todo.isActiveGoal);
+    const activeTodo = getAllTodos(state.todo).find(todo => todo.isActiveGoal);
     if (activeTodo && action.payload === 0 && state.timer.isRunning) {
       // Calculate actual elapsed time (duration - time remaining)
       const totalDuration = state.timer.isBreak ? state.timer.breakDuration : state.timer.studyDuration;
