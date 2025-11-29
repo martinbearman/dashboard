@@ -23,8 +23,8 @@ const TimerModule: DashboardModule = {
 // Todo module - component lives in modules/todo/ folder
 const TodoModule: DashboardModule = {
   type: "todo",
-  displayName: "Todo List",
-  description: "Manage your tasks and stay organized",
+  displayName: "List",
+  description: "Create and manage customisable lists",
   defaultGridSize: { w: 3, h: 3 },
   minGridSize: { w: 2, h: 2 },
   maxGridSize: { w: 8, h: 6 },

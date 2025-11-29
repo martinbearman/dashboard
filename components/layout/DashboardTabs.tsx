@@ -1,10 +1,12 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
   addDashboard,
   removeDashboard,
   setActiveDashboard,
+  updateDashboardName,
 } from "@/lib/store/slices/dashboardsSlice";
 import type { Dashboard } from "@/lib/types/dashboard";
 import { clsx } from "clsx";
@@ -15,6 +17,10 @@ export default function DashboardTabs() {
   const activeDashboardId = useAppSelector((s) => s.dashboards.activeDashboardId);
   const dispatch = useAppDispatch();
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const dashboardList = Object.values(dashboards);
   const tabClass = (isActive: boolean) =>
     clsx(
@@ -23,6 +29,42 @@ export default function DashboardTabs() {
         ? "bg-white/90 text-slate-900 shadow"
         : "bg-white/20 text-white/70 hover:bg-white/40 hover:text-white"
     );
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingId]);
+
+  const startEditing = (dashboardId: string, currentName: string) => {
+    setEditingId(dashboardId);
+    setEditValue(currentName);
+  };
+
+  const saveEdit = (dashboardId: string) => {
+    if (editValue.trim().length > 0) {
+      dispatch(updateDashboardName({ dashboardId, name: editValue.trim() }));
+    }
+    setEditingId(null);
+    setEditValue("");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValue("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, dashboardId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveEdit(dashboardId);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelEdit();
+    }
+  };
 
   const handleAddDashboard = () => {
     // Collect the numeric suffix for every dashboard id (e.g. board-2 -> 2).
@@ -66,15 +108,38 @@ export default function DashboardTabs() {
               dashboardList.map((dash) => {
                 const canRemove =
                   dashboardList.length > 1 && dash.id !== "board-1";
+                const isEditing = editingId === dash.id;
                 return (
                   <div key={dash.id} className="relative group">
-                    <button
-                      className={tabClass(dash.id === activeDashboardId)}
-                      onClick={() => dispatch(setActiveDashboard(dash.id))}
-                    >
-                      {dash.name}
-                    </button>
-                    {canRemove && (
+                    {isEditing ? (
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, dash.id)}
+                        onBlur={() => saveEdit(dash.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className={clsx(
+                          tabClass(dash.id === activeDashboardId),
+                          "outline-none border-2 border-blue-400"
+                        )}
+                        style={{ minWidth: "80px", maxWidth: "200px" }}
+                      />
+                    ) : (
+                      <button
+                        className={tabClass(dash.id === activeDashboardId)}
+                        onClick={() => dispatch(setActiveDashboard(dash.id))}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          startEditing(dash.id, dash.name);
+                        }}
+                        title="Double-click to rename"
+                      >
+                        {dash.name}
+                      </button>
+                    )}
+                    {canRemove && !isEditing && (
                       <button
                         type="button"
                         onClick={(event) => {
