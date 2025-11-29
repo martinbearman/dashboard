@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ModuleConfigProps } from "@/lib/types/dashboard";
 
 export default function TodoConfigPanel({
   moduleId,
   config,
   onConfigChange,
+  onClose,
 }: ModuleConfigProps) {
   const [listName, setListName] = useState(
     (config?.listName as string) ?? "Todo List"
   );
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Update local state when config changes externally
   useEffect(() => {
@@ -18,6 +20,11 @@ export default function TodoConfigPanel({
       setListName(config.listName as string);
     }
   }, [config?.listName]);
+
+  // Focus input when component mounts
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const handleNameChange = (newName: string) => {
     setListName(newName);
@@ -29,6 +36,13 @@ export default function TodoConfigPanel({
     });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && onClose) {
+      e.preventDefault();
+      onClose();
+    }
+  };
+
   return (
     <div className="p-4">
       <h3 className="font-semibold text-lg mb-4">Todo List Settings</h3>
@@ -38,14 +52,16 @@ export default function TodoConfigPanel({
           List Name
         </label>
         <input
+          ref={inputRef}
           type="text"
           value={listName}
           onChange={(e) => handleNameChange(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Enter list name..."
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
         />
         <p className="text-xs text-gray-500 mt-1">
-          This name helps you identify this todo list.
+          This name helps you identify this todo list. Press Enter to close.
         </p>
       </div>
 

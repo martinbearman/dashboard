@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type MouseEvent } from "react";
+import { useState, useEffect, type MouseEvent } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { updateModuleConfig, removeModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 import { removeModule } from "@/lib/store/slices/dashboardsSlice";
@@ -38,6 +38,16 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
   
   // Close the config modal when clicking outside
   const modalRef = useClickOutside<HTMLDivElement>(() => setShowConfigModal(false), showConfigModal);
+
+  // Close config modal on Escape key
+  useEffect(() => {
+    if (!showConfigModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowConfigModal(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showConfigModal]);
 
   // Shared helper so every handler collapses the dropdown after running.
   const closeMenu = () => setIsOpen(false);
@@ -222,6 +232,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
               moduleId={moduleId}
               config={moduleConfig}
               onConfigChange={handleConfigChange}
+              onClose={handleCloseConfigModal}
             />
           </div>
         </div>

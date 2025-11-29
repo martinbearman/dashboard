@@ -52,5 +52,6 @@ export interface ModuleConfigProps {
   moduleId: string;
   config: Record<string, any>;
   onConfigChange: (config: Record<string, any>) => void;
+  onClose?: () => void;
 }
 
