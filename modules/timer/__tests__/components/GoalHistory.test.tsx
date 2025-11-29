@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, combineReducers } from '@reduxjs/toolkit'
 import timerReducer from '../../store/slices/timerSlice'
 import goalReducer from '../../store/slices/goalSlice'
+import todoReducer from '@/lib/store/slices/todoSlice'
 import GoalHistory from '../../app/components/Goal/GoalHistory'
 import type { RootState } from '@/lib/store/store'
 
@@ -19,12 +20,22 @@ import type { RootState } from '@/lib/store/store'
 
 // Helper function to create a test store with pre-filled state
 function createTestStore(initialState?: Partial<RootState>) {
+  const testReducer = combineReducers({
+    timer: timerReducer,
+    goal: goalReducer,
+    todo: todoReducer,
+  })
+  
   return configureStore({
-    reducer: {
-      timer: timerReducer,
-      goal: goalReducer,
-    },
-    preloadedState: initialState as any,
+    reducer: testReducer,
+    preloadedState: {
+      todo: {
+        todosByList: {
+          default: [],
+        },
+      },
+      ...initialState,
+    } as Partial<RootState>,
   })
 }
 
@@ -64,12 +75,16 @@ describe('GoalHistory Component', () => {
             goalDescription: 'Learn TypeScript',
             goalTimeStamp: Date.now(),
             totalTimeStudied: 1500,
+            completedAt: null,
+            isActive: false,
           },
           {
             id: 'goal-2',
             goalDescription: 'Study React',
             goalTimeStamp: Date.now() - 1000,
             totalTimeStudied: 2700,
+            completedAt: null,
+            isActive: false,
           },
         ],
         sessions: [],
@@ -99,6 +114,8 @@ describe('GoalHistory Component', () => {
             goalDescription: 'Current Goal',
             goalTimeStamp: Date.now(),
             totalTimeStudied: 0,
+            completedAt: null,
+            isActive: false,
           },
         ],
         sessions: [],
@@ -131,11 +148,13 @@ describe('GoalHistory Component', () => {
             goalDescription: 'Goal with Sessions',
             goalTimeStamp: Date.now(),
             totalTimeStudied: 3000,
+            completedAt: null,
+            isActive: false,
           },
         ],
         sessions: [
-          { id: 'session-1', goalId: 'goal-1', duration: 1500, completed: true },
-          { id: 'session-2', goalId: 'goal-1', duration: 1500, completed: true },
+          { id: 'session-1', goalId: 'goal-1', duration: 1500, completed: true, sessionDate: Date.now() },
+          { id: 'session-2', goalId: 'goal-1', duration: 1500, completed: true, sessionDate: Date.now() },
         ],
         currentGoalId: null,
         totalStudyTime: 3000,
@@ -165,6 +184,8 @@ describe('GoalHistory Component', () => {
             goalDescription: 'Clickable Goal',
             goalTimeStamp: Date.now(),
             totalTimeStudied: 0,
+            completedAt: null,
+            isActive: false,
           },
         ],
         sessions: [],
@@ -208,12 +229,16 @@ describe('GoalHistory Component', () => {
             goalDescription: 'Active Goal',
             goalTimeStamp: Date.now(),
             totalTimeStudied: 0,
+            completedAt: null,
+            isActive: false,
           },
           {
             id: 'goal-2',
             goalDescription: 'Other Goal',
             goalTimeStamp: Date.now() - 1000,
             totalTimeStudied: 0,
+            completedAt: null,
+            isActive: false,
           },
         ],
         sessions: [],
@@ -267,6 +292,8 @@ describe('GoalHistory Component', () => {
       goalDescription: 'Older Goal',
       goalTimeStamp: Date.now() - 100000,
       totalTimeStudied: 0,
+      completedAt: null,
+      isActive: false,
     }
     
     const newerGoal = {
@@ -274,6 +301,8 @@ describe('GoalHistory Component', () => {
       goalDescription: 'Newer Goal',
       goalTimeStamp: Date.now(),
       totalTimeStudied: 0,
+      completedAt: null,
+      isActive: false,
     }
     
     const store = createTestStore({
@@ -309,6 +338,8 @@ describe('GoalHistory Component', () => {
             goalDescription: 'Timed Goal',
             goalTimeStamp: Date.now(),
             totalTimeStudied: 3723, // 1 hour, 2 minutes, 3 seconds
+            completedAt: null,
+            isActive: false,
           },
         ],
         sessions: [],

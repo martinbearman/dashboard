@@ -107,7 +107,7 @@ export default function Home() {
             return (
               <div key={m.id}>
                 <ModuleWrapper moduleId={m.id}>
-                  <ModuleComp moduleId={m.id} />
+                  <ModuleComp moduleId={m.id} config={moduleConfigs[m.id]} />
                 </ModuleWrapper>
               </div>
             );

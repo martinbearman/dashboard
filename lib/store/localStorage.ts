@@ -48,7 +48,9 @@ export function loadState(): Partial<RootState> | null {
     };
     
     const defaultTodoState = {
-      todos: [],
+      todosByList: {
+        default: [],
+      },
     };
 
     return {
@@ -83,7 +85,7 @@ export function loadState(): Partial<RootState> | null {
       todo: {
         ...defaultTodoState,
         ...(parsed.todo ?? {}),
-        todos: parsed.todo?.todos ?? defaultTodoState.todos,
+        todosByList: parsed.todo?.todosByList ?? defaultTodoState.todosByList,
       },
     };
   } catch (error) {

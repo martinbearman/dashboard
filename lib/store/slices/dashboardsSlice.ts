@@ -263,6 +263,18 @@ const dashboardsSlice = createSlice({
         ...dashboard.layouts,
         ...action.payload.layouts,
       };
+    },
+    updateDashboardName: (
+      state,
+      action: PayloadAction<{ dashboardId: string; name: string }>
+    ) => {
+      const dashboard = state.dashboards[action.payload.dashboardId];
+      if (!dashboard) return;
+      // Trim whitespace and ensure non-empty name
+      const trimmedName = action.payload.name.trim();
+      if (trimmedName.length > 0) {
+        dashboard.name = trimmedName;
+      }
     }
   },
 });
@@ -274,7 +286,8 @@ export const {
   removeModule,
   updateModulePosition,
   removeDashboard,
-  updateDashboardLayouts
+  updateDashboardLayouts,
+  updateDashboardName
 } = dashboardsSlice.actions;
 
 export default dashboardsSlice.reducer;

@@ -82,7 +82,6 @@ export default function TimerDisplay() {
   // Play sound when timer reaches 15 seconds
   // Specifically for timer-ring.mp3
   useEffect(() => {
-    console.log('isRunning', isRunning);
     if(timeRemaining === 15 && isRunning) {
       playComplete()
     }

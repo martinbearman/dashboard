@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type MouseEvent } from "react";
+import { useState, useEffect, type MouseEvent } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { updateModuleConfig, removeModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 import { removeModule } from "@/lib/store/slices/dashboardsSlice";
@@ -26,12 +26,28 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
   const moduleMeta = moduleInstance ? getModuleByType(moduleInstance.type) : null;
   const ConfigPanel = moduleMeta?.configPanel;
   const moduleConfig = useAppSelector((state) => state.moduleConfigs.configs[moduleId] ?? {});
+  // Use custom list name for todo modules, otherwise use the generic module name
+  const displayName = 
+    moduleInstance?.type === "todo" && moduleConfig?.listName
+      ? (moduleConfig.listName as string)
+      : moduleName;
+
 
   // Close the menu when the user clicks/taps outside of the trigger + menu region.
   const containerRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false), isOpen);
   
   // Close the config modal when clicking outside
   const modalRef = useClickOutside<HTMLDivElement>(() => setShowConfigModal(false), showConfigModal);
+
+  // Close config modal on Escape key
+  useEffect(() => {
+    if (!showConfigModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowConfigModal(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showConfigModal]);
 
   // Shared helper so every handler collapses the dropdown after running.
   const closeMenu = () => setIsOpen(false);
@@ -130,7 +146,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
           <circle cx="10" cy="10" r="1" fill="currentColor" />
         </svg>
         <span className="text-sm font-medium">
-          {moduleName}
+          {displayName}
           {locked && <span className="text-gray-400 font-normal"> (locked)</span>}
         </span>
       </div>
@@ -216,6 +232,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
               moduleId={moduleId}
               config={moduleConfig}
               onConfigChange={handleConfigChange}
+              onClose={handleCloseConfigModal}
             />
           </div>
         </div>
