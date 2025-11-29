@@ -85,12 +85,35 @@ export default function AddModuleButton() {
         },
       })
     );
+    
+    // Auto-generate config for todo/completed modules
+    let initialConfig: Record<string, any> = {};
+    if (type === "todo" || type === "completed") {
+      // Count existing todo/completed modules to generate unique names
+      const existingModules = dash.modules.filter(
+        (m) => m.type === "todo" || m.type === "completed"
+      );
+      const count = existingModules.length + 1;
+      
+      if (type === "todo") {
+        initialConfig = {
+          listId: moduleId,
+          listName: `Todo List ${count}`,
+        };
+      } else if (type === "completed") {
+        // For completed modules, default to master mode
+        initialConfig = {
+          mode: "master",
+        };
+      }
+    }
+
     // Seed the module's config immediately so downstream selectors/renderers
     // can assume an entry exists (ensureModuleConfig fills in defaults).
     dispatch(
       setModuleConfig({
         moduleId,
-        config: {},
+        config: initialConfig,
       })
     );
     // Close the modal now that the module and config have been created.

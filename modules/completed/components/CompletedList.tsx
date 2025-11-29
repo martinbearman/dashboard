@@ -1,7 +1,13 @@
 "use client";
 
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
-import { deleteTodo, selectCompletedTodos, toggleTodo } from "@/lib/store/slices/todoSlice";
+
+import {
+  deleteTodo,
+  toggleTodo,
+  selectCompletedTodosByListId,
+  selectAllCompletedTodos,
+} from "@/lib/store/slices/todoSlice";
 import TodoCard from "@/modules/todo/components/TodoCard";
 
 interface CompletedListProps {
@@ -16,7 +22,16 @@ interface CompletedListProps {
  * them to the active todo list or delete them permanently.
  */
 export default function CompletedList({ moduleId, config }: CompletedListProps) {
-  const completedTodos = useAppSelector(selectCompletedTodos);
+  const mode = (config?.mode as "linked" | "master") ?? "master";
+  const linkedListId = config?.linkedListId as string | undefined;
+
+  const completedTodos = useAppSelector((state) => {
+    if (mode === "linked" && linkedListId) {
+      return selectCompletedTodosByListId(state, linkedListId);
+    }
+    return selectAllCompletedTodos(state);
+  });
+
   const dispatch = useAppDispatch();
 
   const sortedTodos = [...completedTodos].sort((a, b) => b.createdAt - a.createdAt);

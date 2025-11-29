@@ -6,7 +6,7 @@ import {
   deleteTodo, 
   clearActiveGoal, 
   createTodo,
-  selectIncompleteTodos,
+  selectIncompleteTodosByListId,
   toggleTodo
 } from "@/lib/store/slices/todoSlice";
 import { setTimeRemaining } from "@/modules/timer/store/slices/timerSlice";
@@ -27,7 +27,12 @@ interface TodoListProps {
  * Shows todos with timer-related information and allows switching active goals.
  */
 export default function TodoList({ moduleId, config }: TodoListProps) {
-  const todos = useAppSelector(selectIncompleteTodos);
+  const listId = (config?.listId as string) ?? "default";
+
+  const todos = useAppSelector((state) =>
+    selectIncompleteTodosByListId(state, listId)
+  );
+
   const isRunning = useAppSelector(state => state.timer.isRunning);
   const studyDuration = useAppSelector(state => state.timer.studyDuration);
   const dispatch = useAppDispatch();
@@ -92,7 +97,8 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     if (newTodoText.trim() === "") return;
     
     dispatch(createTodo({
-      description: newTodoText.trim().slice(0, MAX_GOAL_DESCRIPTION_LENGTH)
+      description: newTodoText.trim().slice(0, MAX_GOAL_DESCRIPTION_LENGTH),
+      listId,
     }));
     
     setNewTodoText("");

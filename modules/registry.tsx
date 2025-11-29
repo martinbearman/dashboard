@@ -5,6 +5,7 @@ import QuoteModuleComponent from "./quote/QuoteModule";
 import TodoModuleComponent from "./todo/TodoModule";
 import CompletedModuleComponent from "./completed/CompletedModule";
 import ArtModuleComponent from "./art/ArtModule";
+import TodoConfigPanel from "./todo/components/TodoConfigPanel";
 
 // Timer module - component lives in modules/timer/ folder
 const TimerModule: DashboardModule = {
@@ -27,6 +28,7 @@ const TodoModule: DashboardModule = {
   minGridSize: { w: 2, h: 2 },
   maxGridSize: { w: 8, h: 6 },
   component: TodoModuleComponent,
+  configPanel: TodoConfigPanel,
 };
 
 const CompletedModule: DashboardModule = {

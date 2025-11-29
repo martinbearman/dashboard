@@ -44,12 +44,20 @@ export interface TodoState {
   todosByList: Record<string, Todo[]>
 }
 
+/**
+ * Initial state groups todos by list id.
+ * Currently we start with a single empty default list.
+ */
 const initialState: TodoState = {
   todosByList: {
     [DEFAULT_TODO_LIST_ID]: [],
   },
 }
 
+/**
+ * Returns every todo across all lists as a single array.
+ * Useful for cross-list operations such as global searches or filters.
+ */
 const getAllTodos = (state: TodoState): Todo[] => {
   return Object.values(state.todosByList).flat()
 }
@@ -59,6 +67,14 @@ const todoSlice = createSlice({
   initialState,
   reducers: {
     // Create a new todo
+    /**
+     * Creates a new todo item, optionally in a specific list and optionally
+     * marking it as the currently active goal for timing.
+     *
+     * - If `listId` is omitted, the todo is added to the default list.
+     * - If `setAsActive` is true, all other todos across all lists are cleared
+     *   as active goals and this new todo becomes the only active one.
+     */
     createTodo: (state, action: PayloadAction<{
       listId?: string // optional for backwards compatibility
       description: string
@@ -93,7 +109,9 @@ const todoSlice = createSlice({
       }
       state.todosByList[targetListId].push(newTodo)
     },
-    // Toggle todo completion status
+    /**
+     * Toggles the `completed` flag for the specified todo id, searching across all lists.
+     */
     toggleTodo: (state, action: PayloadAction<string>) => {
       // Search across all lists to find the todo
       const allTodos = getAllTodos(state)
@@ -102,7 +120,9 @@ const todoSlice = createSlice({
         todo.completed = !todo.completed
       }
     },
-    // Update todo description
+    /**
+     * Updates the description text for a given todo.
+     */
     updateTodo: (state, action: PayloadAction<{ id: string; description: string }>) => {
       const allTodos = getAllTodos(state)
       const todo = allTodos.find(todo => todo.id === action.payload.id)
@@ -110,7 +130,9 @@ const todoSlice = createSlice({
         todo.description = action.payload.description
       }
     },
-    // Update todo priority
+    /**
+     * Sets the priority level for a given todo.
+     */
     updateTodoPriority: (state, action: PayloadAction<{ id: string; priority: TodoPriority }>) => {
       const allTodos = getAllTodos(state)
       const todo = allTodos.find(todo => todo.id === action.payload.id)
@@ -118,7 +140,11 @@ const todoSlice = createSlice({
         todo.priority = action.payload.priority
       }
     },
-    // Update todo due date
+    /**
+     * Sets or clears the due date for a given todo.
+     *
+     * Use `null` for `dueDate` to remove the due date.
+     */
     updateTodoDueDate: (state, action: PayloadAction<{ id: string; dueDate: number | null }>) => {
       const allTodos = getAllTodos(state)
       const todo = allTodos.find(todo => todo.id === action.payload.id)
@@ -126,7 +152,10 @@ const todoSlice = createSlice({
         todo.dueDate = action.payload.dueDate
       }
     },
-    // Set a todo as the active goal (being timed)
+    /**
+     * Marks exactly one todo as the active goal for timing.
+     * All other todos across all lists are cleared as active.
+     */
     setActiveGoal: (state, action: PayloadAction<string>) => {
       // Clear all active goals first (across all lists)
       getAllTodos(state).forEach(todo => {
@@ -139,13 +168,18 @@ const todoSlice = createSlice({
         todo.isActiveGoal = true
       }
     },
-    // Clear the active goal
+    /**
+     * Clears the `isActiveGoal` flag from every todo in every list.
+     */
     clearActiveGoal: (state) => {
       getAllTodos(state).forEach(todo => {
         todo.isActiveGoal = false
       })
     },
-    // Record a Pomodoro session for a todo
+    /**
+     * Appends a completed (or interrupted) Pomodoro session record to a todo
+     * and increments its total accumulated study time.
+     */
     completeSession: (state, action: PayloadAction<{ 
       todoId: string
       duration: number  // Duration in seconds
@@ -168,7 +202,9 @@ const todoSlice = createSlice({
       // Update total time studied
       todo.totalTimeStudied += action.payload.duration
     },
-    // Delete a todo
+    /**
+     * Removes a todo from whichever list currently contains it.
+     */
     deleteTodo: (state, action: PayloadAction<string>) => {
       // Find which list contains this todo
       for (const listId in state.todosByList) {
@@ -180,7 +216,13 @@ const todoSlice = createSlice({
         }
       }
     },
-    // Load todos from storage
+    /**
+     * Replaces the current state with todos loaded from storage.
+     *
+     * - Performs a light migration: any todo missing `listId` is assigned
+     *   to the default list.
+     * - Normalizes incoming todos into the `todosByList` map structure.
+     */
     loadTodos: (state, action: PayloadAction<Todo[]>) => {
       // Migration: if todos don't have listId, assign them to default list
       const todosWithListId = action.payload.map(todo => {
@@ -224,11 +266,21 @@ export default todoSlice.reducer
  * These keep filtering logic centralized so modules can consume the precise view they need.
  */
 
+/**
+ * Returns every todo across every list as a flat array.
+ * Most other selectors build on top of this.
+ */
 export const selectTodos = (state: RootState) => getAllTodos(state.todo)
+/**
+ * Returns only todos that are not completed, across all lists.
+ */
 export const selectIncompleteTodos = createSelector(
   selectTodos,
   todos => todos.filter(todo => !todo.completed)
 )
+/**
+ * Returns only todos that are completed, across all lists.
+ */
 export const selectCompletedTodos = createSelector(
   selectTodos,
   todos => todos.filter(todo => todo.completed)
@@ -237,10 +289,16 @@ export const selectCompletedTodos = createSelector(
 /**
  * Per-list selectors - filter todos by specific listId
  */
+/**
+ * Returns all todos for a specific list id, or an empty array if the list does not exist.
+ */
 export const selectTodosByListId = (state: RootState, listId: string): Todo[] => {
   return state.todo.todosByList[listId] ?? []
 }
 
+/**
+ * Returns only the incomplete todos for a given list id.
+ */
 export const selectIncompleteTodosByListId = createSelector(
   [(state: RootState) => state.todo.todosByList, (_: RootState, listId: string) => listId],
   (todosByList, listId) => {
@@ -249,6 +307,9 @@ export const selectIncompleteTodosByListId = createSelector(
   }
 )
 
+/**
+ * Returns only the completed todos for a given list id.
+ */
 export const selectCompletedTodosByListId = createSelector(
   [(state: RootState) => state.todo.todosByList, (_: RootState, listId: string) => listId],
   (todosByList, listId) => {
@@ -259,6 +320,9 @@ export const selectCompletedTodosByListId = createSelector(
 
 /**
  * Master completed selector - all completed todos across all lists
+ */
+/**
+ * Returns every completed todo, regardless of which list it belongs to.
  */
 export const selectAllCompletedTodos = createSelector(
   [(state: RootState) => state.todo.todosByList],

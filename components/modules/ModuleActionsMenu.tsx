@@ -26,6 +26,12 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
   const moduleMeta = moduleInstance ? getModuleByType(moduleInstance.type) : null;
   const ConfigPanel = moduleMeta?.configPanel;
   const moduleConfig = useAppSelector((state) => state.moduleConfigs.configs[moduleId] ?? {});
+  // Use custom list name for todo modules, otherwise use the generic module name
+  const displayName = 
+    moduleInstance?.type === "todo" && moduleConfig?.listName
+      ? (moduleConfig.listName as string)
+      : moduleName;
+
 
   // Close the menu when the user clicks/taps outside of the trigger + menu region.
   const containerRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false), isOpen);
@@ -130,7 +136,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
           <circle cx="10" cy="10" r="1" fill="currentColor" />
         </svg>
         <span className="text-sm font-medium">
-          {moduleName}
+          {displayName}
           {locked && <span className="text-gray-400 font-normal"> (locked)</span>}
         </span>
       </div>
