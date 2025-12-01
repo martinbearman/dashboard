@@ -11,8 +11,8 @@ import CompletedConfigPanel from "./completed/components/CompletedConfigPanel";
 // Timer module - component lives in modules/timer/ folder
 const TimerModule: DashboardModule = {
   type: "Timer",
-  displayName: "Pomodoro Timer",
-  description: "Pomodoro-style timer for focused work sessions",
+  displayName: "Timer",
+  description: "Flexible timer for tracking time however you want",
   defaultGridSize: { w: 2, h: 4 },
   minGridSize: { w: 2, h: 4 },
   maxGridSize: { w: 3, h: 6 },

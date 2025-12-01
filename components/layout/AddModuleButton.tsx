@@ -183,7 +183,7 @@ export default function AddModuleButton() {
                 ))}
                 {filtered.length === 0 && (
                   <div className="text-center text-sm text-gray-500 py-6">
-                    No modules match “{query}”
+                    No modules match &ldquo;{query}&rdquo;
                   </div>
                 )}
               </div>
