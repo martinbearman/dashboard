@@ -37,47 +37,37 @@ export const createInitialDashboardsState = (): DashboardsState => ({
           type: "completed", // Completed Tasks
           gridPosition: { x: 8, y: 0, w: 3, h: 3 }
         },
-        {
-          id: "m-5",
-          type: "art", // Artwork
-          gridPosition: { x: 0, y: 4, w: 3, h: 5 }
-        },
       ],
       layouts: {
         lg: [
           { i: "m-1", x: 0, y: 0, w: 2, h: 4 },
           { i: "m-2", x: 2, y: 0, w: 3, h: 3 },
           { i: "m-3", x: 5, y: 0, w: 3, h: 3 },
-          { i: "m-4", x: 8, y: 0, w: 3, h: 3 },
-          { i: "m-5", x: 0, y: 4, w: 3, h: 5 }
+          { i: "m-4", x: 8, y: 0, w: 3, h: 3 }
         ],
         md: [
           { i: "m-1", x: 0, y: 0, w: 2, h: 4 },
           { i: "m-2", x: 2, y: 0, w: 3, h: 3 },
           { i: "m-3", x: 0, y: 3, w: 3, h: 3 },
-          { i: "m-4", x: 3, y: 3, w: 3, h: 3 },
-          { i: "m-5", x: 5, y: 0, w: 3, h: 5 }
+          { i: "m-4", x: 3, y: 3, w: 3, h: 3 }
         ],
         sm: [
           { i: "m-1", x: 0, y: 0, w: 2, h: 4 },
           { i: "m-2", x: 2, y: 0, w: 2, h: 3 },
           { i: "m-3", x: 0, y: 3, w: 4, h: 3 },
-          { i: "m-4", x: 0, y: 6, w: 4, h: 3 },
-          { i: "m-5", x: 0, y: 9, w: 4, h: 5 }
+          { i: "m-4", x: 0, y: 6, w: 4, h: 3 }
         ],
         xs: [
           { i: "m-1", x: 0, y: 0, w: 3, h: 4 },
           { i: "m-2", x: 0, y: 4, w: 3, h: 3 },
           { i: "m-3", x: 0, y: 7, w: 3, h: 3 },
-          { i: "m-4", x: 0, y: 10, w: 3, h: 3 },
-          { i: "m-5", x: 0, y: 13, w: 3, h: 5 }
+          { i: "m-4", x: 0, y: 10, w: 3, h: 3 }
         ],
         xxs: [
           { i: "m-1", x: 0, y: 0, w: 1, h: 4 },
           { i: "m-2", x: 0, y: 4, w: 1, h: 3 },
           { i: "m-3", x: 0, y: 7, w: 1, h: 3 },
-          { i: "m-4", x: 0, y: 10, w: 1, h: 3 },
-          { i: "m-5", x: 0, y: 13, w: 1, h: 5 }
+          { i: "m-4", x: 0, y: 10, w: 1, h: 3 }
         ]
       }
     },
