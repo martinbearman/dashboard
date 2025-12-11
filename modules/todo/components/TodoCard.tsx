@@ -8,6 +8,12 @@ interface TodoCardProps {
   todo: Todo;
   onCardClick?: () => void;
   onDelete?: (todoId: string) => void;
+  onEditStart?: (todoId: string) => void;
+  isEditing?: boolean;
+  editValue?: string;
+  onEditChange?: (value: string) => void;
+  onEditSave?: () => void;
+  onEditCancel?: () => void;
   actionSlot?: ReactNode;
   showDetails?: boolean; // Controls whether to show extra information (Created, Total Time, Sessions)
 }
@@ -23,6 +29,12 @@ export default function TodoCard({
   todo,
   onCardClick,
   onDelete,
+  onEditStart,
+  isEditing = false,
+  editValue = "",
+  onEditChange,
+  onEditSave,
+  onEditCancel,
   actionSlot,
   showDetails = false, // Default to hiding details for cleaner UI
 }: TodoCardProps) {
@@ -45,6 +57,32 @@ export default function TodoCard({
 
   return (
     <div className={containerClasses} onClick={onCardClick}>
+      {onEditStart && (
+        <button
+          onClick={(event) => {
+            event.stopPropagation();
+            onEditStart(todo.id);
+          }}
+          className="absolute -top-2 -left-2 w-6 h-6 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-500 transition-colors shadow-sm hover:shadow-md z-10"
+          aria-label="Edit todo"
+          title="Edit todo"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15.232 5.232l3.536 3.536M4 20h4.586a1 1 0 00.707-.293l9.414-9.414a1 1 0 000-1.414l-3.586-3.586a1 1 0 00-1.414 0L4 14.586A1 1 0 003.707 15.293L4 16v4z"
+            />
+          </svg>
+        </button>
+      )}
       <button
         onClick={handleDeleteClick}
         className="absolute -top-2 -right-2 w-6 h-6 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-colors shadow-sm hover:shadow-md z-10"
@@ -68,17 +106,90 @@ export default function TodoCard({
       </button>
 
       <div className="flex justify-between items-center gap-3 mb-0 flex-wrap">
-        <h3
-          className={`font-semibold text-lg flex-1 min-w-0 ${
-            todo.completed
-              ? "line-through text-gray-400"
-              : todo.isActiveGoal
-              ? "text-red-800"
-              : "text-gray-800"
-          }`}
-        >
-          {todo.description}
-        </h3>
+        {isEditing ? (
+          <div className="flex-1 min-w-0 flex items-center gap-3">
+            <input
+              value={editValue}
+              onChange={(e) => onEditChange?.(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onEditSave?.();
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  onEditCancel?.();
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800"
+              aria-label="Edit todo text"
+              maxLength={120}
+              autoFocus
+            />
+            <div className="flex items-center gap-3 justify-center ml-3 pr-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditSave?.();
+                }}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-green-500 text-green-600 bg-green-50 transition-colors"
+                aria-label="Save todo"
+                title="Save"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditCancel?.();
+                }}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-500 text-red-600 bg-red-50 transition-colors"
+                aria-label="Cancel edit"
+                title="Cancel"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <h3
+            className={`font-semibold text-lg flex-1 min-w-0 ${
+              todo.completed
+                ? "line-through text-gray-400"
+                : todo.isActiveGoal
+                ? "text-red-800"
+                : "text-gray-800"
+            }`}
+          >
+            {todo.description}
+          </h3>
+        )}
         <div className="flex items-center gap-2 flex-shrink-0">
           {todo.isActiveGoal && !todo.completed && (
             <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">

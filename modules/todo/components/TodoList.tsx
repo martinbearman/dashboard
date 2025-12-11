@@ -7,13 +7,14 @@ import {
   clearActiveGoal, 
   createTodo,
   selectIncompleteTodosByListId,
-  toggleTodo
+  toggleTodo,
+  updateTodo
 } from "@/lib/store/slices/todoSlice";
 import { setTimeRemaining } from "@/modules/timer/store/slices/timerSlice";
 import { useState, useRef, useEffect } from "react";
 import TodoCard from "./TodoCard";
 
-const MAX_GOAL_DESCRIPTION_LENGTH = 40;
+const MAX_GOAL_DESCRIPTION_LENGTH = 120;
 
 interface TodoListProps {
   moduleId: string;
@@ -39,6 +40,8 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
   const [newTodoText, setNewTodoText] = useState("");
   const [showInput, setShowInput] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Sort todos: active goal first (only one can be active), then by creation date (oldest first, so new todos appear at end)
@@ -122,6 +125,35 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     }
   };
 
+  const handleStartEdit = (todoId: string, description: string) => {
+    setEditingTodoId(todoId);
+    setEditingText(description);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTodoId(null);
+    setEditingText("");
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingTodoId) return;
+    const trimmed = editingText.trim();
+    if (trimmed === "") {
+      handleCancelEdit();
+      return;
+    }
+    const bounded = trimmed.slice(0, MAX_GOAL_DESCRIPTION_LENGTH);
+    const todo = todos.find(t => t.id === editingTodoId);
+    if (todo && todo.description === bounded) {
+      handleCancelEdit();
+      return;
+    }
+    dispatch(updateTodo({ id: editingTodoId, description: bounded }));
+    handleCancelEdit();
+  };
+
+  const isEditing = (todoId: string) => editingTodoId === todoId;
+
   return (
     <div className="relative h-full flex flex-col">
       {/* Details Toggle - Only shown when there are todos */}
@@ -164,34 +196,51 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
               <TodoCard
                 key={todo.id}
                 todo={todo}
-                onCardClick={() => handleTodoClick(todo.id)}
+                onCardClick={
+                  isEditing(todo.id)
+                    ? undefined
+                    : () => handleTodoClick(todo.id)
+                }
                 onDelete={handleDeleteTodo}
+                onEditStart={() => handleStartEdit(todo.id, todo.description)}
+                isEditing={isEditing(todo.id)}
+                editValue={isEditing(todo.id) ? editingText : undefined}
+                onEditChange={(value) => {
+                  if (value.length <= MAX_GOAL_DESCRIPTION_LENGTH) {
+                    setEditingText(value);
+                  }
+                }}
+                onEditSave={handleSaveEdit}
+                onEditCancel={handleCancelEdit}
                 showDetails={showDetails}
                 actionSlot={
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCompleteTodo(todo.id);
-                    }}
-                    className="inline-flex items-center gap-1 rounded-md border border-gray-400 px-3 py-1 text-sm font-medium text-gray-600 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
-                    aria-label="Mark item done"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    Done
-                  </button>
+                  isEditing(todo.id)
+                    ? null
+                    : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCompleteTodo(todo.id);
+                        }}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-400 text-sm font-medium text-gray-600 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
+                        aria-label="Mark item done"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </button>
+                    )
                 }
               />
             ))}
