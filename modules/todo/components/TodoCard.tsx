@@ -14,6 +14,7 @@ interface TodoCardProps {
   onEditChange?: (value: string) => void;
   onEditSave?: () => void;
   onEditCancel?: () => void;
+  onToggleDetails?: () => void;
   actionSlot?: ReactNode;
   showDetails?: boolean; // Controls whether to show extra information (Created, Total Time, Sessions)
 }
@@ -35,6 +36,7 @@ export default function TodoCard({
   onEditChange,
   onEditSave,
   onEditCancel,
+  onToggleDetails,
   actionSlot,
   showDetails = false, // Default to hiding details for cleaner UI
 }: TodoCardProps) {
@@ -57,7 +59,7 @@ export default function TodoCard({
 
   return (
     <div className={containerClasses} onClick={onCardClick}>
-      {onEditStart && (
+      {onEditStart && !isEditing && (
         <button
           onClick={(event) => {
             event.stopPropagation();
@@ -104,6 +106,32 @@ export default function TodoCard({
           />
         </svg>
       </button>
+      {onToggleDetails && !isEditing && (
+        <button
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggleDetails();
+          }}
+          className="absolute -bottom-2 -left-2 w-6 h-6 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:border-gray-500 transition-colors shadow-sm hover:shadow-md z-10"
+          aria-label={showDetails ? "Hide details" : "Show details"}
+          title={showDetails ? "Hide details" : "Show details"}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-4 w-4 transition-transform duration-200 ${showDetails ? "rotate-180" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+      )}
 
       <div className="flex justify-between items-center gap-3 mb-0 flex-wrap">
         {isEditing ? (
