@@ -7,13 +7,19 @@ import {
   clearActiveGoal, 
   createTodo,
   selectIncompleteTodosByListId,
-  toggleTodo
+  toggleTodo,
+  updateTodo,
+  setTodoLink,
+  type TodoLinkType,
+  type Todo
 } from "@/lib/store/slices/todoSlice";
+import { setActiveDashboard } from "@/lib/store/slices/dashboardsSlice";
 import { setTimeRemaining } from "@/modules/timer/store/slices/timerSlice";
 import { useState, useRef, useEffect } from "react";
 import TodoCard from "./TodoCard";
+import { getModuleByType } from "@/modules/registry";
 
-const MAX_GOAL_DESCRIPTION_LENGTH = 40;
+const MAX_GOAL_DESCRIPTION_LENGTH = 120;
 
 interface TodoListProps {
   moduleId: string;
@@ -32,14 +38,33 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
   const todos = useAppSelector((state) =>
     selectIncompleteTodosByListId(state, listId)
   );
-
+  const { dashboards, activeDashboardId } = useAppSelector((state) => state.dashboards);
+  const dashboardList = Object.values(dashboards);
   const isRunning = useAppSelector(state => state.timer.isRunning);
   const studyDuration = useAppSelector(state => state.timer.studyDuration);
   const dispatch = useAppDispatch();
   const [newTodoText, setNewTodoText] = useState("");
   const [showInput, setShowInput] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [linkSheetOpen, setLinkSheetOpen] = useState(false);
+  const [linkTodoId, setLinkTodoId] = useState<string | null>(null);
+  const [linkForm, setLinkForm] = useState<{
+    type: TodoLinkType;
+    label: string;
+    url: string;
+    dashboardId: string;
+    moduleId: string;
+  }>({
+    type: "url",
+    label: "",
+    url: "",
+    dashboardId: activeDashboardId ?? "",
+    moduleId: "",
+  });
   const inputRef = useRef<HTMLInputElement>(null);
+  const labelLimit = 60;
 
   // Sort todos: active goal first (only one can be active), then by creation date (oldest first, so new todos appear at end)
   const sortedTodos = [...todos].sort((a, b) => {
@@ -122,36 +147,195 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     }
   };
 
+  const handleStartEdit = (todoId: string, description: string) => {
+    setEditingTodoId(todoId);
+    setEditingText(description);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTodoId(null);
+    setEditingText("");
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingTodoId) return;
+    const trimmed = editingText.trim();
+    if (trimmed === "") {
+      handleCancelEdit();
+      return;
+    }
+    const bounded = trimmed.slice(0, MAX_GOAL_DESCRIPTION_LENGTH);
+    const todo = todos.find(t => t.id === editingTodoId);
+    if (!todo || todo.description === bounded) {
+      handleCancelEdit();
+      return;
+    }
+    dispatch(updateTodo({ id: editingTodoId, description: bounded }));
+    handleCancelEdit();
+  };
+
+  const isEditing = (todoId: string) => editingTodoId === todoId;
+
+  const moduleOptions = dashboardList.flatMap((dashboard) =>
+    dashboard.modules
+      .filter((m) => m.type === "Timer")
+      .map((m) => {
+        const meta = getModuleByType(m.type);
+        return {
+          moduleId: m.id,
+          dashboardId: dashboard.id,
+          dashboardName: dashboard.name,
+          displayName: meta?.displayName ?? m.type,
+        };
+      })
+  );
+
+  const getDefaultDashboardId = () => activeDashboardId ?? dashboardList[0]?.id ?? "";
+
+  const openLinkSheet = (todo: Todo) => {
+    const link = todo.link;
+    setLinkTodoId(todo.id);
+    setLinkForm({
+      type: link?.type ?? "url",
+      label: link?.label ?? "",
+      url: link?.type === "url" ? link.target : "",
+      dashboardId:
+        link?.type === "dashboard"
+          ? link.target
+          : getDefaultDashboardId(),
+      moduleId: link?.type === "module" ? link.target : "",
+    });
+    setLinkSheetOpen(true);
+  };
+
+  const closeLinkSheet = () => {
+    setLinkSheetOpen(false);
+    setLinkTodoId(null);
+    setLinkForm({
+      type: "url",
+      label: "",
+      url: "",
+      dashboardId: getDefaultDashboardId(),
+      moduleId: "",
+    });
+  };
+
+  const findModuleContext = (moduleId: string) => {
+    for (const dash of dashboardList) {
+      const mod = dash.modules.find((m) => m.id === moduleId);
+      if (mod) {
+        const meta = getModuleByType(mod.type);
+        return {
+          dashboardId: dash.id,
+          dashboardName: dash.name,
+          displayName: meta?.displayName ?? mod.type,
+        };
+      }
+    }
+    return null;
+  };
+
+  const getLinkLabel = (link?: Todo["link"] | null) => {
+    if (!link) return "";
+    if (link.label?.trim()) return link.label.trim();
+    if (link.type === "url") {
+      try {
+        const url = new URL(link.target);
+        return url.host;
+      } catch {
+        return "Link";
+      }
+    }
+    if (link.type === "dashboard") {
+      const dash = dashboards[link.target];
+      return dash?.name ?? "Dashboard";
+    }
+    if (link.type === "module") {
+      const context = findModuleContext(link.target);
+      return context ? `${context.displayName}` : "Module";
+    }
+    return "";
+  };
+
+  const handleLinkNavigate = (todo: Todo) => {
+    const link = todo.link;
+    if (!link) return;
+    if (link.type === "url") {
+      window.open(link.target, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (link.type === "dashboard") {
+      dispatch(setActiveDashboard(link.target));
+      return;
+    }
+    if (link.type === "module") {
+      const context = findModuleContext(link.target);
+      if (context) {
+        dispatch(setActiveDashboard(context.dashboardId));
+      }
+    }
+  };
+
+  const isValidUrl = (value: string) => {
+    try {
+      const url = new URL(value);
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
+  const normalizeUrl = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed === "") return "";
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    // default to https if no scheme provided
+    return `https://${trimmed}`;
+  };
+
+  const handleSaveLink = () => {
+    if (!linkTodoId) return;
+    const label = linkForm.label.trim().slice(0, labelLimit);
+    let linkPayload: { type: TodoLinkType; target: string; label?: string } | null = null;
+
+    if (linkForm.type === "url") {
+      const normalized = normalizeUrl(linkForm.url);
+      if (!isValidUrl(normalized)) return;
+      linkPayload = { type: "url", target: normalized, label: label || undefined };
+    } else if (linkForm.type === "dashboard") {
+      if (!linkForm.dashboardId) return;
+      linkPayload = { type: "dashboard", target: linkForm.dashboardId, label: label || undefined };
+    } else if (linkForm.type === "module") {
+      if (!linkForm.moduleId) return;
+      linkPayload = { type: "module", target: linkForm.moduleId, label: label || undefined };
+    }
+
+    dispatch(setTodoLink({ id: linkTodoId, link: linkPayload }));
+    closeLinkSheet();
+  };
+
+  const handleRemoveLink = () => {
+    if (!linkTodoId) return;
+    dispatch(setTodoLink({ id: linkTodoId, link: null }));
+    closeLinkSheet();
+  };
+
+  const canSaveLink = (() => {
+    if (linkForm.type === "url") {
+      const normalized = normalizeUrl(linkForm.url);
+      return isValidUrl(normalized);
+    }
+    if (linkForm.type === "dashboard") {
+      return Boolean(linkForm.dashboardId);
+    }
+    if (linkForm.type === "module") {
+      return Boolean(linkForm.moduleId);
+    }
+    return false;
+  })();
+
   return (
     <div className="relative h-full flex flex-col">
-      {/* Details Toggle - Only shown when there are todos */}
-      {sortedTodos.length > 0 && (
-        <div className="flex justify-end px-4 pt-2 pb-2">
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
-            aria-label={showDetails ? "Hide details" : "Show details"}
-            title={showDetails ? "Hide details" : "Show details"}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-4 w-4 transition-transform duration-200 ${showDetails ? "rotate-180" : ""}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-            <span>{showDetails ? "Hide Details" : "Show Details"}</span>
-          </button>
-        </div>
-      )}
-      
       {/* Todos List - Scrollable */}
       <div className="flex-1 overflow-auto pb-20 px-4 pt-4">
         {sortedTodos.length === 0 ? (
@@ -159,39 +343,62 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
             <p className="text-lg">No items yet. Click the + button to add one!</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-5">
             {sortedTodos.map((todo) => (
               <TodoCard
                 key={todo.id}
                 todo={todo}
-                onCardClick={() => handleTodoClick(todo.id)}
+                onCardClick={
+                  isEditing(todo.id)
+                    ? undefined
+                    : () => handleTodoClick(todo.id)
+                }
                 onDelete={handleDeleteTodo}
+                onEditStart={() => handleStartEdit(todo.id, todo.description)}
+                isEditing={isEditing(todo.id)}
+                editValue={isEditing(todo.id) ? editingText : undefined}
+                onEditChange={(value) => {
+                  if (value.length <= MAX_GOAL_DESCRIPTION_LENGTH) {
+                    setEditingText(value);
+                  }
+                }}
+                onEditSave={handleSaveEdit}
+                onEditCancel={handleCancelEdit}
+                onToggleDetails={() => setShowDetails(!showDetails)}
                 showDetails={showDetails}
+                linkLabel={getLinkLabel(todo.link)}
+                linkType={todo.link?.type}
+                hasLink={Boolean(todo.link)}
+                onLinkClick={() => handleLinkNavigate(todo)}
+                onLinkEdit={() => openLinkSheet(todo)}
                 actionSlot={
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCompleteTodo(todo.id);
-                    }}
-                    className="inline-flex items-center gap-1 rounded-md border border-gray-400 px-3 py-1 text-sm font-medium text-gray-600 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
-                    aria-label="Mark item done"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    Done
-                  </button>
+                  isEditing(todo.id)
+                    ? null
+                    : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCompleteTodo(todo.id);
+                        }}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-400 text-sm font-medium text-gray-600 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
+                        aria-label="Mark item done"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </button>
+                    )
                 }
               />
             ))}
@@ -269,6 +476,171 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
           </svg>
         </button>
       </div>
+
+      {linkSheetOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-4" onClick={closeLinkSheet}>
+          <div
+            className="w-full max-w-xl bg-white rounded-t-2xl shadow-xl p-4 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Attach a link</p>
+                <h3 className="text-lg font-semibold">Link options</h3>
+              </div>
+              <button
+                onClick={closeLinkSheet}
+                className="text-gray-500 hover:text-gray-800"
+                aria-label="Close link sheet"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              {(["url", "dashboard", "module"] as TodoLinkType[]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() =>
+                    setLinkForm((prev) => ({
+                      ...prev,
+                      type,
+                    }))
+                  }
+                  className={`flex-1 px-3 py-2 rounded-lg border text-sm ${
+                    linkForm.type === type
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-gray-200 text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {type === "url" ? "Hyperlink" : type === "dashboard" ? "Dashboard" : "Module"}
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Label (optional)
+                </label>
+                <input
+                  value={linkForm.label}
+                  onChange={(e) =>
+                    setLinkForm((prev) => ({
+                      ...prev,
+                      label: e.target.value.slice(0, labelLimit),
+                    }))
+                  }
+                  maxLength={labelLimit}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Shown on the chip"
+                />
+                <div className="text-xs text-gray-400 text-right mt-1">
+                  {labelLimit - linkForm.label.length}
+                </div>
+              </div>
+
+              {linkForm.type === "url" && (
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">URL</label>
+                  <input
+                    value={linkForm.url}
+                    onChange={(e) =>
+                      setLinkForm((prev) => ({
+                        ...prev,
+                        url: e.target.value,
+                      }))
+                    }
+                    placeholder="https://example.com"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    aria-label="Link URL"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">If no scheme is provided, https:// is assumed.</p>
+                </div>
+              )}
+
+              {linkForm.type === "dashboard" && (
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Dashboard</label>
+                  <select
+                    value={linkForm.dashboardId}
+                    onChange={(e) =>
+                      setLinkForm((prev) => ({
+                        ...prev,
+                        dashboardId: e.target.value,
+                      }))
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {dashboardList.map((dash) => (
+                      <option key={dash.id} value={dash.id}>
+                        {dash.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {linkForm.type === "module" && (
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Module</label>
+                  <select
+                    value={linkForm.moduleId}
+                    onChange={(e) =>
+                      setLinkForm((prev) => ({
+                        ...prev,
+                        moduleId: e.target.value,
+                      }))
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select a module</option>
+                    {moduleOptions.map((mod) => (
+                      <option key={mod.moduleId} value={mod.moduleId}>
+                        {mod.displayName} — {mod.dashboardName}
+                      </option>
+                    ))}
+                  </select>
+                  {moduleOptions.length === 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      No Timer modules available to link.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <button
+                onClick={handleRemoveLink}
+                className="text-sm text-red-600 hover:text-red-700 disabled:text-gray-300"
+                disabled={!linkTodoId || !todos.find((t) => t.id === linkTodoId)?.link}
+              >
+                Remove link
+              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={closeLinkSheet}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveLink}
+                  disabled={!canSaveLink}
+                  className={`px-4 py-2 rounded-lg text-white ${
+                    canSaveLink
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-gray-300 cursor-not-allowed"
+                  }`}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { RootState } from "./store";
 import { createInitialDashboardsState } from "./slices/dashboardsSlice";
 import { createInitialGlobalConfigState } from "./slices/globalConfigSlice";
 import { createInitialModuleConfigsState } from "./slices/moduleConfigsSlice";
+import type { TodoState } from "./slices/todoSlice";
 
 const STORAGE_KEY = "dashboard-state";
 
@@ -47,7 +48,7 @@ export function loadState(): Partial<RootState> | null {
       totalSessions: 0,
     };
     
-    const defaultTodoState = {
+    const defaultTodoState: TodoState = {
       todosByList: {
         default: [],
       },
@@ -85,7 +86,16 @@ export function loadState(): Partial<RootState> | null {
       todo: {
         ...defaultTodoState,
         ...(parsed.todo ?? {}),
-        todosByList: parsed.todo?.todosByList ?? defaultTodoState.todosByList,
+        todosByList: Object.entries(parsed.todo?.todosByList ?? defaultTodoState.todosByList).reduce(
+          (acc, [listId, todos]) => {
+            acc[listId] = todos.map((todo) => ({
+              ...todo,
+              link: todo.link ?? null,
+            }));
+            return acc;
+          },
+          {} as TodoState["todosByList"]
+        ),
       },
     };
   } catch (error) {

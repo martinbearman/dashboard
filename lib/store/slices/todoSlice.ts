@@ -6,6 +6,14 @@ import type { RootState } from '../store'
  */
 export type TodoPriority = 'low' | 'medium' | 'high' | null
 
+export type TodoLinkType = 'url' | 'dashboard' | 'module'
+
+export interface TodoLink {
+  type: TodoLinkType
+  target: string
+  label?: string
+}
+
 /**
  * Session Interface - represents an individual Pomodoro session for a todo
  */
@@ -32,6 +40,7 @@ export interface Todo {
   totalTimeStudied: number  // Total time spent (in seconds) across all sessions
   sessions: TodoSession[]    // Array of Pomodoro sessions for this todo
   isActiveGoal: boolean     // Whether this todo is currently being timed
+  link?: TodoLink | null    // Optional single link attached to the todo
 }
 
 /**
@@ -102,7 +111,8 @@ const todoSlice = createSlice({
         // Timer-related fields initialized
         totalTimeStudied: 0,
         sessions: [],
-        isActiveGoal: action.payload.setAsActive ?? false
+        isActiveGoal: action.payload.setAsActive ?? false,
+        link: null,
       }
       if (!state.todosByList[targetListId]) {
         state.todosByList[targetListId] = []
@@ -128,6 +138,16 @@ const todoSlice = createSlice({
       const todo = allTodos.find(todo => todo.id === action.payload.id)
       if (todo) {
         todo.description = action.payload.description
+      }
+    },
+    /**
+     * Sets or clears the single link for a todo.
+     */
+    setTodoLink: (state, action: PayloadAction<{ id: string; link: TodoLink | null }>) => {
+      const allTodos = getAllTodos(state)
+      const todo = allTodos.find(todo => todo.id === action.payload.id)
+      if (todo) {
+        todo.link = action.payload.link
       }
     },
     /**
@@ -229,7 +249,8 @@ const todoSlice = createSlice({
         if (!todo.listId) {
           return { ...todo, listId: DEFAULT_TODO_LIST_ID }
         }
-        return todo
+        // Ensure link field exists for older saves
+        return { ...todo, link: todo.link ?? null }
       })
       
       // Group todos by listId
@@ -253,6 +274,7 @@ export const {
   updateTodo, 
   updateTodoPriority,
   updateTodoDueDate,
+  setTodoLink,
   setActiveGoal,
   clearActiveGoal,
   completeSession,
