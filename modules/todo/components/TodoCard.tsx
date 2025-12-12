@@ -69,6 +69,7 @@ export default function TodoCard({
 
   return (
     <div className={containerClasses} onClick={onCardClick}>
+      {/* Top-left edit control (only when not editing) */}
       {onEditStart && !isEditing && (
         <button
           onClick={(event) => {
@@ -95,6 +96,7 @@ export default function TodoCard({
           </svg>
         </button>
       )}
+      {/* Top-right delete control */}
       <button
         onClick={handleDeleteClick}
         className="absolute -top-2 -right-2 w-6 h-6 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-colors shadow-sm hover:shadow-md z-10"
@@ -116,6 +118,7 @@ export default function TodoCard({
           />
         </svg>
       </button>
+      {/* Bottom-left toggle for metadata details */}
       {onToggleDetails && !isEditing && (
         <button
           onClick={(event) => {
@@ -142,6 +145,7 @@ export default function TodoCard({
           </svg>
         </button>
       )}
+      {/* Bottom-right link add/edit control */}
       {onLinkEdit && !isEditing && (
         <button
           onClick={(event) => {
@@ -173,8 +177,10 @@ export default function TodoCard({
         </button>
       )}
 
+      {/* Header row: title, badges, and action slot */}
       <div className="flex justify-between items-center gap-3 mb-0 flex-wrap">
         {isEditing ? (
+          /* Inline edit mode for the todo title */
           <div className="flex-1 min-w-0 flex items-center gap-3">
             <input
               value={editValue}
@@ -246,6 +252,7 @@ export default function TodoCard({
             </div>
           </div>
         ) : (
+          /* Display mode for the todo title */
           <h3
             className={`font-semibold text-lg flex-1 min-w-0 ${
               todo.completed
@@ -258,7 +265,28 @@ export default function TodoCard({
             {todo.description}
           </h3>
         )}
-        {!isEditing && linkLabel && (
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {todo.isActiveGoal && !todo.completed && (
+            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+              Current
+            </span>
+          )}
+          {actionSlot && (
+            <div className="flex items-center gap-2">{actionSlot}</div>
+          )}
+        </div>
+        {todo.completed && (
+        <div className="flex items-center w-20 flex-shrink-0">
+          <span className="absolute top-1/2 right-5 text-green-500 text-5xl font-bold pointer-events-none select-none transform -translate-y-1/2 rotate-[-15deg] opacity-70">
+            ✓
+          </span>
+        </div>
+        )}
+      </div>
+
+      {/* Optional link pill */}
+      {!isEditing && linkLabel && (
+        <div className="mt-2 w-full flex justify-start">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -291,26 +319,10 @@ export default function TodoCard({
             </svg>
             <span className="truncate max-w-[180px]">{linkLabel}</span>
           </button>
-        )}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {todo.isActiveGoal && !todo.completed && (
-            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-              Current
-            </span>
-          )}
-          {actionSlot && (
-            <div className="flex items-center gap-2">{actionSlot}</div>
-          )}
         </div>
-        {todo.completed && (
-        <div className="flex items-center w-20 flex-shrink-0">
-          <span className="absolute top-1/2 right-5 text-green-500 text-5xl font-bold pointer-events-none select-none transform -translate-y-1/2 rotate-[-15deg] opacity-70">
-            ✓
-          </span>
-        </div>
-        )}
-      </div>
+      )}
 
+      {/* Expandable details: created date, total time, session count */}
       {showDetails && (
         <div className="grid grid-cols-3 gap-4 text-sm mt-3">
           <div>
