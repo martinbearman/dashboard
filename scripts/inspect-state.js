@@ -123,7 +123,6 @@ function inspectSlices() {
     { name: 'moduleConfigs', path: 'lib/store/slices/moduleConfigsSlice.ts' },
     { name: 'todo', path: 'lib/store/slices/todoSlice.ts' },
     { name: 'timer', path: 'modules/timer/store/slices/timerSlice.ts' },
-    { name: 'goal', path: 'modules/timer/store/slices/goalSlice.ts' },
   ];
   
   slices.forEach(slice => {
@@ -206,7 +205,6 @@ function inspectActions() {
     { name: 'moduleConfigs', path: 'lib/store/slices/moduleConfigsSlice.ts' },
     { name: 'todo', path: 'lib/store/slices/todoSlice.ts' },
     { name: 'timer', path: 'modules/timer/store/slices/timerSlice.ts' },
-    { name: 'goal', path: 'modules/timer/store/slices/goalSlice.ts' },
   ];
   
   const allActions = [];
