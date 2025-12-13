@@ -10,7 +10,6 @@ import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { getModuleByType } from "@/modules/registry";
 import ModuleWrapper from "@/components/modules/ModuleWrapper";
 import {
-  updateModulePosition,
   updateDashboardLayouts,
 } from "@/lib/store/slices/dashboardsSlice";
 import { WidthProvider, Responsive, type Layout, type Layouts } from "react-grid-layout";
@@ -60,17 +59,8 @@ export default function Home() {
 
   function handleLayoutChange(current: Layout[], allLayouts: Layouts) {
     if (!active) return;
-    // Update the canonical gridPosition for each module (used by modules and default layout seeds)
-    current.forEach(({ i, x, y, w, h }) => {
-      dispatch(
-        updateModulePosition({
-          dashboardId: active.id,
-          moduleId: i,
-          position: { x, y, w, h },
-        })
-      );
-    });
     // Persist the complete set of breakpoint layouts so drag/resize survives reloads
+    // Layouts are now the single source of truth for module positions
     dispatch(
       updateDashboardLayouts({
         dashboardId: active.id,

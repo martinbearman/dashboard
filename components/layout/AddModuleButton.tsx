@@ -5,6 +5,7 @@ import { moduleRegistry } from "@/modules/registry";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { addModule } from "@/lib/store/slices/dashboardsSlice";
 import { setModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
+import { selectModulePositions } from "@/lib/store/selectors/dashboardSelectors";
 
 // Decide where to place the next module in the grid so it doesn't overlap.
 function nextPosition(existing: { x: number; y: number; w: number; h: number }[]) {
@@ -21,6 +22,13 @@ export default function AddModuleButton() {
   const [query, setQuery] = useState("");
   const dispatch = useAppDispatch();
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
+  
+  // Get existing module positions from layouts (using "lg" breakpoint as default)
+  const existingPositions = useAppSelector((state) => 
+    activeDashboardId 
+      ? selectModulePositions(state, activeDashboardId, "lg")
+      : []
+  );
 
   // Basic search filter (name + description)
   const filtered = useMemo(() => {
@@ -48,7 +56,7 @@ export default function AddModuleButton() {
   const handleAdd = (type: string) => {
     if (!activeDashboardId) return;
     const dash = dashboards[activeDashboardId];
-    const positions = dash.modules.map((m) => m.gridPosition);
+    
     const meta = moduleRegistry.find((m) => m.type === type);
     let size = meta?.defaultGridSize ?? { w: 3, h: 2 };
     
@@ -68,8 +76,8 @@ export default function AddModuleButton() {
       }
     }
     
-    const pos = positions.length
-      ? nextPosition(positions)
+    const pos = existingPositions.length
+      ? nextPosition(existingPositions)
       : { x: 0, y: 0, w: size.w, h: size.h };
 
     // Each module needs a stable ID so its layout entry and config line up.
@@ -81,8 +89,8 @@ export default function AddModuleButton() {
         module: {
           id: moduleId,
           type,
-          gridPosition: { x: pos.x, y: pos.y, w: size.w, h: size.h },
         },
+        initialPosition: { x: pos.x, y: pos.y, w: size.w, h: size.h },
       })
     );
     
