@@ -5,11 +5,11 @@ export type Breakpoint = "lg" | "md" | "sm" | "xs" | "xxs";
 
 /**
  * A module instance on a dashboard
+ * Note: gridPosition is no longer stored here - it's derived from Dashboard.layouts using selectors
  */
 export interface ModuleInstance {
   id: string;
   type: string;
-  gridPosition: { x: number; y: number; w: number; h: number };
 }
 
 /**

@@ -20,22 +20,18 @@ export const createInitialDashboardsState = (): DashboardsState => ({
         {
           id: "m-1",
           type: "Timer", // Pomodoro Timer
-          gridPosition: { x: 0, y: 0, w: 2, h: 4 }
         },
         {
           id: "m-2",
           type: "todo", // Todo List
-          gridPosition: { x: 2, y: 0, w: 3, h: 3 }
         },
         {
           id: "m-3",
           type: "quote", // Quotes
-          gridPosition: { x: 5, y: 0, w: 3, h: 3 }
         },
         {
           id: "m-4",
           type: "completed", // Completed Tasks
-          gridPosition: { x: 8, y: 0, w: 3, h: 3 }
         },
       ],
       layouts: {
@@ -94,9 +90,13 @@ const dashboardsSlice = createSlice({
     },
     addModule: (
       state, 
-      action: PayloadAction<{ dashboardId: string; module: ModuleInstance }>
+      action: PayloadAction<{ 
+        dashboardId: string; 
+        module: ModuleInstance;
+        initialPosition: { x: number; y: number; w: number; h: number };
+      }>
     ) => {
-      const { dashboardId, module } = action.payload;
+      const { dashboardId, module, initialPosition } = action.payload;
       const dashboard = state.dashboards[dashboardId];
       if (!dashboard) return;
     
@@ -104,7 +104,8 @@ const dashboardsSlice = createSlice({
     
       dashboard.layouts = dashboard.layouts ?? {};
     
-      // Keep each breakpoint layout in sync with the new module
+      // Initialize the module in all breakpoint layouts with the initial position
+      // Layouts are now the single source of truth for module positions
       BREAKPOINTS.forEach((bp) => {
         const layout = dashboard.layouts![bp];
     
@@ -113,20 +114,20 @@ const dashboardsSlice = createSlice({
           dashboard.layouts![bp] = layout.filter((item) => item.i !== module.id);
           dashboard.layouts![bp]!.push({
             i: module.id,
-            x: module.gridPosition.x,
-            y: module.gridPosition.y,
-            w: module.gridPosition.w,
-            h: module.gridPosition.h,
+            x: initialPosition.x,
+            y: initialPosition.y,
+            w: initialPosition.w,
+            h: initialPosition.h,
           });
         } else {
-          // No layout for this breakpoint yet; rebuild it from all modules
-          dashboard.layouts![bp] = dashboard.modules.map((m) => ({
-            i: m.id,
-            x: m.gridPosition.x,
-            y: m.gridPosition.y,
-            w: m.gridPosition.w,
-            h: m.gridPosition.h,
-          }));
+          // No layout for this breakpoint yet; create it with just this module
+          dashboard.layouts![bp] = [{
+            i: module.id,
+            x: initialPosition.x,
+            y: initialPosition.y,
+            w: initialPosition.w,
+            h: initialPosition.h,
+          }];
         }
       });
     },
@@ -150,39 +151,9 @@ const dashboardsSlice = createSlice({
         });
       }
     },
-    updateModulePosition: (
-      state,
-      action: PayloadAction<{
-        dashboardId: string;
-        moduleId: string;
-        position: { x: number; y: number; w: number; h: number };
-      }>
-    ) => {
-      const dashboard = state.dashboards[action.payload.dashboardId];
-      if (!dashboard) return;
-
-      const moduleInstance = dashboard.modules.find(
-        (m) => m.id === action.payload.moduleId
-      );
-      if (moduleInstance) {
-        moduleInstance.gridPosition = action.payload.position;
-      }
-
-      if (dashboard.layouts) {
-        BREAKPOINTS.forEach((bp) => {
-          const layout = dashboard.layouts![bp];
-          if (!layout) return;
-          const layoutItem = layout.find((item) => item.i === action.payload.moduleId);
-          if (layoutItem) {
-            // Mirror the position so the saved layout matches what react-grid-layout just produced
-            layoutItem.x = action.payload.position.x;
-            layoutItem.y = action.payload.position.y;
-            layoutItem.w = action.payload.position.w;
-            layoutItem.h = action.payload.position.h;
-          }
-        });
-      }
-    },
+    // Note: updateModulePosition has been removed.
+    // Module positions are now stored only in Dashboard.layouts.
+    // Use updateDashboardLayouts to update positions when layouts change.
     removeDashboard: (state, action: PayloadAction<string>) => {
       const dashboardId = action.payload;
       // Never remove the seeded default dashboard.
@@ -274,7 +245,6 @@ export const {
   setActiveDashboard,
   addModule,
   removeModule,
-  updateModulePosition,
   removeDashboard,
   updateDashboardLayouts,
   updateDashboardName
