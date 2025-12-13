@@ -40,14 +40,6 @@ export function loadState(): Partial<RootState> | null {
       breakMode: 'manual' as const,
     };
     
-    const defaultGoalState = {
-      goals: [],
-      sessions: [],
-      currentGoalId: null,
-      totalStudyTime: 0,
-      totalSessions: 0,
-    };
-    
     const defaultTodoState: TodoState = {
       todosByList: {
         default: [],
@@ -76,12 +68,6 @@ export function loadState(): Partial<RootState> | null {
       timer: {
         ...defaultTimerState,
         ...(parsed.timer ?? {}),
-      },
-      goal: {
-        ...defaultGoalState,
-        ...(parsed.goal ?? {}),
-        goals: parsed.goal?.goals ?? defaultGoalState.goals,
-        sessions: parsed.goal?.sessions ?? defaultGoalState.sessions,
       },
       todo: {
         ...defaultTodoState,
