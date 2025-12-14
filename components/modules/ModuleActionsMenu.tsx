@@ -2,10 +2,10 @@
 
 import { useState, useEffect, type MouseEvent } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { updateModuleConfig, removeModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
-import { removeModule } from "@/lib/store/slices/dashboardsSlice";
+import { updateModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 import { useClickOutside } from "@/lib/hooks/useClickOutside";
 import { getModuleByType } from "@/modules/registry";
+import ModuleService from "@/lib/services/moduleService";
 
 type ModuleActionsMenuProps = {
   moduleId: string;
@@ -110,9 +110,8 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
       return;
     }
 
-    // Remove the module instance and clear its persisted config.
-    dispatch(removeModule({ dashboardId: activeDashboardId, moduleId }));
-    dispatch(removeModuleConfig(moduleId));
+    // Use ModuleService to coordinate removal of both module instance and config
+    ModuleService.removeModule(dispatch, activeDashboardId, moduleId);
   };
 
   return (
