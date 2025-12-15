@@ -30,9 +30,9 @@ export default function DetailModule({ moduleId, config }: ModuleProps) {
       )}
       {imageUrls.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">
-          {imageUrls.map((url) => (
+          {imageUrls.map((url, index) => (
             <img
-              key={url}
+              key={`${index}`}
               src={url}
               alt=""
               className="max-h-32 rounded border border-neutral-700 object-contain"
