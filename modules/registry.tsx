@@ -6,6 +6,7 @@ import TodoModuleComponent from "./todo/TodoModule";
 import CompletedModuleComponent from "./completed/CompletedModule";
 import ArtModuleComponent from "./art/ArtModule";
 import TodoConfigPanel from "./todo/components/TodoConfigPanel";
+import DetailModuleComponent from "./detail/DetailModule";
 import CompletedConfigPanel from "./completed/components/CompletedConfigPanel";
 
 // Timer module - component lives in modules/timer/ folder
@@ -63,6 +64,16 @@ const ArtModule: DashboardModule = {
   component: ArtModuleComponent,
 };
 
+const DetailModule : DashboardModule = {
+  type: "details",
+  displayName: "Details",
+  description: "Display detailed information about a module",
+  defaultGridSize: { w: 3, h: 3 },
+  minGridSize: { w: 2, h: 2 },
+  maxGridSize: { w: 8, h: 6 },
+  component: DetailModuleComponent,
+};
+
 const DateTimeModule: DashboardModule = {
   type: "datetime",
   displayName: "Date & Time",
@@ -89,6 +100,7 @@ export const moduleRegistry: DashboardModule[] = [
   CompletedModule,
   QuoteModule,
   ArtModule,
+  DetailModule
   // DateTimeModule, // Not built yet
   // WeatherModule, // Not built yet
 ];
