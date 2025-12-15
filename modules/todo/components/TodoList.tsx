@@ -410,7 +410,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
       {showInput && (
         <div className="absolute bottom-0 left-0 right-0 h-[80px] bg-gradient-to-b from-transparent to-white pointer-events-none z-10"></div>
       )}
-      <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-end gap-2 z-20 max-w-full">
+      <div className="absolute bottom-0 right-0 p-4 flex items-end justify-end gap-2 z-20">
         {/* Item Creation Input - Shown when + button is clicked */}
         {showInput && (
           <div className="flex gap-2 transition-all duration-200 flex-1 max-w-[calc(100%-3rem)]">
@@ -427,7 +427,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
                 onKeyDown={handleKeyDown}
                 placeholder="Add a new item..."
                 maxLength={MAX_GOAL_DESCRIPTION_LENGTH}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full pl-4 pr-12 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 aria-label="Add a new item"
               />
               <div className="absolute bottom-0 right-0 text-xs text-gray-400 mb-1 mr-2">
