@@ -55,3 +55,28 @@ export interface ModuleConfigProps {
   onClose?: () => void;
 }
 
+/**
+ * Link type for Detail module
+ */
+export type DetailLinkType = 'internal' | 'external';
+
+/**
+ * Link definition for Detail module
+ */
+export interface DetailLink {
+  type: DetailLinkType;
+  url: string;
+  label?: string;
+}
+
+/**
+ * Config for the Detail module
+ */
+export interface DetailModuleConfig {
+  title: string;
+  content: string;
+  imageUrls?: string[];
+  links?: DetailLink[];
+  color?: string;
+}
+
