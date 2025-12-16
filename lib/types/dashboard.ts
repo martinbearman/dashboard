@@ -80,3 +80,11 @@ export interface DetailModuleConfig {
   color?: string;
 }
 
+/**
+ * UI state
+ */
+export interface UiState {
+  activeDashboardId: string | null;
+  moduleConfigPanel: { moduleId: string } | null;
+}
+

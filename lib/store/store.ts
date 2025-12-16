@@ -3,6 +3,7 @@ import dashboardsReducer from "./slices/dashboardsSlice";
 import globalConfigReducer from "./slices/globalConfigSlice";
 import moduleConfigsReducer from "./slices/moduleConfigsSlice";
 import todoReducer from "./slices/todoSlice";
+import uiReducer from "./slices/uiSlice";
 // Timer module slices
 import timerReducer from "../../modules/timer/store/slices/timerSlice";
 import { localStorageMiddleware } from "./middleware/localStorageMiddleware";
@@ -14,6 +15,7 @@ const rootReducer = combineReducers({
   moduleConfigs: moduleConfigsReducer,
   todo: todoReducer,
   timer: timerReducer,
+  ui: uiReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
