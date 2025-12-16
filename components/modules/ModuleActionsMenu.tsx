@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { updateModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 import { useClickOutside } from "@/lib/hooks/useClickOutside";
 import { getModuleByType } from "@/modules/registry";
 import ModuleService from "@/lib/services/moduleService";
+import { openModuleConfigPanel } from "@/lib/store/slices/uiSlice";
 
 type ModuleActionsMenuProps = {
   moduleId: string;
@@ -15,7 +15,6 @@ type ModuleActionsMenuProps = {
 
 export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showConfigModal, setShowConfigModal] = useState(false);
   const dispatch = useAppDispatch();
   // Track the dashboard so removal can target the proper slice entry.
   const { activeDashboardId, dashboards } = useAppSelector((state) => state.dashboards);
@@ -32,22 +31,8 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
       ? (moduleConfig.listName as string)
       : moduleName;
 
-
   // Close the menu when the user clicks/taps outside of the trigger + menu region.
   const containerRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false), isOpen);
-  
-  // Close the config modal when clicking outside
-  const modalRef = useClickOutside<HTMLDivElement>(() => setShowConfigModal(false), showConfigModal);
-
-  // Close config modal on Escape key
-  useEffect(() => {
-    if (!showConfigModal) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setShowConfigModal(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [showConfigModal]);
 
   // Shared helper so every handler collapses the dropdown after running.
   const closeMenu = () => setIsOpen(false);
@@ -76,16 +61,8 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
   const handleConfigure = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (ConfigPanel) {
-      setShowConfigModal(true);
+      dispatch(openModuleConfigPanel({ moduleId }));
     }
-  };
-
-  const handleConfigChange = (config: Record<string, any>) => {
-    dispatch(updateModuleConfig({ moduleId, config }));
-  };
-
-  const handleCloseConfigModal = () => {
-    setShowConfigModal(false);
   };
 
   const handleToggleLock = (event: MouseEvent<HTMLButtonElement>) => {
@@ -212,30 +189,6 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
         ) : null}
       </div>
     </div>
-
-      {/* Configuration Modal */}
-      {showConfigModal && ConfigPanel && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div ref={modalRef} className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 max-h-[90vh] overflow-auto">
-            <div className="flex justify-between items-center p-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold">Configure Module</h2>
-              <button
-                onClick={handleCloseConfigModal}
-                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-                aria-label="Close configuration"
-              >
-                ×
-              </button>
-            </div>
-            <ConfigPanel
-              moduleId={moduleId}
-              config={moduleConfig}
-              onConfigChange={handleConfigChange}
-              onClose={handleCloseConfigModal}
-            />
-          </div>
-        </div>
-      )}
     </>
   );
 }

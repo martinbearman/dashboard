@@ -56,7 +56,7 @@ export default function TodoConfigPanel({
           onChange={(e) => handleNameChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Enter list name..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
         />
         <p className="text-xs text-gray-500 mt-1">
           This name helps you identify this todo list. Press Enter to close.

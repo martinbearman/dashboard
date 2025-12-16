@@ -122,7 +122,7 @@ export default function DetailConfigPanel({
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Enter a short title..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
         />
       </div>
 
@@ -135,12 +135,8 @@ export default function DetailConfigPanel({
           onChange={(e) => handleContentChange(e.target.value)}
           placeholder="Write detailed notes, breakdowns, or context here..."
           rows={8}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-y"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-y text-gray-900"
         />
-        <p className="mt-1 text-xs text-gray-500">
-          This content will appear in the Detail module. Later, an AI can help
-          generate or update it using the same fields.
-        </p>
       </div>
 
       <div>
@@ -152,7 +148,7 @@ export default function DetailConfigPanel({
           onChange={(e) => handleImageUrlsChange(e.target.value)}
           placeholder="https://example.com/image-1.png&#10;https://example.com/image-2.png"
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-y"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 resize-y text-gray-900"
         />
         <p className="mt-1 text-xs text-gray-500">
           Each non-empty line will be treated as an image URL and shown in the
@@ -176,7 +172,7 @@ export default function DetailConfigPanel({
         
         {links.length === 0 ? (
           <p className="text-sm text-gray-500 italic py-2">
-            No links added. Click "Add Link" to add internal or external links.
+            No links added. Click &quot;Add Link&quot; to add internal or external links.
           </p>
         ) : (
           <div className="space-y-3">
@@ -195,7 +191,7 @@ export default function DetailConfigPanel({
                             type: e.target.value as DetailLinkType,
                           })
                         }
-                        className="px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
                       >
                         <option value="external">External URL</option>
                         <option value="internal">Internal</option>
@@ -220,7 +216,7 @@ export default function DetailConfigPanel({
                           ? "Path to internal resource (e.g., /api/files/document, /dashboards/123, or file path)"
                           : "https://example.com/page"
                       }
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
                     />
                     
                     <input
@@ -232,7 +228,7 @@ export default function DetailConfigPanel({
                         })
                       }
                       placeholder="Optional display label (leave empty to show URL)"
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
                     />
                   </div>
                 </div>
