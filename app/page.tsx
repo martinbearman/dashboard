@@ -6,6 +6,7 @@ import "react-resizable/css/styles.css";
 import DashboardTabs from "@/components/layout/DashboardTabs";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
+import ConfigSheet from "@/components/ui/ConfigSheet";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { getModuleByType } from "@/modules/registry";
 import ModuleWrapper from "@/components/modules/ModuleWrapper";
@@ -110,6 +111,9 @@ export default function Home() {
       
       {/* Version display */}
       <AppVersion />
+
+      {/* Configuration Sheet - off-canvas menu for module configuration */}
+      <ConfigSheet />
     </main>
   );
 }
