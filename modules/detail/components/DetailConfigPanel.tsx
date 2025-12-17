@@ -186,11 +186,30 @@ export default function DetailConfigPanel({
                     <div className="flex gap-2">
                       <select
                         value={link.type}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const newType = e.target.value as DetailLinkType;
+                          let updatedUrl = link.url;
+                          
+                          if (newType === 'external') {
+                            // If switching to external and URL doesn't have protocol, add http://
+                            // Don't prefix if URL is empty or starts with / (relative path)
+                            if (updatedUrl && !updatedUrl.startsWith('http://') && !updatedUrl.startsWith('https://') && !updatedUrl.startsWith('/')) {
+                              updatedUrl = `http://${updatedUrl}`;
+                            }
+                          } else if (newType === 'internal') {
+                            // If switching to internal and URL has protocol, remove it
+                            if (updatedUrl.startsWith('http://')) {
+                              updatedUrl = updatedUrl.slice(7);
+                            } else if (updatedUrl.startsWith('https://')) {
+                              updatedUrl = updatedUrl.slice(8);
+                            }
+                          }
+                          
                           handleUpdateLink(index, {
-                            type: e.target.value as DetailLinkType,
-                          })
-                        }
+                            type: newType,
+                            url: updatedUrl,
+                          });
+                        }}
                         className="px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
                       >
                         <option value="external">External URL</option>
@@ -208,9 +227,27 @@ export default function DetailConfigPanel({
                     <input
                       type="text"
                       value={link.url}
-                      onChange={(e) =>
-                        handleUpdateLink(index, { url: e.target.value })
-                      }
+                      onChange={(e) => {
+                        let newUrl = e.target.value;
+                        const updates: Partial<DetailLink> = {};
+                        
+                        // Auto-detect link type when URL starts with http:// or https://
+                        const isActuallyExternal = newUrl.startsWith('http://') || newUrl.startsWith('https://');
+                        
+                        // If link type is external and URL doesn't have protocol, prefix with http://
+                        if (link.type === 'external' && newUrl && !isActuallyExternal && !newUrl.startsWith('/')) {
+                          newUrl = `http://${newUrl}`;
+                        }
+                        
+                        updates.url = newUrl;
+                        
+                        // If URL clearly has a protocol, auto-set to external
+                        if (isActuallyExternal && link.type !== 'external') {
+                          updates.type = 'external';
+                        }
+                        
+                        handleUpdateLink(index, updates);
+                      }}
                       placeholder={
                         link.type === 'internal'
                           ? "Path to internal resource (e.g., /api/files/document, /dashboards/123, or file path)"

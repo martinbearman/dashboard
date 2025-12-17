@@ -44,6 +44,7 @@ export default function DetailModule({ moduleId, config }: ModuleProps) {
         <div className="mt-2 flex flex-col gap-1">
           {links.map((link, index) => {
             const displayText = link.label || link.url;
+            // External links open in new tab with target="_blank"
             const isInternal = link.type === 'internal';
             
             return (
