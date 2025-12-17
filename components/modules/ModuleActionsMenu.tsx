@@ -6,6 +6,7 @@ import { useClickOutside } from "@/lib/hooks/useClickOutside";
 import { getModuleByType } from "@/modules/registry";
 import ModuleService from "@/lib/services/moduleService";
 import { openModuleConfigPanel } from "@/lib/store/slices/uiSlice";
+import { updateModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 
 type ModuleActionsMenuProps = {
   moduleId: string;
