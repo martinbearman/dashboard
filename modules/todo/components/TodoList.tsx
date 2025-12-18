@@ -10,14 +10,27 @@ import {
   toggleTodo,
   updateTodo,
   setTodoLink,
+  reorderTodosInList,
   type TodoLinkType,
   type Todo
 } from "@/lib/store/slices/todoSlice";
 import { setActiveDashboard } from "@/lib/store/slices/dashboardsSlice";
 import { setTimeRemaining } from "@/modules/timer/store/slices/timerSlice";
 import { useState, useRef, useEffect } from "react";
-import TodoCard from "./TodoCard";
+import SortableTodoCard from "./SortableTodoCard";
 import { getModuleByType } from "@/modules/registry";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 const MAX_GOAL_DESCRIPTION_LENGTH = 120;
 
@@ -66,14 +79,30 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const labelLimit = 60;
 
-  // Sort todos: active goal first (only one can be active), then by creation date (oldest first, so new todos appear at end)
-  const sortedTodos = [...todos].sort((a, b) => {
-    // Active goal always comes first
-    if (a.isActiveGoal) return -1;
-    if (b.isActiveGoal) return 1;
-    // Otherwise sort by creation date (oldest first, so new todos appear at end)
-    return a.createdAt - b.createdAt;
-  });
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
+
+  // Use the underlying list order from state as the canonical ordering so that
+  // drag-and-drop operations can persist their order.
+  const orderedTodos = todos;
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    dispatch(
+      reorderTodosInList({
+        listId,
+        activeId: String(active.id),
+        overId: String(over.id),
+      })
+    );
+  };
 
   const handleTodoClick = (todoId: string) => {
     // Only allow switching if timer is NOT running
@@ -338,71 +367,81 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
     <div className="relative h-full flex flex-col">
       {/* Todos List - Scrollable */}
       <div className="flex-1 overflow-auto pb-20 px-4 pt-4">
-        {sortedTodos.length === 0 ? (
+        {orderedTodos.length === 0 ? (
           <div className="h-full flex items-center justify-center text-center text-gray-500">
             <p className="text-lg">No items yet. Click the + button to add one!</p>
           </div>
         ) : (
-          <div className="space-y-5">
-            {sortedTodos.map((todo) => (
-              <TodoCard
-                key={todo.id}
-                todo={todo}
-                onCardClick={
-                  isEditing(todo.id)
-                    ? undefined
-                    : () => handleTodoClick(todo.id)
-                }
-                onDelete={handleDeleteTodo}
-                onEditStart={() => handleStartEdit(todo.id, todo.description)}
-                isEditing={isEditing(todo.id)}
-                editValue={isEditing(todo.id) ? editingText : undefined}
-                onEditChange={(value) => {
-                  if (value.length <= MAX_GOAL_DESCRIPTION_LENGTH) {
-                    setEditingText(value);
-                  }
-                }}
-                onEditSave={handleSaveEdit}
-                onEditCancel={handleCancelEdit}
-                onToggleDetails={() => setShowDetails(!showDetails)}
-                showDetails={showDetails}
-                linkLabel={getLinkLabel(todo.link)}
-                linkType={todo.link?.type}
-                hasLink={Boolean(todo.link)}
-                onLinkClick={() => handleLinkNavigate(todo)}
-                onLinkEdit={() => openLinkSheet(todo)}
-                actionSlot={
-                  isEditing(todo.id)
-                    ? null
-                    : (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCompleteTodo(todo.id);
-                        }}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-400 text-sm font-medium text-gray-600 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
-                        aria-label="Mark item done"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </button>
-                    )
-                }
-              />
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={orderedTodos.map((todo) => todo.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-5">
+                {orderedTodos.map((todo) => (
+                  <SortableTodoCard
+                    key={todo.id}
+                    todo={todo}
+                    onCardClick={
+                      isEditing(todo.id)
+                        ? undefined
+                        : () => handleTodoClick(todo.id)
+                    }
+                    onDelete={handleDeleteTodo}
+                    onEditStart={() => handleStartEdit(todo.id, todo.description)}
+                    isEditing={isEditing(todo.id)}
+                    onEditChange={(value) => {
+                      if (value.length <= MAX_GOAL_DESCRIPTION_LENGTH) {
+                        setEditingText(value);
+                      }
+                    }}
+                    onEditSave={handleSaveEdit}
+                    onEditCancel={handleCancelEdit}
+                    onToggleDetails={() => setShowDetails(!showDetails)}
+                    showDetails={showDetails}
+                    linkLabel={getLinkLabel(todo.link)}
+                    linkType={todo.link?.type}
+                    hasLink={Boolean(todo.link)}
+                    onLinkClick={() => handleLinkNavigate(todo)}
+                    onLinkEdit={() => openLinkSheet(todo)}
+                    actionSlot={
+                      isEditing(todo.id)
+                        ? null
+                        : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCompleteTodo(todo.id);
+                            }}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-400 text-sm font-medium text-gray-600 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors"
+                            aria-label="Mark item done"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </button>
+                        )
+                    }
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 

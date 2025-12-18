@@ -264,6 +264,28 @@ const todoSlice = createSlice({
       
       state.todosByList = todosByList
     },
+    /**
+     * Reorders todos within a single list, based on drag-and-drop operations.
+     * The relative order of todos in the array is treated as the canonical ordering.
+     */
+    reorderTodosInList: (
+      state,
+      action: PayloadAction<{ listId: string; activeId: string; overId: string }>
+    ) => {
+      const { listId, activeId, overId } = action.payload
+      const list = state.todosByList[listId]
+      if (!list) return
+
+      const oldIndex = list.findIndex(todo => todo.id === activeId)
+      const newIndex = list.findIndex(todo => todo.id === overId)
+
+      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
+        return
+      }
+
+      const [moved] = list.splice(oldIndex, 1)
+      list.splice(newIndex, 0, moved)
+    },
   }
 })
 
@@ -279,7 +301,8 @@ export const {
   clearActiveGoal,
   completeSession,
   deleteTodo, 
-  loadTodos 
+  loadTodos,
+  reorderTodosInList,
 } = todoSlice.actions
 export default todoSlice.reducer
 
