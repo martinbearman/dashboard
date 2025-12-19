@@ -8,6 +8,7 @@ import type { Todo, TodoLinkType } from "@/lib/store/slices/todoSlice";
 export interface SortableTodoCardProps {
   todo: Todo;
   isEditing: boolean;
+  editValue: string;
   showDetails: boolean;
   linkLabel: string;
   linkType: TodoLinkType | undefined;
@@ -27,6 +28,7 @@ export interface SortableTodoCardProps {
 export default function SortableTodoCard({
   todo,
   isEditing,
+  editValue,
   showDetails,
   linkLabel,
   linkType,
@@ -66,6 +68,7 @@ export default function SortableTodoCard({
         onDelete={onDelete}
         onEditStart={onEditStart}
         isEditing={isEditing}
+        editValue={editValue}
         onEditChange={onEditChange}
         onEditSave={onEditSave}
         onEditCancel={onEditCancel}
