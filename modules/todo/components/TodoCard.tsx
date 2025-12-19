@@ -10,7 +10,7 @@ interface TodoCardProps {
   onDelete?: (todoId: string) => void;
   onEditStart?: (todoId: string) => void;
   isEditing?: boolean;
-  editValue?: string;
+  editValue?: string | undefined;
   onEditChange?: (value: string) => void;
   onEditSave?: () => void;
   onEditCancel?: () => void;
@@ -183,8 +183,10 @@ export default function TodoCard({
           /* Inline edit mode for the todo title */
           <div className="flex-1 min-w-0 flex items-center gap-3">
             <input
-              value={editValue}
-              onChange={(e) => onEditChange?.(e.target.value)}
+              value={editValue ?? ""}
+              onChange={(e) => {
+                onEditChange?.(e.target.value)}
+              }
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {

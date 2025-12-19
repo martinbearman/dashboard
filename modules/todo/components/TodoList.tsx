@@ -394,6 +394,7 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
                     onDelete={handleDeleteTodo}
                     onEditStart={() => handleStartEdit(todo.id, todo.description)}
                     isEditing={isEditing(todo.id)}
+                    editValue={editingText}
                     onEditChange={(value) => {
                       if (value.length <= MAX_GOAL_DESCRIPTION_LENGTH) {
                         setEditingText(value);
@@ -444,7 +445,6 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
           </DndContext>
         )}
       </div>
-
       {/* Bottom Section - Button and Input */}
       {showInput && (
         <div className="absolute bottom-0 left-0 right-0 h-[80px] bg-gradient-to-b from-transparent to-white pointer-events-none z-10"></div>
