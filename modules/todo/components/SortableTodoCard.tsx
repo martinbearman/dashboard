@@ -2,6 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useRef, useEffect, useState } from "react";
 import TodoCard from "./TodoCard";
 import type { Todo, TodoLinkType } from "@/lib/store/slices/todoSlice";
 
@@ -53,15 +54,48 @@ export default function SortableTodoCard({
     isDragging,
   } = useSortable({ id: todo.id });
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [fixedHeight, setFixedHeight] = useState<number | null>(null);
+
+  // Capture and lock height when dragging starts
+  useEffect(() => {
+    if (isDragging && containerRef.current) {
+      // Capture the natural height before any transforms
+      const height = containerRef.current.offsetHeight;
+      setFixedHeight(height);
+    } else if (!isDragging) {
+      // Clear fixed height after drag ends (with delay to allow transition)
+      const timer = setTimeout(() => setFixedHeight(null), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isDragging]);
+
+  // Parse transform to remove scale-y if present
+  const transformString = CSS.Transform.toString(transform);
+  const transformWithoutScaleY = transformString
+    ? transformString.replace(/scaleY\([^)]+\)/g, '').trim().replace(/\s+/g, ' ')
+    : '';
+
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: transformWithoutScaleY || undefined,
+    transition: isDragging ? undefined : transition,
+    height: fixedHeight ? `${fixedHeight}px` : undefined,
+    minHeight: fixedHeight ? `${fixedHeight}px` : undefined,
+    maxHeight: fixedHeight ? `${fixedHeight}px` : undefined,
     zIndex: isDragging ? 50 : "auto",
     cursor: isDragging ? "grabbing" : "grab",
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div 
+      ref={(node) => {
+        setNodeRef(node);
+        containerRef.current = node;
+      }} 
+      style={style} 
+      {...attributes} 
+      {...listeners}
+    >
       <TodoCard
         todo={todo}
         onCardClick={onCardClick}
