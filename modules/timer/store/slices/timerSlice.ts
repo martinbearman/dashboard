@@ -25,7 +25,7 @@ interface TimerState {
  * 25 minutes = 1500 seconds
  * 7 minutes = 420 seconds
  */
-const initialState: TimerState = {
+export const createInitialTimerState = (): TimerState => ({
   timeRemaining: 1500,  // 25 minutes in seconds
   isRunning: false,
   isBreak: false,
@@ -35,7 +35,9 @@ const initialState: TimerState = {
   breakElapsedTime: 0,  // No time elapsed initially
   showBreakPrompt: false,
   breakMode: 'manual'   // Default to manual break control
-}
+})
+
+const initialState: TimerState = createInitialTimerState();
 
 /**
  * Timer Slice
