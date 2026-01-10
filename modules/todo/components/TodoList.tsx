@@ -15,7 +15,7 @@ import {
   type Todo
 } from "@/lib/store/slices/todoSlice";
 import { setActiveDashboard } from "@/lib/store/slices/dashboardsSlice";
-import { setTimeRemaining } from "@/modules/timer/store/slices/timerSlice";
+import { setTimeRemaining, DEFAULT_TIMER_ID, DEFAULT_TIMER_VALUES } from "@/modules/timer/store/slices/timerSlice";
 import { useState, useRef, useEffect } from "react";
 import SortableTodoCard from "./SortableTodoCard";
 import { getModuleByType } from "@/modules/registry";
@@ -48,13 +48,28 @@ interface TodoListProps {
 export default function TodoList({ moduleId, config }: TodoListProps) {
   const listId = (config?.listId as string) ?? "default";
 
+  // Get the linked timer ID from config, or use default
+  const linkedTimerId = (config?.linkedTimerId as string) || DEFAULT_TIMER_ID;
+
   const todos = useAppSelector((state) =>
     selectIncompleteTodosByListId(state, listId)
   );
   const { dashboards, activeDashboardId } = useAppSelector((state) => state.dashboards);
   const dashboardList = Object.values(dashboards);
-  const isRunning = useAppSelector(state => state.timer.isRunning);
-  const studyDuration = useAppSelector(state => state.timer.studyDuration);
+
+  // Get the specific timer instance, with fallback defaults
+  const timer = useAppSelector(state => {
+    const timerInstance = state.timer.timers[linkedTimerId];
+    // Fallback to defaults if timer doesn't exist yet
+    return timerInstance || {
+      isRunning: DEFAULT_TIMER_VALUES.isRunning,
+      studyDuration: DEFAULT_TIMER_VALUES.studyDuration,
+    };
+  });
+
+  const isRunning = timer.isRunning;
+  const studyDuration = timer.studyDuration;
+
   const dispatch = useAppDispatch();
   const [newTodoText, setNewTodoText] = useState("");
   const [showInput, setShowInput] = useState(false);
@@ -114,7 +129,10 @@ export default function TodoList({ moduleId, config }: TodoListProps) {
       dispatch(setActiveGoal(todoId));
       
       // Reset timer to full duration when switching goals
-      dispatch(setTimeRemaining(studyDuration));
+      dispatch(setTimeRemaining({ 
+        timerId: linkedTimerId, 
+        seconds: studyDuration 
+      }));
     }
   };
 
