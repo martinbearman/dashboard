@@ -3,41 +3,92 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 /**
  * Timer State Interface
  * 
- * Defines the shape of our timer state.
- * This helps TypeScript catch errors and provides autocomplete.
+ * Stores multiple timer instances keyed by timer ID
  */
-interface TimerState {
-  timeRemaining: number      // Time left in seconds
-  isRunning: boolean         // Is the timer currently counting down?
-  isBreak: boolean          // Are we in break mode or study mode?
-  studyDuration: number     // Study session length in seconds (default: 25 min)
-  breakDuration: number     // Break length in seconds (default: 7 min)
-  studyElapsedTime: number  // Time spent in study sessions (in seconds)
-  breakElapsedTime: number  // Time spent in breaks (in seconds)
-  showBreakPrompt: boolean  // Show break options when study session ends
-  breakMode: 'automatic' | 'manual' | 'none'  // How breaks are handled
+export interface TimerState {
+  timers: Record<string, TimerInstance>
 }
 
 /**
- * Initial State
+ * Timer Instance Interface
  * 
- * The starting values when the app loads.
- * 25 minutes = 1500 seconds
- * 7 minutes = 420 seconds
+ * Represents a single timer instance with its state and configuration.
+ * This will replace the old single TimerState structure.
  */
-export const createInitialTimerState = (): TimerState => ({
+export interface TimerInstance {
+  id: string
+  name?: string  // Optional display name
+  type: 'pomodoro' | 'reminder' | 'cooking' | 'custom'  // Timer type for standardized interface
+  
+  // Simple inline link properties (we'll migrate to centralized links later)
+  linkedToEntityType?: 'todoList' | 'todoItem' | 'module' | null
+  linkedToEntityId?: string
+  
+  // Timer state fields (existing functionality)
+  timeRemaining: number
+  isRunning: boolean
+  isBreak: boolean
+  studyDuration: number
+  breakDuration: number
+  studyElapsedTime: number
+  breakElapsedTime: number
+  showBreakPrompt: boolean
+  breakMode: 'automatic' | 'manual' | 'none'
+}
+
+/**
+ * Create a default timer instance
+ * 
+ * Helper function to create a new timer instance with default values.
+ */
+
+export const createDefaultTimerInstance = (
+  id: string,
+  options?: {
+    name?: string
+    type?: TimerInstance['type']
+    linkedToEntityType?: 'todoList' | 'todoItem' | 'module' | null
+    linkedToEntityId?: string
+  }
+): TimerInstance => ({
+  id,
+  name: options?.name,
+  type: options?.type ?? 'pomodoro',
+  linkedToEntityType: options?.linkedToEntityType ?? null,
+  linkedToEntityId: options?.linkedToEntityId,
   timeRemaining: 1500,  // 25 minutes in seconds
   isRunning: false,
   isBreak: false,
   studyDuration: 1500,  // 25 minutes
   breakDuration: 420,   // 7 minutes
-  studyElapsedTime: 0,  // No time elapsed initially
-  breakElapsedTime: 0,  // No time elapsed initially
+  studyElapsedTime: 0,
+  breakElapsedTime: 0,
   showBreakPrompt: false,
   breakMode: 'manual'   // Default to manual break control
 })
 
+/**
+ * Initial State
+ * 
+ * Start with an empty record - timers will be created on demand
+ */
+export const createInitialTimerState = (): TimerState => ({
+  timers: {}
+})
+
 const initialState: TimerState = createInitialTimerState();
+
+
+/**
+ * Helper function to get a timer by ID, throwing if not found
+ */
+const getTimer = (state: TimerState, timerId: string): TimerInstance => {
+  const timer = state.timers[timerId]
+  if (!timer) {
+    throw new Error(`Timer with id "${timerId}" not found`)
+  }
+  return timer
+}
 
 /**
  * Timer Slice
@@ -51,55 +102,121 @@ const timerSlice = createSlice({
   name: 'timer',
   initialState,
   reducers: {
+
     /**
-     * Start the timer
+    * Create a new timer instance
+    */
+    createTimer: (state, action: PayloadAction<{
+      id: string
+      name?: string
+      type?: TimerInstance['type']
+      linkedToEntityType?: 'todoList' | 'todoItem' | 'module' | null
+      linkedToEntityId?: string
+    }>) => {
+      const { id, name, type, linkedToEntityType, linkedToEntityId } = action.payload
+      
+      // Don't overwrite existing timer
+      if (state.timers[id]) {
+        return
+      }
+      
+      state.timers[id] = createDefaultTimerInstance(id, { 
+        name, 
+        type, 
+        linkedToEntityType, 
+        linkedToEntityId 
+      })
+    },
+
+    /**
+    * Update timer name
+    */
+    updateTimerName: (state, action: PayloadAction<{
+      timerId: string
+      name: string | undefined
+    }>) => {
+      const timer = getTimer(state, action.payload.timerId)
+      timer.name = action.payload.name
+    },
+
+    /**
+     * Update timer link configuration
      */
-    start: (state) => {
-      state.isRunning = true;
+    updateTimerLink: (state, action: PayloadAction<{
+      timerId: string
+      linkedToEntityType?: 'todoList' | 'todoItem' | 'module' | null
+      linkedToEntityId?: string
+    }>) => {
+      const timer = getTimer(state, action.payload.timerId)
+      if (action.payload.linkedToEntityType !== undefined) {
+        timer.linkedToEntityType = action.payload.linkedToEntityType
+      }
+      if (action.payload.linkedToEntityId !== undefined) {
+        timer.linkedToEntityId = action.payload.linkedToEntityId
+      }
+    },
+
+    /**
+    * Start the timer
+    */
+    start: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.isRunning = true
     },
 
     /**
      * Pause the timer
      */
-    pause: (state) => {
-      state.isRunning = false
+    pause: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.isRunning = false
     },
 
     /**
      * Reset timer to initial duration
      */
-    reset: (state) => {
-      state.isRunning = false
-      state.timeRemaining = state.isBreak ? state.breakDuration : state.studyDuration
+    reset: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.isRunning = false
+      timer.timeRemaining = timer.isBreak ? timer.breakDuration : timer.studyDuration
     },
-
 
     /**
      * Stop the timer
      */
-    stop: (state) => {
-      state.isRunning = false
+    stop: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.isRunning = false
+    },
+
+    /**
+     * Delete the timer
+     */
+    deleteTimer: (state, action: PayloadAction<string>) => {
+      delete state.timers[action.payload]
     },
 
     /**
      * Switch between study and break modes
      */
-    toggleMode: (state) => {
-      state.isBreak = !state.isBreak
-      state.timeRemaining = state.isBreak ? state.breakDuration : state.studyDuration
-      state.isRunning = false
+    toggleMode: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.isBreak = !timer.isBreak
+      timer.timeRemaining = timer.isBreak ? timer.breakDuration : timer.studyDuration
+      timer.isRunning = false
     },
 
     /**
      * Update study duration
      * Payload is the new duration in minutes
      */
-    setStudyDuration: (state, action: PayloadAction<number>) => {
-      const seconds = action.payload * 60
-      state.studyDuration = seconds
+    setStudyDuration: (state, action: PayloadAction<{ timerId: string, minutes: number }>) => {
+      const timer = getTimer(state, action.payload.timerId)
+      const seconds = action.payload.minutes * 60
+      timer.studyDuration = seconds
       // Update current time if we're in study mode and not running
-      if (!state.isBreak && !state.isRunning) {
-        state.timeRemaining = seconds
+      if (!timer.isBreak && !timer.isRunning) {
+        timer.timeRemaining = seconds
       }
     },
 
@@ -107,84 +224,98 @@ const timerSlice = createSlice({
      * Update break duration
      * Payload is the new duration in minutes
      */
-    setBreakDuration: (state, action: PayloadAction<number>) => {
-      const seconds = action.payload * 60
-      state.breakDuration = seconds
+    setBreakDuration: (state, action: PayloadAction<{timerId: string, minutes: number}>) => {
+      const timer = getTimer(state, action.payload.timerId)
+
+      const seconds = action.payload.minutes * 60
+      timer.breakDuration = seconds
       // Update current time if we're in break mode and not running
-      if (state.isBreak && !state.isRunning) {
-        state.timeRemaining = seconds
+      if (timer.isBreak && !timer.isRunning) {
+        timer.timeRemaining = seconds
       }
     },
 
-    setTimeRemaining: (state, action: PayloadAction<number>) => {
-      state.timeRemaining = action.payload
+    setTimeRemaining: (state, action: PayloadAction<{ timerId: string, seconds: number }>) => {
+      const timer = getTimer(state, action.payload.timerId)
+      timer.timeRemaining = action.payload.seconds
     },
 
     /**
      * Update elapsed time for the current session type
      */
-    updateElapsedTime: (state, action: PayloadAction<number>) => {
-      if (state.isBreak) {
-        state.breakElapsedTime = action.payload
+    updateElapsedTime: (state, action: PayloadAction<{ timerId: string, elapsed: number }>) => {
+      const timer = getTimer(state, action.payload.timerId)
+      if (timer.isBreak) {
+        timer.breakElapsedTime = action.payload.elapsed
       } else {
-        state.studyElapsedTime = action.payload
+        timer.studyElapsedTime = action.payload.elapsed
       }
     },
 
     /**
      * Reset elapsed times (useful when starting a new day/session)
      */
-    resetElapsedTimes: (state) => {
-      state.studyElapsedTime = 0
-      state.breakElapsedTime = 0
+    resetElapsedTimes: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.studyElapsedTime = 0
+      timer.breakElapsedTime = 0
     },
 
     /**
      * Show break prompt when study session ends
      */
-    showBreakPrompt: (state) => {
-      state.showBreakPrompt = true
-      state.isRunning = false
+    showBreakPrompt: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.showBreakPrompt = true
+      timer.isRunning = false
     },
 
     /**
      * Hide break prompt
      */
-    hideBreakPrompt: (state) => {
-      state.showBreakPrompt = false
+    hideBreakPrompt: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.showBreakPrompt = false
     },
 
     /**
      * Start break timer
      */
-    startBreak: (state) => {
-      state.isBreak = true
-      state.timeRemaining = state.breakDuration
-      state.showBreakPrompt = false
-      state.isRunning = true
+    startBreak: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.isBreak = true
+      timer.timeRemaining = timer.breakDuration
+      timer.showBreakPrompt = false
+      timer.isRunning = true
     },
 
     /**
      * Skip break and return to study mode
      */
-    skipBreak: (state) => {
-      state.isBreak = false
-      state.timeRemaining = state.studyDuration
-      state.showBreakPrompt = false
-      state.isRunning = false
+    skipBreak: (state, action: PayloadAction<string>) => {
+      const timer = getTimer(state, action.payload)
+      timer.isBreak = false
+      timer.timeRemaining = timer.studyDuration
+      timer.showBreakPrompt = false
+      timer.isRunning = false
     },
 
     /**
      * Set break mode preference
      */
-    setBreakMode: (state, action: PayloadAction<'automatic' | 'manual' | 'none'>) => {
-      state.breakMode = action.payload
+    setBreakMode: (state, action: PayloadAction<{ timerId: string, mode: 'automatic' | 'manual' | 'none' }>) => {
+      const timer = getTimer(state, action.payload.timerId)
+      timer.breakMode = action.payload.mode
     },
   },
 })
 
 // Export actions to use in components
 export const { 
+  createTimer,      
+  deleteTimer,      
+  updateTimerLink,
+  updateTimerName,
   start, 
   pause, 
   reset, 
