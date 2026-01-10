@@ -37,11 +37,41 @@ export interface TimerInstance {
 }
 
 /**
+ * Default Timer ID
+ * 
+ * The ID for the primary/default timer instance used by the timer module.
+ * This is the timer that will be automatically created and used when the
+ * module loads.
+ */
+export const DEFAULT_TIMER_ID = 'default'
+
+/**
+ * Default timer instance values (without id)
+ * 
+ * These values are used when creating a new timer instance.
+ * Also exported for use as fallback values in selectors.
+ */
+export const DEFAULT_TIMER_VALUES: Omit<TimerInstance, 'id'> = {
+  name: undefined,
+  type: 'pomodoro',
+  linkedToEntityType: null,
+  linkedToEntityId: undefined,
+  timeRemaining: 1500,  // 25 minutes in seconds
+  isRunning: false,
+  isBreak: false,
+  studyDuration: 1500,  // 25 minutes
+  breakDuration: 420,   // 7 minutes
+  studyElapsedTime: 0,
+  breakElapsedTime: 0,
+  showBreakPrompt: false,
+  breakMode: 'manual'   // Default to manual break control
+}
+
+/**
  * Create a default timer instance
  * 
  * Helper function to create a new timer instance with default values.
  */
-
 export const createDefaultTimerInstance = (
   id: string,
   options?: {
@@ -52,19 +82,8 @@ export const createDefaultTimerInstance = (
   }
 ): TimerInstance => ({
   id,
-  name: options?.name,
-  type: options?.type ?? 'pomodoro',
-  linkedToEntityType: options?.linkedToEntityType ?? null,
-  linkedToEntityId: options?.linkedToEntityId,
-  timeRemaining: 1500,  // 25 minutes in seconds
-  isRunning: false,
-  isBreak: false,
-  studyDuration: 1500,  // 25 minutes
-  breakDuration: 420,   // 7 minutes
-  studyElapsedTime: 0,
-  breakElapsedTime: 0,
-  showBreakPrompt: false,
-  breakMode: 'manual'   // Default to manual break control
+  ...DEFAULT_TIMER_VALUES,
+  ...options,
 })
 
 /**

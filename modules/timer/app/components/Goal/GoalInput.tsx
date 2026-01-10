@@ -3,7 +3,7 @@
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { useState } from 'react';
 import { createTodo, clearActiveGoal, completeSession } from '@/lib/store/slices/todoSlice';
-import { start, pause, reset, skipBreak } from '../../../store/slices/timerSlice';
+import { start, pause, reset, skipBreak, DEFAULT_TIMER_ID, DEFAULT_TIMER_VALUES } from '../../../store/slices/timerSlice';
 
 const MAX_GOAL_DESCRIPTION_LENGTH = 40;
 const DISPLAY_MAX_LENGTH = 20;
@@ -11,10 +11,11 @@ const DISPLAY_MAX_LENGTH = 20;
 export default function GoalInput() {
   const dispatch = useAppDispatch();
   const [goalText, setGoalText] = useState('');
-  const isRunning = useAppSelector(state => state.timer.isRunning);
-  const timeRemaining = useAppSelector(state => state.timer.timeRemaining)
-  const studyDuration = useAppSelector(state => state.timer.studyDuration);
-  const isBreak = useAppSelector(state => state.timer.isBreak);
+  const timer = useAppSelector(state => state.timer.timers[DEFAULT_TIMER_ID] ?? DEFAULT_TIMER_VALUES)
+  const isRunning = timer.isRunning
+  const timeRemaining = timer.timeRemaining
+  const studyDuration = timer.studyDuration
+  const isBreak = timer.isBreak
   
   // Get current active todo (goal)
   const currentGoal = useAppSelector(state => {
@@ -36,7 +37,7 @@ export default function GoalInput() {
 
   // Handle skip break
   const handleSkipBreak = () => {
-    dispatch(skipBreak());
+    dispatch(skipBreak(DEFAULT_TIMER_ID));
   };
   // Start a new session
   const handleStartSession = () => {
@@ -45,23 +46,23 @@ export default function GoalInput() {
       description: goalText,
       setAsActive: true  // Set this todo as the active goal
     }));
-    dispatch(reset());
-    dispatch(start());
+    dispatch(reset(DEFAULT_TIMER_ID));
+    dispatch(start(DEFAULT_TIMER_ID));
     setGoalText('');
     // State is automatically persisted to localStorage via middleware
   }
   // Pause the current session
   const handlePauseSession = () => {
-    dispatch(pause());
+    dispatch(pause(DEFAULT_TIMER_ID));
   }
   // Resume the current session
   const handleResumeSession = () => {
-    dispatch(start());
+    dispatch(start(DEFAULT_TIMER_ID));
   }
   // Start a new session
   const handleStartNewSession = () => {
-    dispatch(reset())
-    dispatch(start())
+    dispatch(reset(DEFAULT_TIMER_ID))
+    dispatch(start(DEFAULT_TIMER_ID))
   }
   // Get the button text based on the current state
   const handleGetButtonText = () => {
@@ -89,7 +90,7 @@ export default function GoalInput() {
     }))
     
     dispatch(clearActiveGoal())
-    dispatch(reset())
+    dispatch(reset(DEFAULT_TIMER_ID))
   }
 
   // Get the button click handler based on the current state

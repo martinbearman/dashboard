@@ -1,20 +1,20 @@
 'use client'
 
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
-import { setBreakMode, setBreakDuration } from '../../../store/slices/timerSlice'
+import { setBreakMode, setBreakDuration, DEFAULT_TIMER_ID, DEFAULT_TIMER_VALUES } from '../../../store/slices/timerSlice'
 import { useState } from 'react'
 
 export default function BreakSettings() {
   const dispatch = useAppDispatch()
-  const { breakMode, breakDuration } = useAppSelector(state => state.timer)
+  const { breakMode, breakDuration } = useAppSelector(state => state.timer.timers[DEFAULT_TIMER_ID] ?? DEFAULT_TIMER_VALUES)
   const [isOpen, setIsOpen] = useState(false)
 
   const handleBreakModeChange = (mode: 'automatic' | 'manual' | 'none') => {
-    dispatch(setBreakMode(mode))
+    dispatch(setBreakMode({ timerId: DEFAULT_TIMER_ID, mode }))
   }
 
   const handleBreakDurationChange = (minutes: number) => {
-    dispatch(setBreakDuration(minutes))
+    dispatch(setBreakDuration({ timerId: DEFAULT_TIMER_ID, minutes}))
   }
 
   return (

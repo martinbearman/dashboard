@@ -1,21 +1,22 @@
 'use client'
 
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
-import { setBreakMode, setBreakDuration } from '../../../store/slices/timerSlice'
+import { setBreakMode, setBreakDuration, DEFAULT_TIMER_ID, DEFAULT_TIMER_VALUES } from '../../../store/slices/timerSlice'
 import type { ModuleConfigProps } from '@/lib/types/dashboard'
 
 export default function TimerConfigPanel({ moduleId, config, onConfigChange }: ModuleConfigProps) {
   // Note: Break settings are stored in Redux timer slice, not module config
   // We accept config and onConfigChange for interface compliance but use Redux directly
   const dispatch = useAppDispatch()
-  const { breakMode, breakDuration } = useAppSelector(state => state.timer)
+  const { breakMode, breakDuration } = useAppSelector(state => state.timer.timers[DEFAULT_TIMER_ID] ?? DEFAULT_TIMER_VALUES)
 
   const handleBreakModeChange = (mode: 'automatic' | 'manual' | 'none') => {
-    dispatch(setBreakMode(mode))
+    dispatch(setBreakMode({ timerId: DEFAULT_TIMER_ID, mode }))
+
   }
 
   const handleBreakDurationChange = (minutes: number) => {
-    dispatch(setBreakDuration(minutes))
+    dispatch(setBreakDuration({ timerId: DEFAULT_TIMER_ID, minutes }))
   }
 
   return (

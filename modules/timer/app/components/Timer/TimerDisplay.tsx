@@ -2,14 +2,16 @@
 
 import { formatTime } from '../../../lib/utils'
 import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
-import { setTimeRemaining, pause, startBreak, skipBreak, hideBreakPrompt, updateElapsedTime } from '../../../store/slices/timerSlice'
+import { setTimeRemaining, pause, startBreak, skipBreak, hideBreakPrompt, updateElapsedTime, DEFAULT_TIMER_ID, DEFAULT_TIMER_VALUES } from '../../../store/slices/timerSlice'
 import { useEffect, useRef, useCallback } from 'react'
 import useSound from 'use-sound'
 import Image from 'next/image'
 
 export default function TimerDisplay() {
   const [playComplete, { stop }] = useSound('/sounds/timer-ring.mp3')
-  const { timeRemaining, isRunning, studyDuration, breakDuration, isBreak, showBreakPrompt, breakMode } = useAppSelector(state => state.timer)
+  const { timeRemaining, isRunning, studyDuration, breakDuration, isBreak, showBreakPrompt, breakMode } = useAppSelector(state => 
+    state.timer.timers[DEFAULT_TIMER_ID] ?? DEFAULT_TIMER_VALUES
+  )
   const dispatch = useAppDispatch()
   const formattedTime = formatTime(timeRemaining)
   const startTimeRef = useRef<number | null>(null)
@@ -31,14 +33,14 @@ export default function TimerDisplay() {
     const newTimeRemaining = Math.max(0, totalDuration - elapsed)
     
     if (newTimeRemaining !== timeRemaining) {
-      dispatch(setTimeRemaining(newTimeRemaining))
+      dispatch(setTimeRemaining({ timerId: DEFAULT_TIMER_ID, seconds: newTimeRemaining}))
       // Update elapsed time in state
-      dispatch(updateElapsedTime(elapsed))
+      dispatch(updateElapsedTime({ timerId: DEFAULT_TIMER_ID, elapsed }))
     }
 
     // Stop timer if it reaches 0
     if (newTimeRemaining === 0 && isRunning) {
-      dispatch(pause()) // Stop the timer
+      dispatch(pause(DEFAULT_TIMER_ID)) // Stop the timer
     }
   }, [isRunning, isBreak, breakDuration, studyDuration, timeRemaining, dispatch])
 
@@ -79,28 +81,23 @@ export default function TimerDisplay() {
     }
   }, [isRunning, updateTimer])
 
-  // Play sound when timer reaches 15 seconds
-  // Specifically for timer-ring.mp3
+  // Handle sound: play at 15 seconds, stop when paused
   useEffect(() => {
-    if(timeRemaining === 15 && isRunning) {
+    if (timeRemaining === 15 && isRunning) {
       playComplete()
     }
-  }, [timeRemaining, playComplete, isRunning])
-
-  // Stop sound when timer is paused
-  useEffect(() => {
     if (!isRunning) {
       stop()
     }
-  }, [isRunning, timeRemaining, stop])
+  }, [timeRemaining, isRunning, playComplete, stop])
 
   // Handle break prompt actions
   const handleStartBreak = () => {
-    dispatch(startBreak())
+    dispatch(startBreak(DEFAULT_TIMER_ID))
   }
 
   const handleSkipBreak = () => {
-    dispatch(skipBreak())
+    dispatch(skipBreak(DEFAULT_TIMER_ID))
   }
 
   return (
