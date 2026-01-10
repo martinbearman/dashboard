@@ -83,7 +83,10 @@ export const createDefaultTimerInstance = (
 ): TimerInstance => ({
   id,
   ...DEFAULT_TIMER_VALUES,
-  ...options,
+  // Filter out undefined values to avoid overriding defaults
+  ...(options && Object.fromEntries(
+    Object.entries(options).filter(([_, value]) => value !== undefined)
+  )),
 })
 
 /**
@@ -132,19 +135,14 @@ const timerSlice = createSlice({
       linkedToEntityType?: 'todoList' | 'todoItem' | 'module' | null
       linkedToEntityId?: string
     }>) => {
-      const { id, name, type, linkedToEntityType, linkedToEntityId } = action.payload
+      const { id, ...options } = action.payload
       
       // Don't overwrite existing timer
       if (state.timers[id]) {
         return
       }
       
-      state.timers[id] = createDefaultTimerInstance(id, { 
-        name, 
-        type, 
-        linkedToEntityType, 
-        linkedToEntityId 
-      })
+      state.timers[id] = createDefaultTimerInstance(id, options)
     },
 
     /**
