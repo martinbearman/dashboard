@@ -9,8 +9,20 @@
 
 import TimerDisplay from './components/Timer/TimerDisplay';
 import GoalInput from './components/Goal/GoalInput';
+import { useEffect } from 'react'
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
+import { createTimer, DEFAULT_TIMER_ID } from '../store/slices/timerSlice'
 
 export default function TimerModulePage() {
+
+  const dispatch = useAppDispatch()
+  const timers = useAppSelector(state => state.timer.timers)
+
+  useEffect(() => {
+    if (!timers[DEFAULT_TIMER_ID]) {
+      dispatch(createTimer({ id: DEFAULT_TIMER_ID }))
+    }
+  }, [dispatch, timers])
 
   return (
     <div className="flex flex-col h-full">

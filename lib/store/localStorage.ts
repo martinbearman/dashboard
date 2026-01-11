@@ -2,6 +2,7 @@ import { RootState } from "./store";
 import { createInitialDashboardsState } from "./slices/dashboardsSlice";
 import { createInitialGlobalConfigState } from "./slices/globalConfigSlice";
 import { createInitialModuleConfigsState } from "./slices/moduleConfigsSlice";
+import { createInitialTimerState } from "@/modules/timer/store/slices/timerSlice";
 import type { TodoState } from "./slices/todoSlice";
 
 const STORAGE_KEY = "dashboard-state";
@@ -11,6 +12,7 @@ const STORAGE_KEY = "dashboard-state";
  * Returns null if localStorage is unavailable or no saved state exists
  */
 export function loadState(): Partial<RootState> | null {
+
   if (typeof window === "undefined") {
     // SSR: localStorage not available
     return null;
@@ -26,19 +28,7 @@ export function loadState(): Partial<RootState> | null {
     const defaultDashboards = createInitialDashboardsState();
     const defaultGlobalConfig = createInitialGlobalConfigState();
     const defaultModuleConfigs = createInitialModuleConfigsState();
-
-    // Timer module initial states
-    const defaultTimerState = {
-      timeRemaining: 1500,
-      isRunning: false,
-      isBreak: false,
-      studyDuration: 1500,
-      breakDuration: 420,
-      studyElapsedTime: 0,
-      breakElapsedTime: 0,
-      showBreakPrompt: false,
-      breakMode: 'manual' as const,
-    };
+    const defaultTimerState = createInitialTimerState();
     
     const defaultTodoState: TodoState = {
       todosByList: {
