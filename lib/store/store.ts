@@ -2,6 +2,7 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import dashboardsReducer from "./slices/dashboardsSlice";
 import globalConfigReducer from "./slices/globalConfigSlice";
 import moduleConfigsReducer from "./slices/moduleConfigsSlice";
+import moduleLinksReducer from "./slices/moduleLinksSlice";
 import todoReducer from "./slices/todoSlice";
 import uiReducer from "./slices/uiSlice";
 // Timer module slices
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
   dashboards: dashboardsReducer,
   globalConfig: globalConfigReducer,
   moduleConfigs: moduleConfigsReducer,
+  moduleLinks: moduleLinksReducer,
   todo: todoReducer,
   timer: timerReducer,
   ui: uiReducer,
@@ -34,4 +36,3 @@ export const makeStore = (preloadedState?: Partial<RootState>) => {
 
 export type AppStore = ReturnType<typeof makeStore>;
 export type AppDispatch = AppStore["dispatch"];
-

@@ -192,4 +192,3 @@ export interface UiState {
   activeDashboardId: string | null;
   moduleConfigPanel: { moduleId: string } | null;
 }
-
