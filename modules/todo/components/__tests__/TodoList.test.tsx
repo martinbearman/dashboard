@@ -5,6 +5,7 @@ import TodoList from '../TodoList';
 import { makeStore } from '@/lib/store/store';
 import { createTodo, setTodoLink } from '@/lib/store/slices/todoSlice';
 import { createInitialDashboardsState } from '@/lib/store/slices/dashboardsSlice';
+import timerReducer, { createInitialTimerState, createTimer, DEFAULT_TIMER_ID } from '@/modules/timer/store/slices/timerSlice';
 import type { RootState } from '@/lib/store/store';
 
 // Mock window.open
@@ -46,6 +47,10 @@ describe('TodoList', () => {
 
   const createTestState = (overrides?: Partial<RootState>): Partial<RootState> => {
     const dashboardsState = createInitialDashboardsState();
+    const timerState = createInitialTimerState();
+    // Create default timer instance
+    const stateWithTimer = timerReducer(timerState, createTimer({ id: DEFAULT_TIMER_ID }));
+    
     return {
       dashboards: dashboardsState,
       todo: {
@@ -53,13 +58,7 @@ describe('TodoList', () => {
           default: [],
         },
       },
-      timer: {
-        isRunning: false,
-        studyDuration: 1500,
-        timeRemaining: 1500,
-        isBreak: false,
-        breakDuration: 300,
-      },
+      timer: stateWithTimer,
       ...overrides,
     };
   };

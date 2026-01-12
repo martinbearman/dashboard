@@ -5,9 +5,10 @@ import type { ModuleLink, LinkPattern } from "@/lib/types/dashboard";
 /**
  * Get all links
  */
-export const selectAllLinks = (state: RootState): ModuleLink[] => {
-  return Object.values(state.moduleLinks.links);
-};
+export const selectAllLinks = createSelector(
+  [(state: RootState) => state.moduleLinks.links],
+  (links) => Object.values(links)
+);
 
 /**
  * Get all enabled links only
@@ -62,9 +63,10 @@ export const selectTargetLinks = createSelector(
 export const selectLinksBetweenModules = createSelector(
   [
     (state: RootState) => state.moduleLinks.links,
-    (_: RootState, sourceModuleId: string, targetModuleId: string) => ({ sourceModuleId, targetModuleId }),
+    (_: RootState, sourceModuleId: string) => sourceModuleId,
+    (_: RootState, _sourceModuleId: string, targetModuleId: string) => targetModuleId,
   ],
-  (links, { sourceModuleId, targetModuleId }) => {
+  (links, sourceModuleId, targetModuleId) => {
     return Object.values(links).filter(
       (link) =>
         (link.sourceModuleId === sourceModuleId && link.targetModuleId === targetModuleId) ||

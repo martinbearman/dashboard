@@ -10,6 +10,7 @@ import {
   selectTargetLinks,
   selectLinksBetweenModules,
   selectLinkById,
+  selectLinksByPattern,
 } from "@/lib/store/selectors/moduleLinksSelectors";
 import {
   addLink,
@@ -186,10 +187,7 @@ export function useLinkWithActions(linkId: string | null) {
  * Hook to get links filtered by pattern
  */
 export function useLinksByPattern(pattern: LinkPattern) {
-  return useAppSelector((state) => {
-    const allLinks = selectAllLinks(state);
-    return allLinks.filter((link) => link.pattern === pattern);
-  });
+  return useAppSelector((state) => selectLinksByPattern(state, pattern));
 }
 
 /**
