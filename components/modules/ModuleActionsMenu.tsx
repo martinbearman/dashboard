@@ -7,6 +7,7 @@ import { getModuleByType } from "@/modules/registry";
 import ModuleService from "@/lib/services/moduleService";
 import { openModuleConfigPanel } from "@/lib/store/slices/uiSlice";
 import { updateModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
+import { clsx } from "clsx";
 
 type ModuleActionsMenuProps = {
   moduleId: string;
@@ -17,6 +18,7 @@ type ModuleActionsMenuProps = {
 export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useAppDispatch();
+  const theme = useAppSelector((state) => state.globalConfig.theme);
   // Track the dashboard so removal can target the proper slice entry.
   const { activeDashboardId, dashboards } = useAppSelector((state) => state.dashboards);
   
@@ -92,25 +94,55 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
     ModuleService.removeModule(dispatch, activeDashboardId, moduleId);
   };
 
+  const headerClass = theme === "tron"
+    ? "flex items-center justify-between px-3 py-2 bg-black/50 border-b border-tron-neon/50 rounded-t-lg"
+    : "flex items-center justify-between px-3 py-2 bg-gray-100 border-b border-gray-300 rounded-t-lg";
+
+  const dragHandleClass = clsx(
+    "module-drag-handle flex items-center gap-2 text-sm flex-1",
+    theme === "tron"
+      ? locked
+        ? "cursor-default text-tron-neon/50"
+        : "cursor-move text-white tron-glow"
+      : locked
+        ? "cursor-default text-gray-500"
+        : "cursor-move text-gray-700"
+  );
+
+  const menuButtonClass = theme === "tron"
+    ? "relative z-30 flex h-8 w-8 items-center justify-center rounded-full border-2 border-tron-neon bg-black/50 text-white tron-glow transition hover:bg-black/70 hover:shadow-[0_0_10px_rgba(0,212,255,0.5)] hover:scale-110"
+    : "relative z-30 flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50 hover:border-gray-400 hover:scale-110";
+
+  const menuClass = theme === "tron"
+    ? "module-actions-interactive absolute right-0 mt-2 w-40 overflow-hidden rounded-md border-2 border-tron-neon bg-black/90 shadow-[0_0_20px_rgba(0,212,255,0.5)] z-30"
+    : "module-actions-interactive absolute right-0 mt-2 w-40 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg z-30";
+
+  const menuItemClass = theme === "tron"
+    ? "w-full px-3 py-2 text-left text-sm text-white tron-glow transition hover:bg-black/70 disabled:cursor-not-allowed disabled:opacity-50"
+    : "w-full px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50";
+
+  const menuItemDangerClass = theme === "tron"
+    ? "w-full px-3 py-2 text-left text-sm text-red-400 tron-glow transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+    : "w-full px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50";
+
   return (
     <>
       <div
         ref={containerRef}
-        className="flex items-center justify-between px-3 py-2 bg-gray-100 border-b border-gray-300 rounded-t-lg"
+        className={headerClass}
       >
       {/* Module name with drag indicator - only this part is draggable */}
-      <div 
-        className={`module-drag-handle flex items-center gap-2 text-sm flex-1 ${
-          locked ? "cursor-default text-gray-500" : "cursor-move text-gray-700"
-        }`}
-      >
+      <div className={dragHandleClass}>
         <svg
           width="12"
           height="12"
           viewBox="0 0 12 12"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className={locked ? "text-gray-400" : "text-gray-500"}
+          className={theme === "tron" 
+            ? locked ? "text-tron-neon/50" : "text-tron-neon"
+            : locked ? "text-gray-400" : "text-gray-500"
+          }
         >
           <circle cx="2" cy="2" r="1" fill="currentColor" />
           <circle cx="6" cy="2" r="1" fill="currentColor" />
@@ -124,7 +156,11 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
         </svg>
         <span className="text-sm font-medium">
           {displayName}
-          {locked && <span className="text-gray-400 font-normal"> (locked)</span>}
+          {locked && (
+            <span className={theme === "tron" ? "text-tron-neon/50 font-normal" : "text-gray-400 font-normal"}>
+              {" "}(locked)
+            </span>
+          )}
         </span>
       </div>
 
@@ -136,7 +172,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
       >
         <button
           type="button"
-          className="relative z-30 flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50 hover:border-gray-400 hover:scale-110"
+          className={menuButtonClass}
           aria-label="Open module menu"
           aria-haspopup="menu"
           aria-expanded={isOpen}
@@ -149,14 +185,14 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
         {isOpen ? (
           <div
             role="menu"
-            className="module-actions-interactive absolute right-0 mt-2 w-40 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg z-30"
+            className={menuClass}
             onMouseDown={handleMenuInteraction}
             onPointerDown={handleMenuInteraction}
           >
             <button
               type="button"
               role="menuitem"
-              className="w-full px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+              className={menuItemClass}
               onMouseDown={handleMenuInteraction}
               onPointerDown={handleMenuInteraction}
               onClick={withMenuClose(handleConfigure)}
@@ -167,7 +203,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
             <button
               type="button"
               role="menuitem"
-              className="w-full px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100"
+              className={menuItemClass}
               onMouseDown={handleMenuInteraction}
               onPointerDown={handleMenuInteraction}
               onClick={withMenuClose(handleToggleLock)}
@@ -177,7 +213,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
             <button
               type="button"
               role="menuitem"
-              className="w-full px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className={menuItemDangerClass}
               onMouseDown={handleMenuInteraction}
               onPointerDown={handleMenuInteraction}
               onClick={withMenuClose(handleRemove)}

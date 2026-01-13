@@ -15,6 +15,7 @@ export default function DashboardTabs() {
   // Core tab bar for switching between dashboards and managing their lifecycle.
   const dashboards = useAppSelector((s) => s.dashboards.dashboards);
   const activeDashboardId = useAppSelector((s) => s.dashboards.activeDashboardId);
+  const theme = useAppSelector((s) => s.globalConfig.theme);
   const dispatch = useAppDispatch();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -22,13 +23,22 @@ export default function DashboardTabs() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const dashboardList = Object.values(dashboards);
-  const tabClass = (isActive: boolean) =>
-    clsx(
+  const tabClass = (isActive: boolean) => {
+    if (theme === "tron") {
+      return clsx(
+        "px-4 py-2 rounded-full text-sm transition tron-glow",
+        isActive
+          ? "bg-black/50 border-2 border-tron-neon text-white shadow-[0_0_10px_rgba(0,212,255,0.5)]"
+          : "bg-black/30 border-2 border-tron-neon/50 text-white/70 hover:bg-black/50 hover:border-tron-neon hover:text-white"
+      );
+    }
+    return clsx(
       "px-4 py-2 rounded-full text-sm transition",
       isActive
         ? "bg-white/90 text-slate-900 shadow"
         : "bg-white/20 text-white/70 hover:bg-white/40 hover:text-white"
     );
+  };
 
   // Focus input when editing starts
   useEffect(() => {
@@ -99,11 +109,19 @@ export default function DashboardTabs() {
     dispatch(removeDashboard(dashboardId));
   };
 
+  const containerClass = theme === "tron"
+    ? "backdrop-blur rounded-full bg-black/30 px-2 py-2 flex gap-2 border-2 border-tron-neon/50 shadow-[0_0_10px_rgba(0,212,255,0.3)]"
+    : "backdrop-blur rounded-full bg-white/15 px-2 py-2 flex gap-2 border border-white/10 shadow-md";
+
+  const addButtonClass = theme === "tron"
+    ? "flex items-center gap-2 rounded-full border-2 border-tron-neon bg-black/30 px-3 py-2 text-sm text-white tron-glow transition hover:bg-black/50 hover:shadow-[0_0_10px_rgba(0,212,255,0.5)]"
+    : "flex items-center gap-2 rounded-full border border-white/30 bg-white/20 px-3 py-2 text-sm text-white/80 transition hover:bg-white/40 hover:text-white";
+
   return (
     <>
       <div className="w-full flex justify-center">
         <div className="flex items-center gap-3">
-          <div className="backdrop-blur rounded-full bg-white/15 px-2 py-2 flex gap-2 border border-white/10 shadow-md">
+          <div className={containerClass}>
             {dashboardList.length > 0 ? (
               dashboardList.map((dash) => {
                 const canRemove =
@@ -122,7 +140,7 @@ export default function DashboardTabs() {
                         onClick={(e) => e.stopPropagation()}
                         className={clsx(
                           tabClass(dash.id === activeDashboardId),
-                          "outline-none border-2 border-blue-400"
+                          theme === "tron" ? "outline-none border-2 border-tron-neon bg-black/50" : "outline-none border-2 border-blue-400"
                         )}
                         style={{ minWidth: "80px", maxWidth: "200px" }}
                       />
@@ -146,7 +164,12 @@ export default function DashboardTabs() {
                           event.stopPropagation();
                           handleRemoveDashboard(dash.id);
                         }}
-                        className="absolute -top-1.5 -right-1.5 hidden h-5 w-5 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow group-hover:flex hover:bg-red-500 hover:text-white"
+                        className={clsx(
+                          "absolute -top-1.5 -right-1.5 hidden h-5 w-5 items-center justify-center rounded-full shadow group-hover:flex",
+                          theme === "tron"
+                            ? "bg-black/80 text-tron-neon border border-tron-neon hover:bg-red-500/20 hover:text-red-400 hover:border-red-400"
+                            : "bg-white/80 text-slate-700 hover:bg-red-500 hover:text-white"
+                        )}
                         aria-label={`Remove ${dash.name}`}
                       >
                         ×
@@ -163,7 +186,7 @@ export default function DashboardTabs() {
           <button
             type="button"
             onClick={handleAddDashboard}
-            className="flex items-center gap-2 rounded-full border border-white/30 bg-white/20 px-3 py-2 text-sm text-white/80 transition hover:bg-white/40 hover:text-white"
+            className={addButtonClass}
             aria-label="Add dashboard"
           >
             <span className="text-lg leading-none translate-y-[-1px]">+</span>

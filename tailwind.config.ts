@@ -12,6 +12,14 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        tron: {
+          bg: "var(--tron-bg)",
+          grid: "var(--tron-grid)",
+          neon: "var(--tron-neon)",
+          text: "var(--tron-text)",
+          glow: "var(--tron-glow)",
+          border: "var(--tron-border)",
+        },
       },
     },
   },

@@ -5,6 +5,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Tron Legacy colors */
+  --tron-bg: #000000;
+  --tron-grid: #00d4ff;
+  --tron-neon: #00d4ff;
+  --tron-text: #ffffff;
+  --tron-glow: rgba(0, 212, 255, 0.8);
+  --tron-border: rgba(0, 212, 255, 0.6);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -14,10 +21,77 @@
   }
 }
 
+/* Tron Legacy Theme */
+body.tron-theme {
+  color: var(--tron-text);
+  background: var(--tron-bg);
+  font-family: var(--font-lexend), Arial, Helvetica, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Grid background pattern */
+body.tron-theme::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-position: 0 0, 0 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.3;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-lexend), Arial, Helvetica, sans-serif;
+}
+
+/* Tron Legacy utility classes */
+.tron-glow {
+  text-shadow: 
+    0 0 5px var(--tron-neon),
+    0 0 10px var(--tron-neon),
+    0 0 15px var(--tron-neon),
+    0 0 20px var(--tron-neon);
+}
+
+.tron-border {
+  border: 2px solid var(--tron-neon);
+  box-shadow: 
+    0 0 5px var(--tron-glow),
+    inset 0 0 5px var(--tron-glow);
+}
+
+.tron-bg {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+}
+
+.tron-button {
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--tron-neon);
+  color: var(--tron-text);
+  text-shadow: 0 0 5px var(--tron-neon);
+  box-shadow: 
+    0 0 5px var(--tron-glow),
+    inset 0 0 5px rgba(0, 212, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.tron-button:hover {
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow: 
+    0 0 10px var(--tron-glow),
+    0 0 20px var(--tron-glow),
+    inset 0 0 10px rgba(0, 212, 255, 0.2);
 }
 
 @layer utilities {
