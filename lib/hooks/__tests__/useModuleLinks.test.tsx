@@ -22,9 +22,11 @@ import type { AppStore } from '@/lib/store/store'
 
 // Helper to create a wrapper with a store
 function createWrapper(store: AppStore) {
-  return ({ children }: { children: React.ReactNode }) => (
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   )
+  Wrapper.displayName = 'TestWrapper'
+  return Wrapper
 }
 
 describe('useModuleLinks hooks', () => {
