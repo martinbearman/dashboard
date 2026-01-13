@@ -1,6 +1,7 @@
 import type { AppDispatch } from "@/lib/store/store";
 import { removeModule } from "@/lib/store/slices/dashboardsSlice";
 import { removeModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
+import { removeLinksForModule } from "@/lib/store/slices/moduleLinksSlice";
 
 class ModuleService {
     /**
@@ -17,6 +18,7 @@ class ModuleService {
     public static removeModule(dispatch: AppDispatch, dashboardId: string, moduleId: string) {
         dispatch(removeModule({ dashboardId, moduleId }));
         dispatch(removeModuleConfig(moduleId));
+        dispatch(removeLinksForModule(moduleId));
     }
 }
 

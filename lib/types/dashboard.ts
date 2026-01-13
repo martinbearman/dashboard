@@ -23,6 +23,94 @@ export interface Dashboard {
 }
 
 /**
+ * Module capability - describes what a module can do
+ * Used for linking modules and LLM understanding
+ */
+export interface ModuleCapability {
+  /** Unique identifier for the capability (e.g., 'can-track-active-item') */
+  id: string;
+  /** Human-readable name */
+  displayName: string;
+  /** Description of what this capability enables */
+  description: string;
+  /** Semantic tags for search/discovery */
+  semanticTags?: string[];
+  /** Example use cases */
+  useCases?: string[];
+}
+
+/**
+ * Link pattern types - describe the nature of relationships between modules
+ */
+export type LinkPattern =
+  | 'active-item-tracker'    // Source tracks active/selected item in target
+  | 'event-source'           // Source emits events that target listens to
+  | 'data-provider'          // Source provides data to target
+  | 'content-display'        // Target displays content from source
+  | 'scheduler'              // Source schedules/times events for target
+  | 'selection-follower'     // Target follows selection changes in source
+  | 'command-executor'       // Source executes commands on target
+  | 'custom';                // Custom pattern with metadata
+
+/**
+ * Link pattern definition with metadata
+ */
+export interface LinkPatternDefinition {
+  /** Pattern identifier */
+  id: LinkPattern;
+  /** Human-readable name */
+  displayName: string;
+  /** Description of the relationship pattern */
+  description: string;
+  /** Example use cases for LLM/human understanding */
+  examples?: string[];
+  /** Semantic tags */
+  semanticTags?: string[];
+  /** Required capabilities for source and target modules */
+  requiredCapabilities?: {
+    source?: string[];  // Capability IDs
+    target?: string[];  // Capability IDs
+  };
+}
+
+/**
+ * Metadata stored with a module link
+ */
+export interface LinkMetadata {
+  // Pattern-specific metadata
+  activeItemId?: string | null;  // For 'active-item-tracker': which item is active
+  listId?: string;               // For list-based patterns: which list
+  timerId?: string;              // For timer patterns: which timer instance
+  scheduleId?: string;           // For scheduler patterns: which schedule
+  
+  // Generic metadata
+  label?: string;                // Human-readable label for the link
+  enabled?: boolean;             // Can disable links without deleting
+  priority?: number;             // For multiple links of same pattern
+  
+  // Extensible
+  [key: string]: any;
+}
+
+/**
+ * A link between two modules
+ */
+export interface ModuleLink {
+  /** Unique identifier for this link */
+  id: string;
+  /** Source module ID (the module that initiates the link) */
+  sourceModuleId: string;
+  /** Target module ID (the module that receives the link) */
+  targetModuleId: string;
+  /** The pattern type of this link */
+  pattern: LinkPattern;
+  /** Pattern-specific metadata */
+  metadata: LinkMetadata;
+  /** When this link was created */
+  createdAt: number;
+}
+
+/**
  * Module metadata and component definition
  */
 export interface DashboardModule {
@@ -35,6 +123,23 @@ export interface DashboardModule {
   maxGridSize?: { w: number; h: number };
   component: React.ComponentType<ModuleProps>;
   configPanel?: React.ComponentType<ModuleConfigProps>;
+  
+  /**
+   * Capabilities this module supports (for linking and LLM understanding)
+   * Optional - modules can be added without capabilities initially
+   */
+  capabilities?: {
+    /** Capabilities when this module is the source of a link */
+    asSource?: ModuleCapability[];
+    /** Capabilities when this module is the target of a link */
+    asTarget?: ModuleCapability[];
+  };
+  
+  /**
+   * Link patterns this module supports (optional)
+   * Used for documentation and LLM context
+   */
+  supportedLinkPatterns?: LinkPatternDefinition[];
 }
 
 /**
@@ -87,4 +192,3 @@ export interface UiState {
   activeDashboardId: string | null;
   moduleConfigPanel: { moduleId: string } | null;
 }
-

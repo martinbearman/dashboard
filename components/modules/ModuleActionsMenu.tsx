@@ -25,7 +25,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
   const moduleInstance = active?.modules.find((m) => m.id === moduleId);
   const moduleMeta = moduleInstance ? getModuleByType(moduleInstance.type) : null;
   const ConfigPanel = moduleMeta?.configPanel;
-  const moduleConfig = useAppSelector((state) => state.moduleConfigs.configs[moduleId] ?? {});
+  const moduleConfig = useAppSelector((state) => state.moduleConfigs.configs[moduleId]);
   // Use custom list name for todo modules, otherwise use the generic module name
   const displayName = 
     moduleInstance?.type === "todo" && moduleConfig?.listName
