@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { addModule } from "@/lib/store/slices/dashboardsSlice";
 import { setModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 import { selectModulePositions } from "@/lib/store/selectors/dashboardSelectors";
+import { getThemeById, DEFAULT_THEME_ID } from "@/lib/constants/themes";
 import { clsx } from "clsx";
 
 // Decide where to place the next module in the grid so it doesn't overlap.
@@ -23,7 +24,12 @@ export default function AddModuleButton() {
   const [query, setQuery] = useState("");
   const dispatch = useAppDispatch();
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
-  const theme = useAppSelector((s) => s.globalConfig.theme);
+  const defaultTheme = useAppSelector((s) => s.globalConfig.defaultTheme);
+  const active = activeDashboardId ? dashboards[activeDashboardId] : null;
+  
+  // Resolve theme for styling
+  const themeId = active?.theme || defaultTheme || DEFAULT_THEME_ID;
+  const isTronTheme = themeId === "tron";
   
   // Get existing module positions from layouts (using "lg" breakpoint as default)
   const existingPositions = useAppSelector((state) => 
@@ -130,19 +136,19 @@ export default function AddModuleButton() {
     setOpen(false);
   };
 
-  const buttonClass = theme === "tron"
+  const buttonClass = isTronTheme
     ? "fixed bottom-8 right-8 w-14 h-14 bg-black/50 border-2 border-tron-neon text-white rounded-full shadow-[0_0_10px_rgba(0,212,255,0.5)] hover:bg-black/70 hover:shadow-[0_0_20px_rgba(0,212,255,0.8)] flex items-center justify-center text-2xl tron-glow transition"
     : "fixed bottom-8 right-8 w-14 h-14 bg-gray-800 dark:bg-gray-700 text-white rounded-full shadow-lg hover:bg-gray-900 dark:hover:bg-gray-600 flex items-center justify-center text-2xl";
 
-  const modalClass = theme === "tron"
+  const modalClass = isTronTheme
     ? "w-full max-w-2xl rounded-xl bg-black/90 border-2 border-tron-neon text-white shadow-[0_0_30px_rgba(0,212,255,0.5)]"
     : "w-full max-w-2xl rounded-xl bg-white text-black shadow-xl";
 
-  const inputClass = theme === "tron"
+  const inputClass = isTronTheme
     ? "w-full rounded-md border-2 border-tron-neon/50 bg-black/50 px-3 py-2 outline-none focus:ring-2 focus:ring-tron-neon focus:border-tron-neon text-white placeholder-white/50"
     : "w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500";
 
-  const itemClass = theme === "tron"
+  const itemClass = isTronTheme
     ? "w-full text-left rounded-lg border-2 border-tron-neon/50 hover:bg-black/70 hover:border-tron-neon p-4 flex items-start gap-3 transition"
     : "w-full text-left rounded-lg border hover:bg-gray-50 p-4 flex items-start gap-3";
 
@@ -166,7 +172,7 @@ export default function AddModuleButton() {
           {/* overlay */}
           <div className={clsx(
             "absolute inset-0",
-            theme === "tron" ? "bg-black/70" : "bg-black/50"
+            isTronTheme ? "bg-black/70" : "bg-black/50"
           )} />
 
           {/* modal */}
@@ -177,16 +183,16 @@ export default function AddModuleButton() {
             <div className={modalClass}>
               <div className={clsx(
                 "flex items-center justify-between p-4",
-                theme === "tron" ? "border-b border-tron-neon/50" : "border-b"
+                isTronTheme ? "border-b border-tron-neon/50" : "border-b"
               )}>
                 <h2 className={clsx(
                   "text-lg font-semibold",
-                  theme === "tron" && "tron-glow"
+                  isTronTheme && "tron-glow"
                 )}>Add a module</h2>
                 <button
                   className={clsx(
                     "rounded p-1 transition",
-                    theme === "tron"
+                    isTronTheme
                       ? "text-white/70 hover:text-white hover:bg-black/50"
                       : "text-gray-500 hover:text-gray-700"
                   )}
@@ -218,11 +224,11 @@ export default function AddModuleButton() {
                     <div>
                       <div className={clsx(
                         "font-medium",
-                        theme === "tron" && "tron-glow"
+                        isTronTheme && "tron-glow"
                       )}>{m.displayName}</div>
                       <div className={clsx(
                         "text-sm",
-                        theme === "tron" ? "text-white/70" : "text-gray-600"
+                        isTronTheme ? "text-white/70" : "text-gray-600"
                       )}>{m.description}</div>
                     </div>
                   </button>
@@ -230,7 +236,7 @@ export default function AddModuleButton() {
                 {filtered.length === 0 && (
                   <div className={clsx(
                     "text-center text-sm py-6",
-                    theme === "tron" ? "text-white/50" : "text-gray-500"
+                    isTronTheme ? "text-white/50" : "text-gray-500"
                   )}>
                     No modules match “{query}”
                   </div>

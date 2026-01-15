@@ -1,8 +1,9 @@
 import { RootState } from "./store";
 import { createInitialDashboardsState } from "./slices/dashboardsSlice";
-import { createInitialGlobalConfigState } from "./slices/globalConfigSlice";
+import { createInitialGlobalConfigState, type GlobalConfigState } from "./slices/globalConfigSlice";
 import { createInitialModuleConfigsState } from "./slices/moduleConfigsSlice";
 import { createInitialTimerState } from "@/modules/timer/store/slices/timerSlice";
+import { migrateLegacyTheme, isLegacyTheme } from "@/lib/constants/themes";
 import type { TodoState } from "./slices/todoSlice";
 
 const STORAGE_KEY = "dashboard-state";
@@ -36,6 +37,24 @@ export function loadState(): Partial<RootState> | null {
       },
     };
 
+    // Migration: Convert old theme field to defaultTheme
+    // Handle legacy theme field that may exist in old localStorage data
+    type LegacyGlobalConfig = Partial<GlobalConfigState> & { theme?: "light" | "dark" | "tron" };
+    const parsedConfig = parsed.globalConfig as LegacyGlobalConfig | undefined;
+    
+    let migratedGlobalConfig: GlobalConfigState = {
+      ...defaultGlobalConfig,
+      defaultTheme: parsedConfig?.defaultTheme ?? defaultGlobalConfig.defaultTheme,
+    };
+    
+    // If old theme exists, migrate it to defaultTheme
+    if (parsedConfig?.theme) {
+      const oldTheme = parsedConfig.theme;
+      if (isLegacyTheme(oldTheme)) {
+        migratedGlobalConfig.defaultTheme = migrateLegacyTheme(oldTheme);
+      }
+    }
+
     return {
       dashboards: {
         ...defaultDashboards,
@@ -47,10 +66,7 @@ export function loadState(): Partial<RootState> | null {
         activeDashboardId:
           parsed.dashboards?.activeDashboardId ?? defaultDashboards.activeDashboardId,
       },
-      globalConfig: {
-        ...defaultGlobalConfig,
-        ...(parsed.globalConfig ?? {}),
-      },
+      globalConfig: migratedGlobalConfig,
       moduleConfigs: {
         ...defaultModuleConfigs,
         ...(parsed.moduleConfigs ?? {}),

@@ -8,6 +8,7 @@ import {
   setActiveDashboard,
   updateDashboardName,
 } from "@/lib/store/slices/dashboardsSlice";
+import { getThemeById, DEFAULT_THEME_ID } from "@/lib/constants/themes";
 import type { Dashboard } from "@/lib/types/dashboard";
 import { clsx } from "clsx";
 
@@ -15,8 +16,13 @@ export default function DashboardTabs() {
   // Core tab bar for switching between dashboards and managing their lifecycle.
   const dashboards = useAppSelector((s) => s.dashboards.dashboards);
   const activeDashboardId = useAppSelector((s) => s.dashboards.activeDashboardId);
-  const theme = useAppSelector((s) => s.globalConfig.theme);
+  const defaultTheme = useAppSelector((s) => s.globalConfig.defaultTheme);
   const dispatch = useAppDispatch();
+  
+  // Resolve theme for styling
+  const active = activeDashboardId ? dashboards[activeDashboardId] : null;
+  const themeId = active?.theme || defaultTheme || DEFAULT_THEME_ID;
+  const isTronTheme = themeId === "tron";
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -24,7 +30,7 @@ export default function DashboardTabs() {
 
   const dashboardList = Object.values(dashboards);
   const tabClass = (isActive: boolean) => {
-    if (theme === "tron") {
+    if (isTronTheme) {
       return clsx(
         "px-4 py-2 rounded-full text-sm transition tron-glow",
         isActive
@@ -109,11 +115,11 @@ export default function DashboardTabs() {
     dispatch(removeDashboard(dashboardId));
   };
 
-  const containerClass = theme === "tron"
+  const containerClass = themeId === "tron"
     ? "backdrop-blur rounded-full bg-black/30 px-2 py-2 flex gap-2 border-2 border-tron-neon/50 shadow-[0_0_10px_rgba(0,212,255,0.3)]"
     : "backdrop-blur rounded-full bg-white/15 px-2 py-2 flex gap-2 border border-white/10 shadow-md";
 
-  const addButtonClass = theme === "tron"
+  const addButtonClass = themeId === "tron"
     ? "flex items-center gap-2 rounded-full border-2 border-tron-neon bg-black/30 px-3 py-2 text-sm text-white tron-glow transition hover:bg-black/50 hover:shadow-[0_0_10px_rgba(0,212,255,0.5)]"
     : "flex items-center gap-2 rounded-full border border-white/30 bg-white/20 px-3 py-2 text-sm text-white/80 transition hover:bg-white/40 hover:text-white";
 
@@ -166,7 +172,7 @@ export default function DashboardTabs() {
                         }}
                         className={clsx(
                           "absolute -top-1.5 -right-1.5 hidden h-5 w-5 items-center justify-center rounded-full shadow group-hover:flex",
-                          theme === "tron"
+                          themeId === "tron"
                             ? "bg-black/80 text-tron-neon border border-tron-neon hover:bg-red-500/20 hover:text-red-400 hover:border-red-400"
                             : "bg-white/80 text-slate-700 hover:bg-red-500 hover:text-white"
                         )}

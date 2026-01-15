@@ -20,6 +20,8 @@ export interface Dashboard {
   name: string;
   modules: ModuleInstance[];
   layouts?: Partial<Record<Breakpoint, Layout[]>>;
+  /** Theme ID for this dashboard (optional, falls back to global default) */
+  theme?: string;
 }
 
 /**

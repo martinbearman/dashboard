@@ -1,11 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { DEFAULT_THEME_ID, migrateLegacyTheme } from "@/lib/constants/themes";
 
 export interface GlobalConfigState {
-  theme: "light" | "dark" | "tron";
+  /** Default theme ID that new dashboards inherit */
+  defaultTheme: string;
 }
 
 export const createInitialGlobalConfigState = (): GlobalConfigState => ({
-  theme: "tron",
+  defaultTheme: DEFAULT_THEME_ID,
 });
 
 const initialState: GlobalConfigState = createInitialGlobalConfigState();
@@ -14,13 +16,18 @@ const globalConfigSlice = createSlice({
   name: "globalConfig",
   initialState,
   reducers: {
+    setDefaultTheme: (state, action: PayloadAction<string>) => {
+      state.defaultTheme = action.payload;
+    },
+    /** @deprecated Legacy action - kept for migration compatibility */
     setTheme: (state, action: PayloadAction<"light" | "dark" | "tron">) => {
-      state.theme = action.payload;
+      // Migrate legacy theme to new theme ID system
+      state.defaultTheme = migrateLegacyTheme(action.payload);
     },
   },
 });
 
-export const { setTheme } = globalConfigSlice.actions;
+export const { setDefaultTheme, setTheme } = globalConfigSlice.actions;
 
 export default globalConfigSlice.reducer;
 

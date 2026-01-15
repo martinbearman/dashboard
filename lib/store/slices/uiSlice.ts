@@ -4,11 +4,13 @@ import type { RootState } from '../store'
 export interface UiState {
     activeDashboardId: string | null;
     moduleConfigPanel: { moduleId: string } | null;
+    dashboardSettingsPanel: boolean;
 };
 
 const initialState: UiState = {
     activeDashboardId: null,
     moduleConfigPanel: null,
+    dashboardSettingsPanel: false,
 };
 
 const uiSlice = createSlice({
@@ -24,13 +26,21 @@ const uiSlice = createSlice({
     closeModuleConfigPanel: (state) => {
       state.moduleConfigPanel = null;
     },
+    openDashboardSettingsPanel: (state) => {
+      state.dashboardSettingsPanel = true;
+    },
+    closeDashboardSettingsPanel: (state) => {
+      state.dashboardSettingsPanel = false;
+    },
   },
 });
 
 export const { 
     setActiveDashboardId, 
     openModuleConfigPanel, 
-    closeModuleConfigPanel 
+    closeModuleConfigPanel,
+    openDashboardSettingsPanel,
+    closeDashboardSettingsPanel
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

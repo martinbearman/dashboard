@@ -236,6 +236,19 @@ const dashboardsSlice = createSlice({
       if (trimmedName.length > 0) {
         dashboard.name = trimmedName;
       }
+    },
+    setDashboardTheme: (
+      state,
+      action: PayloadAction<{ dashboardId: string; themeId: string | null }>
+    ) => {
+      const dashboard = state.dashboards[action.payload.dashboardId];
+      if (!dashboard) return;
+      // Set theme to undefined if null is passed (to use default)
+      if (action.payload.themeId === null) {
+        delete dashboard.theme;
+      } else {
+        dashboard.theme = action.payload.themeId;
+      }
     }
   },
 });
@@ -247,7 +260,8 @@ export const {
   removeModule,
   removeDashboard,
   updateDashboardLayouts,
-  updateDashboardName
+  updateDashboardName,
+  setDashboardTheme
 } = dashboardsSlice.actions;
 
 export default dashboardsSlice.reducer;

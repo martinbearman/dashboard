@@ -6,14 +6,16 @@ import "react-resizable/css/styles.css";
 import DashboardTabs from "@/components/layout/DashboardTabs";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
-import ThemeSwitcher from "@/components/layout/ThemeSwitcher";
+import DashboardSettingsButton from "@/components/layout/DashboardSettingsButton";
 import ConfigSheet from "@/components/ui/ConfigSheet";
+import DashboardSettingsSheet from "@/components/ui/DashboardSettingsSheet";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { getModuleByType } from "@/modules/registry";
 import ModuleWrapper from "@/components/modules/ModuleWrapper";
 import {
   updateDashboardLayouts,
 } from "@/lib/store/slices/dashboardsSlice";
+import { getThemeById, DEFAULT_THEME_ID } from "@/lib/constants/themes";
 import { WidthProvider, Responsive, type Layout, type Layouts } from "react-grid-layout";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -23,8 +25,12 @@ export default function Home() {
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
   const moduleConfigs = useAppSelector((s) => s.moduleConfigs.configs);
-  const theme = useAppSelector((s) => s.globalConfig.theme);
+  const defaultTheme = useAppSelector((s) => s.globalConfig.defaultTheme);
   const dispatch = useAppDispatch();
+  
+  // Resolve theme for styling
+  const themeId = active?.theme || defaultTheme || DEFAULT_THEME_ID;
+  const theme = getThemeById(themeId);
 
   // react-grid-layout expects a layout array for every breakpoint; start with empty defaults
   const defaultLayouts: Layouts = { lg: [], md: [], sm: [], xs: [], xxs: [] };
@@ -72,7 +78,7 @@ export default function Home() {
     );
   }
 
-  const mainClassName = theme === "tron" 
+  const mainClassName = themeId === "tron" 
     ? "min-h-screen bg-black relative z-10" 
     : "min-h-screen bg-gradient-to-b to-blue-100 from-slate-600";
 
@@ -115,14 +121,17 @@ export default function Home() {
       {/* Floating add button (will become a dropdown sourced from the registry) */}
       <AddModuleButton />
       
-      {/* Theme switcher */}
-      <ThemeSwitcher />
+      {/* Dashboard settings button */}
+      <DashboardSettingsButton />
       
       {/* Version display */}
       <AppVersion />
 
       {/* Configuration Sheet - off-canvas menu for module configuration */}
       <ConfigSheet />
+      
+      {/* Dashboard Settings Sheet - off-canvas menu for dashboard settings */}
+      <DashboardSettingsSheet />
     </main>
   );
 }

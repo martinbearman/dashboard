@@ -5,6 +5,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Theme CSS Variables - Default (Light Theme) */
+  --theme-bg: #ffffff;
+  --theme-text: #171717;
+  --theme-border: #e5e7eb;
+  --theme-primary: #3b82f6;
+  --theme-secondary: #8b5cf6;
+  --theme-accent: #f59e0b;
+  --theme-surface: #ffffff;
+  --theme-surface-hover: #f9fafb;
+  
   /* Tron Legacy colors */
   --tron-bg: #000000;
   --tron-grid: #00d4ff;
@@ -21,10 +32,51 @@
   }
 }
 
+/* Light Theme */
+body.light-theme {
+  --theme-bg: #ffffff;
+  --theme-text: #171717;
+  --theme-border: #e5e7eb;
+  --theme-primary: #3b82f6;
+  --theme-secondary: #8b5cf6;
+  --theme-accent: #f59e0b;
+  --theme-surface: #ffffff;
+  --theme-surface-hover: #f9fafb;
+  
+  color: var(--theme-text);
+  background: var(--theme-bg);
+  font-family: var(--font-lexend), Arial, Helvetica, sans-serif;
+}
+
+/* Dark Theme */
+body.dark-theme {
+  --theme-bg: #0a0a0a;
+  --theme-text: #ededed;
+  --theme-border: #374151;
+  --theme-primary: #60a5fa;
+  --theme-secondary: #a78bfa;
+  --theme-accent: #fbbf24;
+  --theme-surface: #1f2937;
+  --theme-surface-hover: #374151;
+  
+  color: var(--theme-text);
+  background: var(--theme-bg);
+  font-family: var(--font-lexend), Arial, Helvetica, sans-serif;
+}
+
 /* Tron Legacy Theme */
 body.tron-theme {
-  color: var(--tron-text);
-  background: var(--tron-bg);
+  --theme-bg: #000000;
+  --theme-text: #ffffff;
+  --theme-border: rgba(0, 212, 255, 0.6);
+  --theme-primary: #00d4ff;
+  --theme-secondary: #00d4ff;
+  --theme-accent: #00d4ff;
+  --theme-surface: rgba(0, 0, 0, 0.7);
+  --theme-surface-hover: rgba(0, 212, 255, 0.1);
+  
+  color: var(--theme-text);
+  background: var(--theme-bg);
   font-family: var(--font-lexend), Arial, Helvetica, sans-serif;
   position: relative;
   overflow-x: hidden;
@@ -100,9 +152,6 @@ body {
   }
 }
 
-/* Temporary: responsive grid positioning until react-grid-layout is implemented */
-/* react-grid-layout will handle this properly with drag-and-drop */
-
 /* ConfigSheet slide animations */
 @keyframes slide-in-from-right {
   from {
@@ -162,5 +211,52 @@ body {
 
 .config-sheet-content[data-state="closed"] {
   animation: slide-out-to-right 0.3s ease-out forwards;
+}
+
+/* Food Theme */
+body.food-theme {
+  color: var(--food-text);
+  background: var(--food-bg);
+  font-family: var(--font-lexend), Arial, Helvetica, sans-serif;
+  position: relative;
+}
+
+body.food-theme::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(217, 119, 6, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Ancient Rome Theme */
+body.ancient-rome-theme {
+  color: var(--rome-text);
+  background: var(--rome-bg);
+  font-family: var(--font-lexend), Arial, Helvetica, sans-serif;
+  position: relative;
+}
+
+body.ancient-rome-theme::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(139, 115, 85, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 115, 85, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: 0 0, 0 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.4;
 }
 

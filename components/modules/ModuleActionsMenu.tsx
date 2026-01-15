@@ -7,6 +7,7 @@ import { getModuleByType } from "@/modules/registry";
 import ModuleService from "@/lib/services/moduleService";
 import { openModuleConfigPanel } from "@/lib/store/slices/uiSlice";
 import { updateModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
+import { getThemeById, DEFAULT_THEME_ID } from "@/lib/constants/themes";
 import { clsx } from "clsx";
 
 type ModuleActionsMenuProps = {
@@ -18,12 +19,16 @@ type ModuleActionsMenuProps = {
 export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useAppDispatch();
-  const theme = useAppSelector((state) => state.globalConfig.theme);
   // Track the dashboard so removal can target the proper slice entry.
   const { activeDashboardId, dashboards } = useAppSelector((state) => state.dashboards);
+  const defaultTheme = useAppSelector((state) => state.globalConfig.defaultTheme);
+  const active = activeDashboardId ? dashboards[activeDashboardId] : null;
+  
+  // Resolve theme for styling
+  const themeId = active?.theme || defaultTheme || DEFAULT_THEME_ID;
+  const isTronTheme = themeId === "tron";
   
   // Get module type and config panel
-  const active = activeDashboardId ? dashboards[activeDashboardId] : null;
   const moduleInstance = active?.modules.find((m) => m.id === moduleId);
   const moduleMeta = moduleInstance ? getModuleByType(moduleInstance.type) : null;
   const ConfigPanel = moduleMeta?.configPanel;
@@ -94,13 +99,13 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
     ModuleService.removeModule(dispatch, activeDashboardId, moduleId);
   };
 
-  const headerClass = theme === "tron"
+  const headerClass = isTronTheme
     ? "flex items-center justify-between px-3 py-2 bg-black/50 border-b border-tron-neon/50 rounded-t-lg"
     : "flex items-center justify-between px-3 py-2 bg-gray-100 border-b border-gray-300 rounded-t-lg";
 
   const dragHandleClass = clsx(
     "module-drag-handle flex items-center gap-2 text-sm flex-1",
-    theme === "tron"
+    isTronTheme
       ? locked
         ? "cursor-default text-tron-neon/50"
         : "cursor-move text-white tron-glow"
@@ -109,19 +114,19 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
         : "cursor-move text-gray-700"
   );
 
-  const menuButtonClass = theme === "tron"
+  const menuButtonClass = isTronTheme
     ? "relative z-30 flex h-8 w-8 items-center justify-center rounded-full border-2 border-tron-neon bg-black/50 text-white tron-glow transition hover:bg-black/70 hover:shadow-[0_0_10px_rgba(0,212,255,0.5)] hover:scale-110"
     : "relative z-30 flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50 hover:border-gray-400 hover:scale-110";
 
-  const menuClass = theme === "tron"
+  const menuClass = isTronTheme
     ? "module-actions-interactive absolute right-0 mt-2 w-40 overflow-hidden rounded-md border-2 border-tron-neon bg-black/90 shadow-[0_0_20px_rgba(0,212,255,0.5)] z-30"
     : "module-actions-interactive absolute right-0 mt-2 w-40 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg z-30";
 
-  const menuItemClass = theme === "tron"
+  const menuItemClass = isTronTheme
     ? "w-full px-3 py-2 text-left text-sm text-white tron-glow transition hover:bg-black/70 disabled:cursor-not-allowed disabled:opacity-50"
     : "w-full px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50";
 
-  const menuItemDangerClass = theme === "tron"
+  const menuItemDangerClass = isTronTheme
     ? "w-full px-3 py-2 text-left text-sm text-red-400 tron-glow transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
     : "w-full px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -139,7 +144,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
           viewBox="0 0 12 12"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className={theme === "tron" 
+          className={isTronTheme 
             ? locked ? "text-tron-neon/50" : "text-tron-neon"
             : locked ? "text-gray-400" : "text-gray-500"
           }
@@ -157,7 +162,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
         <span className="text-sm font-medium">
           {displayName}
           {locked && (
-            <span className={theme === "tron" ? "text-tron-neon/50 font-normal" : "text-gray-400 font-normal"}>
+            <span className={isTronTheme ? "text-tron-neon/50 font-normal" : "text-gray-400 font-normal"}>
               {" "}(locked)
             </span>
           )}
