@@ -83,9 +83,9 @@ export default function DashboardSettingsSheet() {
       <Dialog.Portal>
         <Dialog.Overlay className="config-sheet-overlay fixed inset-0 bg-black/50 z-50" />
         <Dialog.Content className={clsx(
-          "config-sheet-content fixed right-0 top-0 h-full w-full max-w-lg shadow-xl z-50 overflow-y-auto",
+          "config-sheet-content-left fixed left-0 top-0 h-full w-full max-w-lg shadow-xl z-50 overflow-y-auto",
           isTronTheme 
-            ? "bg-black/95 border-l-2 border-tron-neon/50" 
+            ? "bg-black/95 border-r-2 border-tron-neon/50" 
             : "bg-white"
         )}>
           <div className="flex flex-col h-full">

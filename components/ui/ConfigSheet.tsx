@@ -5,6 +5,7 @@ import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { closeModuleConfigPanel } from "@/lib/store/slices/uiSlice";
 import { updateModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 import { getModuleByType } from "@/modules/registry";
+import { useRef, useEffect } from "react";
 
 export default function ConfigSheet() {
   const dispatch = useAppDispatch();
@@ -18,11 +19,25 @@ export default function ConfigSheet() {
   const isOpen = moduleConfigPanel !== null;
   const moduleId = moduleConfigPanel?.moduleId;
   
+  // Preserve the last known values during closing animation
+  const lastModuleIdRef = useRef<string | undefined>(moduleId);
+  const lastConfigPanelRef = useRef<React.ComponentType<any> | null>(null);
+  const lastModuleConfigRef = useRef<Record<string, any>>({});
+  
   // Find the module instance to get its type
   const moduleInstance = active?.modules.find((m) => m.id === moduleId);
   const moduleMeta = moduleInstance ? getModuleByType(moduleInstance.type) : null;
   const ConfigPanel = moduleMeta?.configPanel;
   const moduleConfig = moduleId ? (moduleConfigs[moduleId] ?? {}) : {};
+
+  // Update refs when we have valid data
+  useEffect(() => {
+    if (moduleId && ConfigPanel) {
+      lastModuleIdRef.current = moduleId;
+      lastConfigPanelRef.current = ConfigPanel;
+      lastModuleConfigRef.current = moduleConfig;
+    }
+  }, [moduleId, ConfigPanel, moduleConfig]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -31,8 +46,9 @@ export default function ConfigSheet() {
   };
 
   const handleConfigChange = (config: Record<string, any>) => {
-    if (moduleId) {
-      dispatch(updateModuleConfig({ moduleId, config }));
+    const currentModuleId = moduleId || lastModuleIdRef.current;
+    if (currentModuleId) {
+      dispatch(updateModuleConfig({ moduleId: currentModuleId, config }));
     }
   };
 
@@ -40,7 +56,13 @@ export default function ConfigSheet() {
     dispatch(closeModuleConfigPanel());
   };
 
-  if (!ConfigPanel || !moduleId) {
+  // Use preserved values if current ones are missing (during closing animation)
+  const displayModuleId = moduleId || lastModuleIdRef.current;
+  const DisplayConfigPanel = ConfigPanel || lastConfigPanelRef.current;
+  const displayModuleConfig = moduleId ? moduleConfig : lastModuleConfigRef.current;
+
+  // Only render if we have something to show (either current or preserved)
+  if (!DisplayConfigPanel || !displayModuleId) {
     return null;
   }
 
@@ -67,9 +89,9 @@ export default function ConfigSheet() {
 
             {/* Content */}
             <div className="flex-1 p-4">
-              <ConfigPanel
-                moduleId={moduleId}
-                config={moduleConfig}
+              <DisplayConfigPanel
+                moduleId={displayModuleId}
+                config={displayModuleConfig}
                 onConfigChange={handleConfigChange}
                 onClose={handleClose}
               />
