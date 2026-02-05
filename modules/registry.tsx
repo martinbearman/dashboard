@@ -8,6 +8,8 @@ import ArtModuleComponent from "./art/ArtModule";
 import TodoConfigPanel from "./todo/components/TodoConfigPanel";
 import DetailModuleComponent from "./detail/DetailModule";
 import DetailConfigPanel from "./detail/components/DetailConfigPanel";
+import ListModuleComponent from "./list/ListModule";
+import ListConfigPanel from "./list/components/ListConfigPanel";
 import CompletedConfigPanel from "./completed/components/CompletedConfigPanel";
 
 // Timer module - component lives in modules/timer/ folder
@@ -76,6 +78,17 @@ const DetailModule: DashboardModule = {
   configPanel: DetailConfigPanel,
 };
 
+const ContentListModule: DashboardModule = {
+  type: "content-list",
+  displayName: "Item List",
+  description: "Display a list of items from config (AI-populatable)",
+  defaultGridSize: { w: 3, h: 3 },
+  minGridSize: { w: 2, h: 2 },
+  maxGridSize: { w: 8, h: 6 },
+  component: ListModuleComponent,
+  configPanel: ListConfigPanel,
+};
+
 const DateTimeModule: DashboardModule = {
   type: "datetime",
   displayName: "Date & Time",
@@ -103,6 +116,7 @@ export const moduleRegistry: DashboardModule[] = [
   QuoteModule,
   ArtModule,
   DetailModule,
+  ContentListModule,
   // DateTimeModule, // Not built yet
   // WeatherModule, // Not built yet
 ];

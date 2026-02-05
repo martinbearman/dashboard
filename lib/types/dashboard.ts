@@ -186,6 +186,23 @@ export interface DetailModuleConfig {
 }
 
 /**
+ * Single item in the content-list module
+ */
+export interface ListItem {
+  text: string;
+  url?: string;
+  done?: boolean;
+}
+
+/**
+ * Config for the content-list (Item List) module
+ */
+export interface ListModuleConfig {
+  title?: string;
+  items: ListItem[];
+}
+
+/**
  * UI state
  */
 export interface UiState {
