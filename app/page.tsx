@@ -4,6 +4,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
 import DashboardTabs from "@/components/layout/DashboardTabs";
+import LLMPromptBar from "@/components/layout/LLMPromptBar";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
 import ConfigSheet from "@/components/ui/ConfigSheet";
@@ -72,9 +73,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b to-blue-100 from-slate-600">
-      <div className="py-6">
-        {/* dashboard tabs (centered) */}
+      <div className="sticky top-0 z-10 pt-2 pb-2 space-y-3">
         <DashboardTabs />
+        <LLMPromptBar />
       </div>
 
       <div className="mx-auto px-4 pb-24 max-w-full">
