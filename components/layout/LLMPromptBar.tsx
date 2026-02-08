@@ -3,18 +3,60 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useState } from "react";
+import { useAppDispatch, useAppStore } from "@/lib/store/hooks";
+import { updateModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 
 type TextPart = { type: "text"; text: string };
 type MessagePart = TextPart | { type: string; text?: string };
 
+function getMessageText(message: { parts?: unknown[]; content?: unknown }): string {
+  if (message.parts && Array.isArray(message.parts)) {
+    return (message.parts as MessagePart[])
+      .filter((p): p is TextPart => p.type === "text" && "text" in p && typeof p.text === "string")
+      .map((p) => p.text)
+      .join("");
+  }
+  if (typeof message.content === "string") return message.content;
+  return "";
+}
+
 /**
  * Prompt bar for LLM interaction via AI SDK.
  * Uses /api/chat (streamText + toUIMessageStreamResponse) and displays conversation messages above the input.
+ * On finish, appends the assistant response to the first Item List (content-list) module on the active dashboard.
  */
 export default function LLMPromptBar() {
   const [input, setInput] = useState("");
+  const dispatch = useAppDispatch();
+  const store = useAppStore();
+
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
+    onFinish: (options) => {
+      if (options.isAbort || options.isDisconnect || options.isError) return;
+      const text = getMessageText(options.message);
+      if (!text.trim()) return;
+
+      const state = store.getState();
+      const activeId = state.dashboards.activeDashboardId;
+      const dash = activeId ? state.dashboards.dashboards[activeId] : null;
+      const listMod = dash?.modules.find((m) => m.type === "content-list");
+      if (!listMod) return;
+
+      const currentConfig = state.moduleConfigs.configs[listMod.id] ?? {};
+      const currentItems = Array.isArray(currentConfig.items) ? currentConfig.items : [];
+      const title = currentConfig.title ?? "Item List";
+      dispatch(
+        updateModuleConfig({
+          moduleId: listMod.id,
+          config: {
+            ...currentConfig,
+            title,
+            items: [...currentItems, { text: text.trim() }],
+          },
+        })
+      );
+    },
   });
 
   const onSubmit = (e: React.FormEvent) => {
@@ -26,29 +68,7 @@ export default function LLMPromptBar() {
 
   return (
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-4 gap-3">
-      {messages.length > 0 && (
-        <div className="w-full max-h-48 overflow-y-auto rounded-xl border border-slate-300/40 bg-white/40 backdrop-blur px-3 py-2 space-y-2">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className="text-sm text-slate-700/90 whitespace-pre-wrap"
-            >
-              <span className="font-medium text-slate-600">
-                {message.role === "user" ? "You: " : "AI: "}
-              </span>
-              {"parts" in message && Array.isArray(message.parts)
-                ? (message.parts as MessagePart[]).map((part, i) =>
-                    part.type === "text" && "text" in part ? (
-                      <span key={`${message.id}-${i}`}>{part.text}</span>
-                    ) : null
-                  )
-                : "content" in message && typeof message.content === "string"
-                  ? message.content
-                  : null}
-            </div>
-          ))}
-        </div>
-      )}
+
       <form onSubmit={onSubmit} className="flex items-center gap-2 w-full">
         <input
           type="text"
