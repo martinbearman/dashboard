@@ -12,7 +12,7 @@ import type { ListModuleConfig } from "@/lib/types/dashboard";
 export default function ListModule({ moduleId, config }: ModuleProps) {
   const listConfig = (config ?? {}) as ListModuleConfig;
   const {
-    title = "Item List",
+    title = "AI output",
     items = [],
   } = listConfig;
   // Filter out empty items (from empty lines in config panel)

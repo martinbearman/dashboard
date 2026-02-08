@@ -7,7 +7,7 @@ import type { ListModuleConfig, ListItem } from "@/lib/types/dashboard";
 /**
  * ListConfigPanel
  *
- * Simple editor for the Item List (content-list) module:
+ * Simple editor for the AI output (content-list) module:
  * - Title (optional heading)
  * - Items (one per line, parsed into ListItem[])
  *
@@ -20,7 +20,7 @@ export default function ListConfigPanel({
 }: ModuleConfigProps) {
   const typedConfig = (config ?? {}) as ListModuleConfig;
 
-  const [title, setTitle] = useState<string>(typedConfig.title ?? "Item List");
+  const [title, setTitle] = useState<string>(typedConfig.title ?? "AI output");
   const [itemsText, setItemsText] = useState<string>(
     (typedConfig.items ?? []).map((item) => item.text).join("\n")
   );
@@ -64,7 +64,7 @@ export default function ListConfigPanel({
           type="text"
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
-          placeholder="Item List"
+          placeholder="AI output"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
         />
       </div>
