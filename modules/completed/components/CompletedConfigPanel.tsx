@@ -73,10 +73,10 @@ export default function CompletedConfigPanel({
 
   return (
     <div className="p-4">
-      <h3 className="font-semibold text-lg mb-4">Completed Tasks Settings</h3>
+      <h3 className="font-semibold text-lg mb-4 text-black">Completed Tasks Settings</h3>
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-black mb-2">
           Display Mode
         </label>
         <div className="space-y-2">
@@ -90,8 +90,8 @@ export default function CompletedConfigPanel({
               className="mt-1 mr-2"
             />
             <div>
-              <span className="text-sm font-medium">Master</span>
-              <p className="text-xs text-gray-500">
+              <span className="text-sm font-medium text-black">Master</span>
+              <p className="text-xs text-gray-800">
                 Show all completed tasks from all todo lists
               </p>
             </div>
@@ -106,8 +106,8 @@ export default function CompletedConfigPanel({
               className="mt-1 mr-2"
             />
             <div>
-              <span className="text-sm font-medium">Linked</span>
-              <p className="text-xs text-gray-500">
+              <span className="text-sm font-medium text-black">Linked</span>
+              <p className="text-xs text-gray-800">
                 Show completed tasks from a specific todo list
               </p>
             </div>
@@ -117,11 +117,11 @@ export default function CompletedConfigPanel({
 
       {mode === "linked" && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
             Link to Todo List
           </label>
           {availableLists.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-800">
               No todo lists available. Create a todo list module first.
             </p>
           ) : (
