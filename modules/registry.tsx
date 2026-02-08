@@ -80,7 +80,7 @@ const DetailModule: DashboardModule = {
 
 const ContentListModule: DashboardModule = {
   type: "content-list",
-  displayName: "Item List",
+  displayName: "AI output",
   description: "Display a list of items from config (AI-populatable)",
   defaultGridSize: { w: 3, h: 3 },
   minGridSize: { w: 2, h: 2 },
