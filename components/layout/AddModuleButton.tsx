@@ -97,7 +97,7 @@ export default function AddModuleButton() {
     // Auto-generate config for todo/completed/content-list modules
     let initialConfig: Record<string, any> = {};
     if (type === "content-list") {
-      initialConfig = { title: "Item List", items: [] };
+      initialConfig = { items: [] };
     } else if (type === "todo" || type === "completed") {
       // Count existing todo/completed modules to generate unique names
       const existingModules = dash.modules.filter(

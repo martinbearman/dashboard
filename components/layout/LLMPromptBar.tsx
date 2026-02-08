@@ -45,13 +45,13 @@ export default function LLMPromptBar() {
 
       const currentConfig = state.moduleConfigs.configs[listMod.id] ?? {};
       const currentItems = Array.isArray(currentConfig.items) ? currentConfig.items : [];
-      const title = currentConfig.title ?? "Item List";
+      //const title = currentConfig.title ?? "Item List";
       dispatch(
         updateModuleConfig({
           moduleId: listMod.id,
           config: {
             ...currentConfig,
-            title,
+            //title,
             items: [...currentItems, { text: text.trim() }],
           },
         })
