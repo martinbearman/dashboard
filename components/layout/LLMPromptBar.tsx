@@ -5,10 +5,14 @@ import { DefaultChatTransport } from "ai";
 import { useState } from "react";
 import { useAppDispatch, useAppStore } from "@/lib/store/hooks";
 import { updateModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
+import { addModuleToDashboard } from "@/lib/store/thunks/dashboardThunks";
 
+// Narrow type for the "text" parts that come back from the AI SDK
 type TextPart = { type: "text"; text: string };
+// The raw message `parts` array can contain other kinds of objects, so we keep this broad
 type MessagePart = TextPart | { type: string; text?: string };
 
+// Safely extract the concatenated text from a message coming from the AI SDK
 function getMessageText(message: { parts?: unknown[]; content?: unknown }): string {
   if (message.parts && Array.isArray(message.parts)) {
     return (message.parts as MessagePart[])
@@ -23,15 +27,18 @@ function getMessageText(message: { parts?: unknown[]; content?: unknown }): stri
 /**
  * Prompt bar for LLM interaction via AI SDK.
  * Uses /api/chat (streamText + toUIMessageStreamResponse) and displays conversation messages above the input.
- * On finish, appends the assistant response to the first Item List (content-list) module on the active dashboard.
+ * On finish, appends the assistant response to the first AI Output (`ai-output`) module on the active dashboard.
  */
 export default function LLMPromptBar() {
   const [input, setInput] = useState("");
   const dispatch = useAppDispatch();
   const store = useAppStore();
 
+  // Hook from the AI SDK that manages chat state and streaming
   const { messages, sendMessage, status } = useChat({
+    // Use our Next.js API route as the transport endpoint
     transport: new DefaultChatTransport({ api: "/api/chat" }),
+    // Called when the assistant has finished responding (or the stream is closed)
     onFinish: (options) => {
       if (options.isAbort || options.isDisconnect || options.isError) return;
       const text = getMessageText(options.message);
@@ -40,18 +47,29 @@ export default function LLMPromptBar() {
       const state = store.getState();
       const activeId = state.dashboards.activeDashboardId;
       const dash = activeId ? state.dashboards.dashboards[activeId] : null;
-      const listMod = dash?.modules.find((m) => m.type === "content-list");
-      if (!listMod) return;
+      if (!dash || !activeId) return;
+
+      // Find the first AI output module on the active dashboard
+      let listMod = dash?.modules.find((m) => m.type === "ai-output");
+
+
+      // If no ai-output module exists yet, create one on this dashboard
+      if (!listMod) {
+        const newModuleId = store.dispatch(
+          addModuleToDashboard({ dashboardId: activeId, type: "ai-output" })
+        );
+        listMod = { id: newModuleId, type: "ai-output" };
+      }
 
       const currentConfig = state.moduleConfigs.configs[listMod.id] ?? {};
       const currentItems = Array.isArray(currentConfig.items) ? currentConfig.items : [];
-      //const title = currentConfig.title ?? "Item List";
+
+      // Append the new assistant response as another item in the module config
       dispatch(
         updateModuleConfig({
           moduleId: listMod.id,
           config: {
             ...currentConfig,
-            //title,
             items: [...currentItems, { text: text.trim() }],
           },
         })
@@ -59,6 +77,7 @@ export default function LLMPromptBar() {
     },
   });
 
+  // Local submit handler that sends the current input to the chat API
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -69,6 +88,7 @@ export default function LLMPromptBar() {
   return (
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-4 gap-3">
 
+      {/* Prompt input and submit button */}
       <form onSubmit={onSubmit} className="flex items-center gap-2 w-full">
         <input
           type="text"
