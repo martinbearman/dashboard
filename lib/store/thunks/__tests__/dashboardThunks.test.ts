@@ -8,7 +8,7 @@ describe("populateContentList", () => {
     const store = makeStore();
     const moduleId = "test-module-123";
 
-    // Seed initial config (simulating an existing content-list module)
+    // Seed initial config (simulating an existing ai-output module)
     store.dispatch(setModuleConfig({ moduleId, config: { title: "Item List", items: [] } }));
 
     const items = [

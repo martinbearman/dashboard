@@ -79,7 +79,7 @@ const DetailModule: DashboardModule = {
 };
 
 const AIOutputModule: DashboardModule = {
-  type: "content-list",
+  type: "ai-output",
   displayName: "AI output",
   description: "Display a list of items from config (AI-populatable)",
   defaultGridSize: { w: 3, h: 3 },

@@ -186,7 +186,7 @@ export interface DetailModuleConfig {
 }
 
 /**
- * Single item in the content-list module
+ * Single item in the ai-output module
  */
 export interface ListItem {
   text: string;
@@ -195,7 +195,7 @@ export interface ListItem {
 }
 
 /**
- * Config for the content-list (Item List) module
+ * Config for the ai-output (Item List) module
  */
 export interface ListModuleConfig {
   title?: string;

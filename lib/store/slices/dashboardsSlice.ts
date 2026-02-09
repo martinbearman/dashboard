@@ -1,9 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Dashboard, ModuleInstance, Breakpoint } from "@/lib/types/dashboard";
 import type { Layout, Layouts } from "react-grid-layout";
-
-// Central source of truth for the breakpoints the grid supports
-const BREAKPOINTS: Breakpoint[] = ["lg", "md", "sm", "xs", "xxs"];
+import { GRID_BREAKPOINTS } from "@/lib/constants/grid";
 
 export interface DashboardsState {
   activeDashboardId: string | null;
@@ -106,7 +104,7 @@ const dashboardsSlice = createSlice({
     
       // Initialize the module in all breakpoint layouts with the initial position
       // Layouts are now the single source of truth for module positions
-      BREAKPOINTS.forEach((bp) => {
+      GRID_BREAKPOINTS.forEach((bp) => {
         const layout = dashboard.layouts![bp];
     
         if (layout) {
@@ -142,7 +140,7 @@ const dashboardsSlice = createSlice({
       dashboard.modules = dashboard.modules.filter((m) => m.id !== moduleId);
     
       if (dashboard.layouts) {
-        BREAKPOINTS.forEach((bp) => {
+        GRID_BREAKPOINTS.forEach((bp) => {
           const layout = dashboard.layouts![bp];
           if (layout) {
             // Drop the module from every breakpoint layout to avoid ghost grid items

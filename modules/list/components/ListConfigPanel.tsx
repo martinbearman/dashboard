@@ -7,7 +7,7 @@ import type { ListModuleConfig, ListItem } from "@/lib/types/dashboard";
 /**
  * ListConfigPanel
  *
- * Simple editor for the AI output (content-list) module:
+ * Simple editor for the AI output (`ai-output`) module:
  * - Title (optional heading)
  * - Items (one per line, parsed into ListItem[])
  *
