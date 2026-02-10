@@ -12,6 +12,32 @@ type TextPart = { type: "text"; text: string };
 // The raw message `parts` array can contain other kinds of objects, so we keep this broad
 type MessagePart = TextPart | { type: string; text?: string };
 
+type LayoutModuleType = "article-body" | "image" | "pull-quote" | "stat-block" | "ai-output";
+
+interface LayoutModulePosition {
+  x?: number;
+  y?: number;
+  w?: number;
+  h?: number;
+}
+
+interface LayoutModuleSpec {
+  id?: string;
+  type: LayoutModuleType;
+  position?: LayoutModulePosition;
+  config?: Record<string, unknown>;
+}
+
+interface LayoutDashboardSpec {
+  title?: string;
+  modules?: LayoutModuleSpec[];
+}
+
+interface LayoutResponse {
+  version?: string;
+  dashboard?: LayoutDashboardSpec;
+}
+
 // Safely extract the concatenated text from a message coming from the AI SDK
 function getMessageText(message: { parts?: unknown[]; content?: unknown }): string {
   if (message.parts && Array.isArray(message.parts)) {
@@ -24,10 +50,33 @@ function getMessageText(message: { parts?: unknown[]; content?: unknown }): stri
   return "";
 }
 
+function tryParseLayout(text: string): LayoutResponse | null {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("{")) {
+    // Some models may wrap JSON in text; attempt to slice to the first/last brace.
+    const firstBrace = trimmed.indexOf("{");
+    const lastBrace = trimmed.lastIndexOf("}");
+    if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+      return null;
+    }
+    return tryParseLayout(trimmed.slice(firstBrace, lastBrace + 1));
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed) as LayoutResponse;
+    if (!parsed || typeof parsed !== "object") return null;
+    if (!parsed.dashboard || !Array.isArray(parsed.dashboard.modules)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Prompt bar for LLM interaction via AI SDK.
  * Uses /api/chat (streamText + toUIMessageStreamResponse) and displays conversation messages above the input.
- * On finish, appends the assistant response to the first AI Output (`ai-output`) module on the active dashboard.
+ * On finish, attempts to interpret the assistant response as a structured dashboard layout JSON.
+ * If parsing fails, falls back to appending the raw text into the first AI Output (`ai-output`) module.
  */
 export default function LLMPromptBar() {
   const [input, setInput] = useState("");
@@ -44,14 +93,51 @@ export default function LLMPromptBar() {
       const text = getMessageText(options.message);
       if (!text.trim()) return;
 
+      // Debug: inspect raw LLM output text
+      // Open browser devtools console to see this.
+      // Safe to leave in production, but you can remove when no longer needed.
+      // eslint-disable-next-line no-console
+      console.log("[LLM] raw message text:", text);
+
       const state = store.getState();
       const activeId = state.dashboards.activeDashboardId;
       const dash = activeId ? state.dashboards.dashboards[activeId] : null;
       if (!dash || !activeId) return;
 
-      // Find the first AI output module on the active dashboard
-      let listMod = dash?.modules.find((m) => m.type === "ai-output");
+      // First, try to interpret the response as a structured layout JSON.
+      const layout = tryParseLayout(text);
 
+      // Debug: inspect parsed layout JSON (or null if parsing failed)
+      // eslint-disable-next-line no-console
+      console.log("[LLM] parsed layout:", layout);
+      const allowedTypes: LayoutModuleType[] = [
+        "article-body",
+        "image",
+        "pull-quote",
+        "stat-block",
+        "ai-output",
+      ];
+
+      if (layout?.dashboard?.modules && layout.dashboard.modules.length > 0) {
+        for (const moduleSpec of layout.dashboard.modules) {
+          if (!moduleSpec || !moduleSpec.type || !allowedTypes.includes(moduleSpec.type)) {
+            continue;
+          }
+
+          dispatch(
+            addModuleToDashboard({
+              dashboardId: activeId,
+              type: moduleSpec.type,
+              position: moduleSpec.position,
+              initialConfig: moduleSpec.config ?? {},
+            })
+          );
+        }
+        return;
+      }
+
+      // Fallback: behave like before and append plain text into a single ai-output module.
+      let listMod = dash.modules.find((m) => m.type === "ai-output");
 
       // If no ai-output module exists yet, create one on this dashboard
       if (!listMod) {
