@@ -228,6 +228,10 @@ export interface ImageModuleConfig {
   alt?: string;
   /** Optional visible caption shown under the image. */
   caption?: string;
+  /** Photographer name (for Unsplash images). */
+  photographerName?: string;
+  /** Photographer profile URL (for Unsplash images). */
+  photographerUrl?: string;
 }
 
 /**
