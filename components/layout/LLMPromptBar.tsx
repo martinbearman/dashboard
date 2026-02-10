@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAppDispatch, useAppStore } from "@/lib/store/hooks";
 import { updateModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
 import { addModuleToDashboard } from "@/lib/store/thunks/dashboardThunks";
@@ -37,6 +38,16 @@ interface LayoutResponse {
   version?: string;
   dashboard?: LayoutDashboardSpec;
 }
+
+type UnsplashImage = {
+  id: string;
+  alt: string;
+  thumbUrl: string;
+  regularUrl: string;
+  fullUrl: string;
+  photographerName: string;
+  photographerUrl: string;
+};
 
 // Safely extract the concatenated text from a message coming from the AI SDK
 function getMessageText(message: { parts?: unknown[]; content?: unknown }): string {
@@ -80,6 +91,9 @@ function tryParseLayout(text: string): LayoutResponse | null {
  */
 export default function LLMPromptBar() {
   const [input, setInput] = useState("");
+  const [images, setImages] = useState<UnsplashImage[]>([]);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const unsplashImagesRef = useRef<UnsplashImage[]>([]);
   const dispatch = useAppDispatch();
   const store = useAppStore();
 
@@ -119,9 +133,34 @@ export default function LLMPromptBar() {
       ];
 
       if (layout?.dashboard?.modules && layout.dashboard.modules.length > 0) {
+        const availableUnsplash = unsplashImagesRef.current;
+        let unsplashIndex = 0;
+
         for (const moduleSpec of layout.dashboard.modules) {
           if (!moduleSpec || !moduleSpec.type || !allowedTypes.includes(moduleSpec.type)) {
             continue;
+          }
+
+          // Skip image modules unless we have an Unsplash image to assign (avoid LLM-hallucinated or empty URLs)
+          const hasUnsplashForThisImage =
+            moduleSpec.type === "image" &&
+            availableUnsplash.length > 0 &&
+            unsplashIndex < availableUnsplash.length;
+          if (moduleSpec.type === "image" && !hasUnsplashForThisImage) {
+            continue;
+          }
+
+          let config = { ...(moduleSpec.config ?? {}) };
+
+          if (hasUnsplashForThisImage) {
+            const img = availableUnsplash[unsplashIndex++];
+            config = {
+              ...config,
+              imageUrl: img.regularUrl,
+              alt: (config.alt as string) || img.alt || "Dashboard image",
+              photographerName: img.photographerName,
+              photographerUrl: img.photographerUrl,
+            };
           }
 
           dispatch(
@@ -129,7 +168,7 @@ export default function LLMPromptBar() {
               dashboardId: activeId,
               type: moduleSpec.type,
               position: moduleSpec.position,
-              initialConfig: moduleSpec.config ?? {},
+              initialConfig: config,
             })
           );
         }
@@ -166,14 +205,40 @@ export default function LLMPromptBar() {
   // Local submit handler that sends the current input to the chat API
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    sendMessage({ text: input });
+    const prompt = input.trim();
+    if (!prompt) return;
+
+    // Kick off Unsplash search in parallel with the LLM call
+    setIsLoadingImages(true);
+    setImages([]);
+    unsplashImagesRef.current = [];
+    void (async () => {
+      try {
+        const res = await fetch(`/api/unsplash?q=${encodeURIComponent(prompt)}`);
+        if (!res.ok) {
+          // eslint-disable-next-line no-console
+          console.error("Unsplash request failed with status", res.status);
+          return;
+        }
+        const data = (await res.json()) as { images?: UnsplashImage[] };
+        if (Array.isArray(data.images)) {
+          unsplashImagesRef.current = data.images;
+          setImages(data.images);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to fetch Unsplash images", err);
+      } finally {
+        setIsLoadingImages(false);
+      }
+    })();
+
+    sendMessage({ text: prompt });
     setInput("");
   };
 
   return (
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-4 gap-3">
-
       {/* Prompt input and submit button */}
       <form onSubmit={onSubmit} className="flex items-center gap-2 w-full">
         <input
@@ -193,6 +258,44 @@ export default function LLMPromptBar() {
           {status === "streaming" ? "…" : "Send"}
         </button>
       </form>
+
+      {/* Unsplash image suggestions, based on the prompt */}
+      <div className="w-full">
+        {isLoadingImages && (
+          <p className="mt-1 text-xs text-slate-500">Finding images…</p>
+        )}
+        {/* {!isLoadingImages && images.length > 0 && (
+          <div className="mt-2">
+            <p className="mb-1 text-xs font-medium text-slate-600">
+              Image suggestions from Unsplash
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {images.map((img) => (
+                <a
+                  key={img.id}
+                  href={img.photographerUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group block relative"
+                >
+                  <div className="relative w-full h-20">
+                    <Image
+                      src={img.thumbUrl}
+                      alt={img.alt || "Unsplash image"}
+                      fill
+                      sizes="(max-width: 640px) 33vw, 160px"
+                      className="object-cover rounded-md border border-slate-200/60 shadow-sm group-hover:shadow-md transition-shadow"
+                    />
+                  </div>
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-md bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-white/90 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                    {img.photographerName}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )} */}
+      </div>
     </div>
   );
 }

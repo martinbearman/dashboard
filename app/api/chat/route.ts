@@ -28,7 +28,7 @@ GRID:
 
 MODULE CONFIG SHAPES (use these keys inside config):
 - article-body: { title?: string; body: string; style?: "primary" | "secondary" }
-- image: { imageUrl?: string; imageRef?: string; alt?: string; caption?: string }
+- image: { alt?: string; caption?: string } — do NOT include imageUrl or imageRef; images are populated from Unsplash based on the user's prompt.
 - pull-quote: { quote: string; attribution?: string; emphasis?: "low" | "medium" | "high" }
 - stat-block: { title?: string; items: { label: string; value: string }[] }
 - ai-output: { title?: string; items: { text: string; url?: string }[] }
@@ -38,8 +38,9 @@ RULES:
 2. Use pull-quote modules for short highlighted quotes.
 3. Use stat-block for compact key numbers/specs.
 4. Use image modules when the user mentions or provides imagery.
-5. If the user just wants a simple answer, you may return a single ai-output module with items[0].text as the answer.
-6. Do NOT include comments, trailing commas, or any text outside the JSON.
+5. NEVER include imageUrl or imageRef in image config — the app fetches images from Unsplash.
+6. If the user just wants a simple answer, you may return a single ai-output module with items[0].text as the answer.
+7. Do NOT include comments, trailing commas, or any text outside the JSON.
 `.trim();
 
 export async function POST(req: Request) {
