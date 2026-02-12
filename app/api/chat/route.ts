@@ -1,5 +1,21 @@
 import * as AI from "ai";
 import { google } from "@ai-sdk/google";
+import { moduleRegistry } from "@/modules/registry";
+
+// Module types that the AI can generate layouts for
+const AI_MODULE_TYPES = [
+  "article-body",
+  "image",
+  "pull-quote",
+  "stat-block",
+  "ai-output",
+] as const;
+
+// Build size hints from registry defaults
+const sizeHints = moduleRegistry
+  .filter((m) => AI_MODULE_TYPES.includes(m.type as (typeof AI_MODULE_TYPES)[number]))
+  .map((m) => `${m.type} w=${m.defaultGridSize.w} h=${m.defaultGridSize.h}`)
+  .join(", ");
 
 const LAYOUT_SYSTEM_PROMPT = `
 You are a dashboard layout generator. Given a user prompt and context, you design a magazine-style dashboard layout for a personal dashboard app.
@@ -23,7 +39,7 @@ interface LayoutResponse {
 
 GRID:
 - The layout uses an 8-column grid at the large breakpoint (x + w must be <= 8).
-- Reasonable sizes: article-body w=4–8, image w=3–5, pull-quote w=2–3, stat-block w=2–3, ai-output w=3–5.
+- Recommended default sizes: ${sizeHints}.
 - y is the vertical position; start at y=0 and stack modules downwards as needed.
 
 MODULE CONFIG SHAPES (use these keys inside config):
@@ -31,15 +47,14 @@ MODULE CONFIG SHAPES (use these keys inside config):
 - image: { alt?: string; caption?: string } — do NOT include imageUrl or imageRef; images are populated from Unsplash based on the user's prompt.
 - pull-quote: { quote: string; attribution?: string; emphasis?: "low" | "medium" | "high" }
 - stat-block: { title?: string; items: { label: string; value: string }[] }
-- ai-output: { title?: string; items: { text: string; url?: string }[] }
 
 RULES:
-1. Prefer ONE main article-body or ai-output module for long narrative text.
+1. Prefer ONE main article-body for long narrative text.
 2. Use pull-quote modules for short highlighted quotes.
 3. Use stat-block for compact key numbers/specs.
 4. Use image modules when the user mentions or provides imagery.
 5. NEVER include imageUrl or imageRef in image config — the app fetches images from Unsplash.
-6. If the user just wants a simple answer, you may return a single ai-output module with items[0].text as the answer.
+6. If the user just wants a simple answer, you may return a single article-body module with items[0].text as the answer.
 7. Do NOT include comments, trailing commas, or any text outside the JSON.
 `.trim();
 
