@@ -3,7 +3,7 @@ import { updateModuleConfig } from "../slices/moduleConfigsSlice";
 import { addModule } from "../slices/dashboardsSlice";
 import { setModuleConfig } from "../slices/moduleConfigsSlice";
 import { selectModulePositions } from "../selectors/dashboardSelectors";
-import { moduleRegistry } from "@/modules/registry";
+import { moduleRegistry, DEFAULT_GRID_SIZE } from "@/modules/registry";
 import type { ListItem } from "@/lib/types/dashboard";
 import { GRID_COLS } from "@/lib/constants/grid";
 
@@ -17,7 +17,7 @@ const LG_COLS = GRID_COLS.lg;
 export function nextPosition(
   existing: { x: number; y: number; w: number; h: number }[]
 ): { x: number; y: number; w: number; h: number } {
-  if (existing.length === 0) return { x: 0, y: 0, w: 3, h: 2 };
+  if (existing.length === 0) return { x: 0, y: 0, w: 3, h: 3 };
   const last = existing[existing.length - 1];
   const nextX = last.x + last.w;
   if (nextX + last.w <= LG_COLS)
@@ -50,11 +50,11 @@ export const addModuleToDashboard =
 
     // Look up the module's metadata (default size, min/max constraints, etc.) from the registry
     const meta = moduleRegistry.find((m) => m.type === type);
-    let size = meta?.defaultGridSize ?? { w: 3, h: 2 };
+    let size = meta?.defaultGridSize ?? DEFAULT_GRID_SIZE;
     if (meta?.minGridSize) {
       size = {
-        w: Math.max(size.w, meta.minGridSize!.w),
-        h: Math.max(size.h, meta.minGridSize!.h),
+        w: Math.max(size.w, meta.minGridSize.w),
+        h: Math.max(size.h, meta.minGridSize.h),
       };
     }
     if (meta?.maxGridSize) {

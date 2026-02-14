@@ -16,6 +16,9 @@ import ImageModuleComponent from "./image/ImageModule";
 import PullQuoteModuleComponent from "./pull-quote/PullQuoteModule";
 import StatBlockModuleComponent from "./stats/StatBlockModule";
 
+/** Default grid size when a module type is not in the registry (e.g. unknown/legacy). */
+export const DEFAULT_GRID_SIZE = { w: 3, h: 3 };
+
 // Timer module - component lives in modules/timer/ folder
 const TimerModule: DashboardModule = {
   type: "Timer",
@@ -107,9 +110,9 @@ const ImageModule: DashboardModule = {
   type: "image",
   displayName: "Image",
   description: "Single image with optional caption",
-  defaultGridSize: { w: 5, h: 5 },
+  defaultGridSize: { w: 3, h: 4 },
   minGridSize: { w: 2, h: 2 },
-  maxGridSize: { w: 8, h: 8 },
+  maxGridSize: { w: 6, h: 6 },
   component: ImageModuleComponent,
 };
 
