@@ -104,8 +104,17 @@ export default function LLMPromptBar() {
     // Called when the assistant has finished responding (or the stream is closed)
     onFinish: (options) => {
       if (options.isAbort || options.isDisconnect || options.isError) return;
+
+      // Debug: inspect full message structure to understand tool-call responses
+      // eslint-disable-next-line no-console
+      console.log("[LLM] full message:", JSON.stringify(options.message, null, 2));
+
       const text = getMessageText(options.message);
-      if (!text.trim()) return;
+      if (!text.trim()) {
+        // eslint-disable-next-line no-console
+        console.log("[LLM] No text found in message parts - check message structure above");
+        return;
+      }
 
       // Debug: inspect raw LLM output text
       // Open browser devtools console to see this.
@@ -195,7 +204,7 @@ export default function LLMPromptBar() {
           moduleId: listMod.id,
           config: {
             ...currentConfig,
-            items: [...currentItems, { text: text.trim() }],
+            items: [{ text: text.trim() }, ...currentItems],
           },
         })
       );

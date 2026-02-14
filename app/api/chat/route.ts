@@ -1,6 +1,8 @@
 import * as AI from "ai";
 import { google } from "@ai-sdk/google";
 import { moduleRegistry } from "@/modules/registry";
+import { stepCountIs } from "ai";
+import { z } from "zod";
 
 // Module types that the AI can generate layouts for
 const AI_MODULE_TYPES = [
@@ -19,7 +21,7 @@ const sizeHints = moduleRegistry
 
 const LAYOUT_SYSTEM_PROMPT = `
 You are a dashboard layout generator. Given a user prompt and context, you design a magazine-style dashboard layout for a personal dashboard app.
-
+ALWAYS∫ respond with images if possible.
 ALWAYS respond with a SINGLE JSON object matching this TypeScript-style schema (no extra text, no explanation):
 
 type ModuleType = "article-body" | "image" | "pull-quote" | "stat-block" | "ai-output";
@@ -58,6 +60,40 @@ RULES:
 7. Do NOT include comments, trailing commas, or any text outside the JSON.
 `.trim();
 
+
+// Define the Serper search tool (commented out for now)
+// const serperTool = {
+//   description: "Search the web using Google Search via Serper API. Use this when you need current information, facts, or data from the internet.",
+//   inputSchema: z.object({
+//     query: z.string().describe("The search query to look up"),
+//   }),
+//   execute: async ({ query }: { query: string }) => {
+//     console.log("Serper search called with:", query);
+//
+//     const response = await fetch("https://google.serper.dev/search", {
+//       method: "POST",
+//       headers: {
+//         "X-API-KEY": process.env.SERPER_API_KEY!,
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({ q: query }),
+//     });
+//
+//     const data = await response.json();
+//
+//     // Return a summarized version of results
+//     return {
+//       organic: data.organic?.slice(0, 5).map((r: any) => ({
+//         title: r.title,
+//         snippet: r.snippet,
+//         link: r.link,
+//       })),
+//       answerBox: data.answerBox,
+//       knowledgeGraph: data.knowledgeGraph,
+//     };
+//   },
+// };
+
 export async function POST(req: Request) {
   const { messages } = (await req.json()) as { messages: AI.UIMessage[] };
 
@@ -75,6 +111,10 @@ export async function POST(req: Request) {
   const result = AI.streamText({
     model: google("gemini-2.5-flash-lite"),
     messages: await AI.convertToModelMessages([systemMessage, ...messages]),
+    // tools: {
+    //   webSearch: serperTool,
+    // },
+    // stopWhen: stepCountIs(2)
   });
 
   return result.toUIMessageStreamResponse();
