@@ -18,7 +18,10 @@ export function nextPosition(
   existing: { x: number; y: number; w: number; h: number }[]
 ): { x: number; y: number; w: number; h: number } {
   if (existing.length === 0) return { x: 0, y: 0, w: 3, h: 3 };
-  const last = existing[existing.length - 1];
+  const sorted = [...existing].sort((a, b) =>
+    a.y !== b.y ? a.y - b.y : a.x - b.x
+  );
+  const last = sorted[sorted.length - 1];
   const nextX = last.x + last.w;
   if (nextX + last.w <= LG_COLS)
     return { x: nextX, y: last.y, w: last.w, h: last.h };
