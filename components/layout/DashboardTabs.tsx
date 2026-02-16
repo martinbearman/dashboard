@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import {
   addDashboard,
-  removeDashboard,
   setActiveDashboard,
   updateDashboardName,
 } from "@/lib/store/slices/dashboardsSlice";
+import DashboardService from "@/lib/services/dashboardService";
 import type { Dashboard } from "@/lib/types/dashboard";
 import { clsx } from "clsx";
 
@@ -16,6 +16,7 @@ export default function DashboardTabs() {
   const dashboards = useAppSelector((s) => s.dashboards.dashboards);
   const activeDashboardId = useAppSelector((s) => s.dashboards.activeDashboardId);
   const dispatch = useAppDispatch();
+  const store = useAppStore();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -94,9 +95,8 @@ export default function DashboardTabs() {
   };
 
   const handleRemoveDashboard = (dashboardId: string) => {
-    // Keep the original dashboard as a permanent default.
-    if (dashboardId === "board-1") return;
-    dispatch(removeDashboard(dashboardId));
+    // Use DashboardService to coordinate removal of dashboard and all associated data
+    DashboardService.removeDashboard(dispatch, store.getState, dashboardId);
   };
 
   return (
