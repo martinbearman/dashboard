@@ -64,14 +64,20 @@ export default function LLMPromptBar() {
           return;
         }
 
+        const gridParams = state.ui.gridContainerParams ?? undefined;
+
         for (const img of data.images) {
           const altText = img.alt ? capitalizeFirst(img.alt) : undefined;
 
-          const { w, h } = computeGridSizeForModule("image", {
-            kind: "image",
-            width: img.width,
-            height: img.height,
-          });
+          const { w, h } = computeGridSizeForModule(
+            "image",
+            {
+              kind: "image",
+              width: img.width,
+              height: img.height,
+            },
+            gridParams
+          );
 
           dispatch(
             addModuleToDashboard({

@@ -14,6 +14,7 @@ import ModuleWrapper from "@/components/modules/ModuleWrapper";
 import {
   updateDashboardLayouts,
 } from "@/lib/store/slices/dashboardsSlice";
+import { setGridContainerParams } from "@/lib/store/slices/uiSlice";
 import { GRID_LAYOUT_CONFIG } from "@/lib/constants/grid";
 import { WidthProvider, Responsive, type Layout, type Layouts } from "react-grid-layout";
 
@@ -72,6 +73,22 @@ export default function Home() {
     );
   }
 
+  function handleWidthChange(
+    containerWidth: number,
+    margin: [number, number],
+    cols: number,
+    containerPadding: [number, number] | null
+  ) {
+    dispatch(
+      setGridContainerParams({
+        containerWidth,
+        margin,
+        cols,
+        containerPadding,
+      })
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b to-blue-100 from-slate-600">
       <div className="sticky top-0 z-10 pt-2 pb-2 space-y-3">
@@ -92,6 +109,7 @@ export default function Home() {
           draggableCancel=".module-actions-interactive"
           preventCollision={false}
           onLayoutChange={(layout, allLayouts) => handleLayoutChange(layout, allLayouts as Layouts)}
+          onWidthChange={handleWidthChange}
         >
           {active?.modules.map((m) => {
             const meta = getModuleByType(m.type);

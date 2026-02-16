@@ -1,7 +1,37 @@
 import type { DashboardModule } from "@/lib/types/dashboard";
 import { DEFAULT_GRID_SIZE, getModuleByType } from "@/modules/registry";
+import { GRID_ROW_HEIGHT } from "@/lib/constants/grid";
 
 export type GridSize = { w: number; h: number };
+
+/** Grid container params from react-grid-layout's onWidthChange (matches lib formula) */
+export type GridContainerParams = {
+  containerWidth: number;
+  margin: [number, number];
+  cols: number;
+  containerPadding: [number, number] | null;
+};
+
+/**
+ * Compute column width in px using the same formula as react-grid-layout.
+ * @see node_modules/react-grid-layout/lib/calculateUtils.js calcGridColWidth
+ */
+function calcGridColWidth(params: GridContainerParams): number {
+  const { margin, containerPadding, containerWidth, cols } = params;
+  const cp = containerPadding ?? margin;
+  return (
+    (containerWidth - margin[0] * (cols - 1) - cp[0] * 2) / cols
+  );
+}
+
+/**
+ * Cell ratio: colWidth / rowHeight. A w×h grid block has visual aspect ratio (w/h) * cellRatio.
+ * When cellRatio = 1, grid cells are square; when > 1, columns are wider than rows are tall.
+ */
+export function computeCellRatio(params: GridContainerParams): number {
+  const colWidth = calcGridColWidth(params);
+  return colWidth / GRID_ROW_HEIGHT;
+}
 
 export type ImageContentMeta = {
   kind: "image";
@@ -48,7 +78,15 @@ function clampGridSize(size: GridSize, meta?: DashboardModule): GridSize {
   };
 }
 
-function computeSizeForImage(meta: DashboardModule, content: ImageContentMeta): GridSize {
+/**
+ * @param cellRatio colWidth/rowHeight from the grid. When 1, cells are square; when >1, columns
+ * are wider than rows. Visual aspect of a w×h block = (w/h) * cellRatio.
+ */
+function computeSizeForImage(
+  meta: DashboardModule,
+  content: ImageContentMeta,
+  cellRatio: number = 1
+): GridSize {
   const base = meta.defaultGridSize ?? DEFAULT_GRID_SIZE;
   const min = meta.minGridSize ?? { w: 1, h: 1 };
   const max = meta.maxGridSize ?? { w: 12, h: 12 };
@@ -57,7 +95,7 @@ function computeSizeForImage(meta: DashboardModule, content: ImageContentMeta): 
     content.aspectRatio ??
     (content.width && content.height ? content.width / content.height : undefined);
 
-  if (!aspect || !isFinite(aspect) || aspect <= 0) {
+  if (!aspect || !isFinite(aspect) || aspect <= 0 || cellRatio <= 0) {
     return base;
   }
 
@@ -69,14 +107,16 @@ function computeSizeForImage(meta: DashboardModule, content: ImageContentMeta): 
   let best: GridSize = base;
   let bestError = Number.POSITIVE_INFINITY;
 
+  // visualAspect = (w/h) * cellRatio; we want visualAspect ≈ aspect
+  // so w/h ≈ aspect / cellRatio, i.e. w ≈ aspect * h / cellRatio
   for (const h of candidateHeights) {
-    const wFloat = aspect * h;
+    const wFloat = (aspect * h) / cellRatio;
     const w = Math.round(wFloat);
 
     if (w < min.w || w > max.w) continue;
 
-    const gridAspect = w / h;
-    const error = Math.abs(gridAspect - aspect);
+    const visualAspect = (w / h) * cellRatio;
+    const error = Math.abs(visualAspect - aspect);
 
     if (error < bestError) {
       bestError = error;
@@ -87,14 +127,19 @@ function computeSizeForImage(meta: DashboardModule, content: ImageContentMeta): 
   return best;
 }
 
-function computeSizeForChart(meta: DashboardModule, content: ChartContentMeta): GridSize {
+function computeSizeForChart(
+  meta: DashboardModule,
+  content: ChartContentMeta,
+  cellRatio: number = 1
+): GridSize {
   const base = meta.defaultGridSize ?? DEFAULT_GRID_SIZE;
 
   if (content.aspectRatio && content.aspectRatio > 0 && isFinite(content.aspectRatio)) {
-    return computeSizeForImage(meta, {
-      kind: "image",
-      aspectRatio: content.aspectRatio,
-    });
+    return computeSizeForImage(
+      meta,
+      { kind: "image", aspectRatio: content.aspectRatio },
+      cellRatio
+    );
   }
 
   if (content.orientation === "wide") {
@@ -128,13 +173,17 @@ function computeSizeForText(meta: DashboardModule, content: TextContentMeta): Gr
  * Compute an appropriate grid size for a module type given some content metadata.
  * - Looks up defaults/min/max from the module registry
  * - Applies a per-kind heuristic (image/chart/text/generic)
+ * - When gridParams is provided, uses the actual grid cell ratio so image aspect ratios
+ *   match the rendered dimensions (grid cells are not square; colWidth ≠ rowHeight).
  */
 export function computeGridSizeForModule(
   type: DashboardModule["type"],
-  contentMeta?: ModuleContentMeta
+  contentMeta?: ModuleContentMeta,
+  gridParams?: GridContainerParams | null
 ): GridSize {
   const meta = getModuleByType(type);
   const base = meta?.defaultGridSize ?? DEFAULT_GRID_SIZE;
+  const cellRatio = gridParams ? computeCellRatio(gridParams) : 1;
 
   if (!meta || !contentMeta) {
     return clampGridSize(base, meta);
@@ -142,9 +191,9 @@ export function computeGridSizeForModule(
 
   switch (contentMeta.kind) {
     case "image":
-      return clampGridSize(computeSizeForImage(meta, contentMeta), meta);
+      return clampGridSize(computeSizeForImage(meta, contentMeta, cellRatio), meta);
     case "chart":
-      return clampGridSize(computeSizeForChart(meta, contentMeta), meta);
+      return clampGridSize(computeSizeForChart(meta, contentMeta, cellRatio), meta);
     case "text":
       return clampGridSize(computeSizeForText(meta, contentMeta), meta);
     case "generic":
