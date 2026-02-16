@@ -14,7 +14,7 @@ import type { ModuleProps, ImageModuleConfig } from "@/lib/types/dashboard";
  */
 export default function ImageModule({ moduleId, config }: ModuleProps) {
   const imageConfig = (config ?? {}) as ImageModuleConfig;
-  const { imageUrl, imageRef, alt, caption, photographerName, photographerUrl } = imageConfig;
+  const { imageUrl, imageRef, alt, caption, photographerName, photographerUrl, unsplashPhotoUrl } = imageConfig;
 
   const [hasError, setHasError] = useState(false);
 
@@ -62,7 +62,7 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
         )}
 
         {/* Alt + photographer overlay at the top, shown on hover */}
-        {(alt || photographerName) && (
+        {(alt || photographerName || unsplashPhotoUrl) && (
           <div className="pointer-events-none absolute right-1.5 top-1.5 max-w-[75%] rounded bg-black/55 px-2 py-1 text-base font-medium text-white/90 opacity-0 group-hover:opacity-100 transition-opacity">
             {alt && (
               <div className="truncate">
@@ -85,6 +85,17 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
                   Photo: {photographerName}
                 </div>
               )
+            )}
+            {unsplashPhotoUrl && (
+              <a
+                href={unsplashPhotoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="pointer-events-auto hover:underline block truncate text-xs mt-1.5 pt-1 border-t border-white/20"
+                onClick={(e) => e.stopPropagation()}
+              >
+                View on Unsplash
+              </a>
             )}
           </div>
         )}

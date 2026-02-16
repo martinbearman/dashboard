@@ -122,6 +122,7 @@ export default function LLMPromptBar() {
                 caption: altText || undefined,
                 photographerName: img.photographerName,
                 photographerUrl: img.photographerUrl,
+                unsplashPhotoUrl: `https://unsplash.com/photos/${img.id}`,
               },
             })
           );

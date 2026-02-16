@@ -232,6 +232,8 @@ export interface ImageModuleConfig {
   photographerName?: string;
   /** Photographer profile URL (for Unsplash images). */
   photographerUrl?: string;
+  /** Link to the Unsplash photo page (for Unsplash images). */
+  unsplashPhotoUrl?: string;
 }
 
 /**
