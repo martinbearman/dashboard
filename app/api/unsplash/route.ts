@@ -7,6 +7,8 @@ if (!UNSPLASH_ACCESS_KEY) {
 interface UnsplashSearchResult {
   results: Array<{
     id: string;
+    width: number;
+    height: number;
     alt_description?: string | null;
     description?: string | null;
     urls: {
@@ -68,6 +70,8 @@ export async function GET(req: Request) {
 
   const images = data.results.map((photo) => ({
     id: photo.id,
+    width: photo.width,
+    height: photo.height,
     alt: photo.alt_description ?? photo.description ?? "",
     thumbUrl: photo.urls.thumb,
     smallUrl: photo.urls.small,

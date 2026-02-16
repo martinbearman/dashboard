@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { useAppDispatch, useAppStore } from "@/lib/store/hooks";
 import { addModuleToDashboard } from "@/lib/store/thunks/dashboardThunks";
+import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
 
 type UnsplashImage = {
   id: string;
+  width: number;
+  height: number;
   alt: string;
   thumbUrl: string;
   regularUrl: string;
@@ -63,10 +66,18 @@ export default function LLMPromptBar() {
 
         for (const img of data.images) {
           const altText = img.alt ? capitalizeFirst(img.alt) : undefined;
+
+          const { w, h } = computeGridSizeForModule("image", {
+            kind: "image",
+            width: img.width,
+            height: img.height,
+          });
+
           dispatch(
             addModuleToDashboard({
               dashboardId: activeId,
               type: "image",
+              position: { w, h },
               initialConfig: {
                 imageUrl: img.regularUrl,
                 alt: altText || "Unsplash image",

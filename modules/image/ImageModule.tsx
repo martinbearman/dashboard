@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useAppSelector } from "@/lib/store/hooks";
+import { selectModuleGridPosition } from "@/lib/store/selectors/dashboardSelectors";
 import type { ModuleProps, ImageModuleConfig } from "@/lib/types/dashboard";
 
 /**
@@ -15,6 +17,11 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
   const { imageUrl, imageRef, alt, caption, photographerName, photographerUrl } = imageConfig;
 
   const [hasError, setHasError] = useState(false);
+
+  const gridPosition = useAppSelector((state) =>
+    selectModuleGridPosition(state, moduleId, "lg")
+  );
+  const [initialGridPosition] = useState(gridPosition);
 
   const src = imageUrl ?? imageRef;
 
@@ -50,6 +57,11 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
             No image configured.
           </div>
         )}
+        {initialGridPosition && (
+          <div className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white/90">
+            Calculated size: w={initialGridPosition.w}, h={initialGridPosition.h}
+          </div>
+        )}
         {/* Photographer attribution overlay for Unsplash images */}
         {photographerName && (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-md bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-white/90 truncate opacity-0 group-hover:opacity-100 transition-opacity">
@@ -71,7 +83,7 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
       </div>
       {(caption || alt) && (
         <figcaption className="border-t border-slate-200 bg-white/90 px-3 py-2 text-xs text-slate-700">
-          {caption || alt}
+          <div>{caption || alt}</div>
         </figcaption>
       )}
     </figure>
