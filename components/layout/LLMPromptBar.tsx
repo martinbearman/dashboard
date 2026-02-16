@@ -125,7 +125,12 @@ export default function LLMPromptBar() {
       </form>
 
       {isLoadingImages && (
-        <p className="w-full text-xs text-slate-500">Finding images…</p>
+        <div className="flex justify-center w-full">
+          <div
+            className="h-8 w-8 rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin"
+            aria-label="Finding images"
+          />
+        </div>
       )}
     </div>
   );
