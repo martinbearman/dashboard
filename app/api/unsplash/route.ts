@@ -68,7 +68,7 @@ export async function GET(req: Request) {
   const unsplashUrl =
     "https://api.unsplash.com/search/photos" +
     `?query=${encodeURIComponent(query)}` +
-    "&per_page=6&content_filter=high" +
+    "&per_page=30&content_filter=high" +
     `&client_id=${encodeURIComponent(UNSPLASH_ACCESS_KEY)}`;
 
   const res = await fetch(unsplashUrl, {

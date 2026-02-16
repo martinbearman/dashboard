@@ -17,7 +17,7 @@ const LG_COLS = GRID_COLS.lg;
 export function nextPosition(
   existing: { x: number; y: number; w: number; h: number }[]
 ): { x: number; y: number; w: number; h: number } {
-  if (existing.length === 0) return { x: 0, y: 0, w: 3, h: 3 };
+  if (existing.length === 0) return { x: 0, y: 0, w: 4, h: 3 };
   const sorted = [...existing].sort((a, b) =>
     a.y !== b.y ? a.y - b.y : a.x - b.x
   );

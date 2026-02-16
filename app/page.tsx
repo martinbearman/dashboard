@@ -96,7 +96,7 @@ export default function Home() {
         <LLMPromptBar />
       </div>
 
-      <div className="mx-auto px-4 pb-24 max-w-full">
+      <div className="mx-auto px-2 pb-24 max-w-full">
         <ResponsiveGridLayout
           className="layout"
           layouts={layouts}

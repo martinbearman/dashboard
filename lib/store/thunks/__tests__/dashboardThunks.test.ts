@@ -10,8 +10,8 @@ import {
 const BOARD_ID = "board-1";
 
 describe("nextPosition", () => {
-  it("returns default 3x3 at origin when existing is empty", () => {
-    expect(nextPosition([])).toEqual({ x: 0, y: 0, w: 3, h: 3 });
+  it("returns default 4x3 at origin when existing is empty", () => {
+    expect(nextPosition([])).toEqual({ x: 0, y: 0, w: 4, h: 3 });
   });
 
   it("places next module to the right of the only existing one", () => {
@@ -19,8 +19,8 @@ describe("nextPosition", () => {
     expect(nextPosition(existing)).toEqual({ x: 2, y: 0, w: 2, h: 2 });
   });
 
-  it("wraps to next row when there is no room on current row (lg=8 cols)", () => {
-    const existing = [{ x: 6, y: 0, w: 2, h: 2 }];
+  it("wraps to next row when there is no room on current row (lg=12 cols)", () => {
+    const existing = [{ x: 10, y: 0, w: 2, h: 2 }];
     expect(nextPosition(existing)).toEqual({ x: 0, y: 2, w: 2, h: 2 });
   });
 

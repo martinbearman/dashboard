@@ -17,16 +17,16 @@ import PullQuoteModuleComponent from "./pull-quote/PullQuoteModule";
 import StatBlockModuleComponent from "./stats/StatBlockModule";
 
 /** Default grid size when a module type is not in the registry (e.g. unknown/legacy). */
-export const DEFAULT_GRID_SIZE = { w: 3, h: 3 };
+export const DEFAULT_GRID_SIZE = { w: 4, h: 3 };
 
 // Timer module - component lives in modules/timer/ folder
 const TimerModule: DashboardModule = {
   type: "Timer",
   displayName: "Pomodoro Timer",
   description: "Pomodoro-style timer for focused work sessions",
-  defaultGridSize: { w: 2, h: 4 },
+  defaultGridSize: { w: 4, h: 4 },
   minGridSize: { w: 2, h: 4 },
-  maxGridSize: { w: 3, h: 6 },
+  maxGridSize: { w: 6, h: 6 },
   component: TimerModuleComponent,
   configPanel: TimerConfigPanel,
 };
