@@ -15,6 +15,14 @@ type UnsplashImage = {
 };
 
 /**
+ * Capitalizes the first letter of a string.
+ */
+function capitalizeFirst(str: string): string {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
  * Search bar for Unsplash images.
  * Disables the LLM and uses the input to search Unsplash, then adds results as image modules to the dashboard.
  */
@@ -54,14 +62,15 @@ export default function LLMPromptBar() {
         }
 
         for (const img of data.images) {
+          const altText = img.alt ? capitalizeFirst(img.alt) : undefined;
           dispatch(
             addModuleToDashboard({
               dashboardId: activeId,
               type: "image",
               initialConfig: {
                 imageUrl: img.regularUrl,
-                alt: img.alt || prompt || "Unsplash image",
-                caption: prompt || img.alt || undefined,
+                alt: altText || "Unsplash image",
+                caption: altText || undefined,
                 photographerName: img.photographerName,
                 photographerUrl: img.photographerUrl,
               },
