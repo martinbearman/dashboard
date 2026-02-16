@@ -57,27 +57,37 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
             No image configured.
           </div>
         )}
+
+        {/* Alt + photographer overlay at the top, shown on hover */}
+        {(alt || photographerName) && (
+          <div className="pointer-events-none absolute right-1.5 top-1.5 max-w-[75%] rounded bg-black/55 px-1.5 py-0.5 text-xs font-medium text-white/90 opacity-0 group-hover:opacity-100 transition-opacity">
+            {alt && (
+              <div className="truncate">
+                {alt}
+              </div>
+            )}
+            {photographerName && (
+              photographerUrl ? (
+                <a
+                  href={photographerUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="pointer-events-auto hover:underline block truncate italic"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Photo: {photographerName}
+                </a>
+              ) : (
+                <div className="truncate italic">
+                  Photo: {photographerName}
+                </div>
+              )
+            )}
+          </div>
+        )}
         {initialGridPosition && (
           <div className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white/90">
             Calculated size: w={initialGridPosition.w}, h={initialGridPosition.h}
-          </div>
-        )}
-        {/* Photographer attribution overlay for Unsplash images */}
-        {photographerName && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-md bg-black/40 px-1.5 py-0.5 text-[10px] font-medium text-white/90 truncate opacity-0 group-hover:opacity-100 transition-opacity">
-            {photographerUrl ? (
-              <a
-                href={photographerUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="pointer-events-auto hover:underline"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Photo by {photographerName}
-              </a>
-            ) : (
-              `Photo by ${photographerName}`
-            )}
           </div>
         )}
       </div>
