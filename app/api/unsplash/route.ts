@@ -3,12 +3,6 @@ import {
   getClientIdentifier,
 } from "@/lib/utils/rateLimiter";
 
-const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY ?? "";
-
-if (!UNSPLASH_ACCESS_KEY) {
-  throw new Error("UNSPLASH_ACCESS_KEY is not set");
-}
-
 interface UnsplashSearchResult {
   results: Array<{
     id: string;
@@ -30,6 +24,17 @@ interface UnsplashSearchResult {
 }
 
 export async function GET(req: Request) {
+  const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY;
+  if (!unsplashAccessKey) {
+    return new Response(
+      JSON.stringify({ error: "Image search is not configured (UNSPLASH_ACCESS_KEY missing)" }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   // Check rate limit
   const clientId = getClientIdentifier(req);
   const rateLimit = unsplashRateLimiter.check(clientId);
@@ -69,7 +74,7 @@ export async function GET(req: Request) {
     "https://api.unsplash.com/search/photos" +
     `?query=${encodeURIComponent(query)}` +
     "&per_page=30&content_filter=high" +
-    `&client_id=${encodeURIComponent(UNSPLASH_ACCESS_KEY)}`;
+    `&client_id=${encodeURIComponent(unsplashAccessKey)}`;
 
   const res = await fetch(unsplashUrl, {
     headers: {
