@@ -21,7 +21,6 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
   const gridPosition = useAppSelector((state) =>
     selectModuleGridPosition(state, moduleId, "lg")
   );
-  const [initialGridPosition] = useState(gridPosition);
 
   const src = imageUrl ?? imageRef;
 
@@ -40,8 +39,12 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
 
   return (
     <figure className="group flex h-full w-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/80 shadow-sm">
-      <div className="relative w-full bg-slate-100">
-        {hasValidSrc ? (
+      <div className="relative flex min-h-0 flex-1 w-full flex-col bg-slate-100">
+        {hasError ? (
+          <div className="flex min-h-0 flex-1 w-full flex-col items-center justify-center gap-1 px-4 py-6 text-xs text-red-600">
+            <span>Failed to load image.</span>
+          </div>
+        ) : hasValidSrc ? (
           /* Using plain img for maximum flexibility; can be swapped to next/image later */
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
@@ -60,7 +63,7 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
 
         {/* Alt + photographer overlay at the top, shown on hover */}
         {(alt || photographerName) && (
-          <div className="pointer-events-none absolute right-1.5 top-1.5 max-w-[75%] rounded bg-black/55 px-1.5 py-0.5 text-xs font-medium text-white/90 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="pointer-events-none absolute right-1.5 top-1.5 max-w-[75%] rounded bg-black/55 px-2 py-1 text-base font-medium text-white/90 opacity-0 group-hover:opacity-100 transition-opacity">
             {alt && (
               <div className="truncate">
                 {alt}
@@ -72,30 +75,20 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
                   href={photographerUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="pointer-events-auto hover:underline block truncate italic"
+                  className="pointer-events-auto hover:underline block truncate italic mt-1"
                   onClick={(e) => e.stopPropagation()}
                 >
                   Photo: {photographerName}
                 </a>
               ) : (
-                <div className="truncate italic">
+                <div className="truncate italic mt-1">
                   Photo: {photographerName}
                 </div>
               )
             )}
           </div>
         )}
-        {initialGridPosition && (
-          <div className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white/90">
-            Calculated size: w={initialGridPosition.w}, h={initialGridPosition.h}
-          </div>
-        )}
       </div>
-      {(caption || alt) && (
-        <figcaption className="border-t border-slate-200 bg-white/90 px-3 py-2 text-xs text-slate-700">
-          <div>{caption || alt}</div>
-        </figcaption>
-      )}
     </figure>
   );
 }
