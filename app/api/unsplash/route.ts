@@ -1,3 +1,8 @@
+import {
+  unsplashRateLimiter,
+  getClientIdentifier,
+} from "@/lib/utils/rateLimiter";
+
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY ?? "";
 
 if (!UNSPLASH_ACCESS_KEY) {
@@ -25,6 +30,31 @@ interface UnsplashSearchResult {
 }
 
 export async function GET(req: Request) {
+  // Check rate limit
+  const clientId = getClientIdentifier(req);
+  const rateLimit = unsplashRateLimiter.check(clientId);
+
+  if (!rateLimit.allowed) {
+    const resetDate = new Date(rateLimit.resetAt);
+    return new Response(
+      JSON.stringify({
+        error: "Rate limit exceeded",
+        message: `Too many requests. Please try again after ${resetDate.toISOString()}`,
+        resetAt: resetDate.toISOString(),
+      }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "X-RateLimit-Limit": "50",
+          "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+          "X-RateLimit-Reset": Math.ceil(rateLimit.resetAt / 1000).toString(),
+          "Retry-After": Math.ceil((rateLimit.resetAt - Date.now()) / 1000).toString(),
+        },
+      }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("q")?.trim();
 
@@ -83,7 +113,12 @@ export async function GET(req: Request) {
 
   return new Response(JSON.stringify({ images }), {
     status: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": "50",
+      "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+      "X-RateLimit-Reset": Math.ceil(rateLimit.resetAt / 1000).toString(),
+    },
   });
 }
 

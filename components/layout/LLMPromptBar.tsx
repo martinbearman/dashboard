@@ -32,6 +32,7 @@ function capitalizeFirst(str: string): string {
 export default function LLMPromptBar() {
   const [input, setInput] = useState("");
   const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const dispatch = useAppDispatch();
   const store = useAppStore();
 
@@ -41,14 +42,45 @@ export default function LLMPromptBar() {
     if (!prompt) return;
 
     setIsLoadingImages(true);
+    setError(null);
     setInput("");
 
     void (async () => {
       try {
         const res = await fetch(`/api/unsplash?q=${encodeURIComponent(prompt)}`);
         if (!res.ok) {
-          // eslint-disable-next-line no-console
-          console.error("Unsplash request failed with status", res.status);
+          // Try to parse error message from response
+          let errorMessage = "Failed to search for images";
+          try {
+            const errorData = (await res.json()) as {
+              error?: string;
+              message?: string;
+              resetAt?: string;
+            };
+            errorMessage = errorData.message || errorData.error || errorMessage;
+            
+            // Format reset time if available
+            if (errorData.resetAt && res.status === 429) {
+              const resetDate = new Date(errorData.resetAt);
+              const now = new Date();
+              const secondsUntilReset = Math.ceil((resetDate.getTime() - now.getTime()) / 1000);
+              const minutesUntilReset = Math.ceil(secondsUntilReset / 60);
+              
+              if (minutesUntilReset > 0) {
+                errorMessage = `Rate limit exceeded. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? 's' : ''}.`;
+              } else {
+                errorMessage = `Rate limit exceeded. Please try again in ${secondsUntilReset} second${secondsUntilReset > 1 ? 's' : ''}.`;
+              }
+            }
+          } catch {
+            // If JSON parsing fails, use default message
+            if (res.status === 429) {
+              errorMessage = "Too many requests. Please wait a moment and try again.";
+            }
+          }
+          
+          setError(errorMessage);
+          setIsLoadingImages(false);
           return;
         }
         const data = (await res.json()) as { images?: UnsplashImage[] };
@@ -94,10 +126,12 @@ export default function LLMPromptBar() {
             })
           );
         }
+        
+        setIsLoadingImages(false);
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error("Failed to fetch Unsplash images", err);
-      } finally {
+        setError("Failed to search for images. Please try again.");
         setIsLoadingImages(false);
       }
     })();
@@ -109,11 +143,19 @@ export default function LLMPromptBar() {
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Search for images..."
+          onChange={(e) => {
+            setInput(e.target.value);
+            if (error) setError(null); // Clear error when user starts typing
+          }}
+          placeholder={error || "Search for images..."}
           disabled={isLoadingImages}
-          className="flex-1 min-w-0 rounded-full border border-slate-300/40 bg-white/40 backdrop-blur px-4 py-2.5 text-sm text-slate-700/90 placeholder-slate-600 outline-none transition focus:border-slate-400/60 focus:ring-2 focus:ring-slate-300/30 disabled:opacity-70"
+          className={`flex-1 min-w-0 rounded-full border bg-white/40 backdrop-blur px-4 py-2.5 text-sm outline-none transition disabled:opacity-70 ${
+            error
+              ? "border-red-400/60 text-red-700 placeholder-red-600 focus:border-red-500/60 focus:ring-2 focus:ring-red-300/30"
+              : "border-slate-300/40 text-slate-700/90 placeholder-slate-600 focus:border-slate-400/60 focus:ring-2 focus:ring-slate-300/30"
+          }`}
           aria-label="Search Unsplash images"
+          aria-invalid={error ? "true" : "false"}
         />
         <button
           type="submit"
@@ -125,9 +167,9 @@ export default function LLMPromptBar() {
       </form>
 
       {isLoadingImages && (
-        <div className="flex justify-center w-full">
+        <div className="flex items-center justify-center w-full">
           <div
-            className="h-8 w-8 rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin"
+            className="h-5 w-5 rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin"
             aria-label="Finding images"
           />
         </div>
