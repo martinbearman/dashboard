@@ -10,7 +10,7 @@ import CompletedList from "./components/CompletedList";
  */
 export default function CompletedModule({ moduleId, config }: ModuleProps) {
   return (
-    <div className="h-full w-full overflow-auto">
+    <div className="h-full w-full overflow-auto p-4">
       <CompletedList moduleId={moduleId} config={config} />
     </div>
   );

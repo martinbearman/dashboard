@@ -15,7 +15,7 @@ import TimerModulePage from "./app/page";
  */
 export default function TimerModule({ moduleId, config }: ModuleProps) {
   return (
-    <div className="h-full w-full overflow-auto">
+    <div className="h-full w-full overflow-auto p-4">
       <TimerModulePage />
     </div>
   );
