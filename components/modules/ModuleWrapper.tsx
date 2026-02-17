@@ -30,7 +30,7 @@ export default function ModuleWrapper({
       data-locked={locked}
     >
       <ModuleActionsMenu moduleId={moduleId} locked={locked} moduleName={moduleName} />
-      <div className="flex-1 p-4 overflow-auto">{children}</div>
+      <div className="flex-1 overflow-auto">{children}</div>
     </div>
   );
 }

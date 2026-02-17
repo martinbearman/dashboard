@@ -3,32 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { moduleRegistry } from "@/modules/registry";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { addModule } from "@/lib/store/slices/dashboardsSlice";
-import { setModuleConfig } from "@/lib/store/slices/moduleConfigsSlice";
-import { selectModulePositions } from "@/lib/store/selectors/dashboardSelectors";
-
-// Decide where to place the next module in the grid so it doesn't overlap.
-function nextPosition(existing: { x: number; y: number; w: number; h: number }[]) {
-  // Simple heuristic: place next item after the last one, wrap at 8 columns (lg breakpoint)
-  if (existing.length === 0) return { x: 0, y: 0, w: 3, h: 2 };
-  const last = existing[existing.length - 1];
-  const nextX = last.x + last.w;
-  if (nextX + last.w <= 8) return { x: nextX, y: last.y, w: last.w, h: last.h };
-  return { x: 0, y: last.y + last.h, w: last.w, h: last.h };
-}
+import { addModuleToDashboard } from "@/lib/store/thunks/dashboardThunks";
 
 export default function AddModuleButton() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const dispatch = useAppDispatch();
-  const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
-  
-  // Get existing module positions from layouts (using "lg" breakpoint as default)
-  const existingPositions = useAppSelector((state) => 
-    activeDashboardId 
-      ? selectModulePositions(state, activeDashboardId, "lg")
-      : []
-  );
+  const activeDashboardId = useAppSelector((s) => s.dashboards.activeDashboardId);
 
   // Basic search filter (name + description)
   const filtered = useMemo(() => {
@@ -40,7 +21,7 @@ export default function AddModuleButton() {
         m.description.toLowerCase().includes(q)
     );
   }, [query]);
-  
+
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -51,80 +32,9 @@ export default function AddModuleButton() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  
-  // Called when the user chooses a module type from the modal list.
   const handleAdd = (type: string) => {
     if (!activeDashboardId) return;
-    const dash = dashboards[activeDashboardId];
-    
-    const meta = moduleRegistry.find((m) => m.type === type);
-    let size = meta?.defaultGridSize ?? { w: 3, h: 2 };
-    
-    // Ensure default size respects min/max constraints
-    if (meta) {
-      if (meta.minGridSize) {
-        size = {
-          w: Math.max(size.w, meta.minGridSize.w),
-          h: Math.max(size.h, meta.minGridSize.h),
-        };
-      }
-      if (meta.maxGridSize) {
-        size = {
-          w: Math.min(size.w, meta.maxGridSize.w),
-          h: Math.min(size.h, meta.maxGridSize.h),
-        };
-      }
-    }
-    
-    const pos = existingPositions.length
-      ? nextPosition(existingPositions)
-      : { x: 0, y: 0, w: size.w, h: size.h };
-
-    // Each module needs a stable ID so its layout entry and config line up.
-    const moduleId = crypto.randomUUID();
-
-    dispatch(
-      addModule({
-        dashboardId: activeDashboardId,
-        module: {
-          id: moduleId,
-          type,
-        },
-        initialPosition: { x: pos.x, y: pos.y, w: size.w, h: size.h },
-      })
-    );
-    
-    // Auto-generate config for todo/completed modules
-    let initialConfig: Record<string, any> = {};
-    if (type === "todo" || type === "completed") {
-      // Count existing todo/completed modules to generate unique names
-      const existingModules = dash.modules.filter(
-        (m) => m.type === "todo" || m.type === "completed"
-      );
-      const count = existingModules.length + 1;
-      
-      if (type === "todo") {
-        initialConfig = {
-          listId: moduleId,
-          listName: `Todo List ${count}`,
-        };
-      } else if (type === "completed") {
-        // For completed modules, default to master mode
-        initialConfig = {
-          mode: "master",
-        };
-      }
-    }
-
-    // Seed the module's config immediately so downstream selectors/renderers
-    // can assume an entry exists (ensureModuleConfig fills in defaults).
-    dispatch(
-      setModuleConfig({
-        moduleId,
-        config: initialConfig,
-      })
-    );
-    // Close the modal now that the module and config have been created.
+    dispatch(addModuleToDashboard({ dashboardId: activeDashboardId, type }));
     setOpen(false);
   };
 

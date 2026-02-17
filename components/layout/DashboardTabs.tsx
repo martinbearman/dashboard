@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import {
   addDashboard,
-  removeDashboard,
   setActiveDashboard,
   updateDashboardName,
 } from "@/lib/store/slices/dashboardsSlice";
+import DashboardService from "@/lib/services/dashboardService";
 import type { Dashboard } from "@/lib/types/dashboard";
 import { clsx } from "clsx";
 
@@ -16,6 +16,7 @@ export default function DashboardTabs() {
   const dashboards = useAppSelector((s) => s.dashboards.dashboards);
   const activeDashboardId = useAppSelector((s) => s.dashboards.activeDashboardId);
   const dispatch = useAppDispatch();
+  const store = useAppStore();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -26,8 +27,8 @@ export default function DashboardTabs() {
     clsx(
       "px-4 py-2 rounded-full text-sm transition",
       isActive
-        ? "bg-white/90 text-slate-900 shadow"
-        : "bg-white/20 text-white/70 hover:bg-white/40 hover:text-white"
+        ? "bg-white/95 text-slate-900 shadow-md border border-white/60"
+        : "bg-white/40 text-slate-700/90 border border-slate-300/40 hover:bg-white/55 hover:text-slate-900"
     );
 
   // Focus input when editing starts
@@ -94,16 +95,15 @@ export default function DashboardTabs() {
   };
 
   const handleRemoveDashboard = (dashboardId: string) => {
-    // Keep the original dashboard as a permanent default.
-    if (dashboardId === "board-1") return;
-    dispatch(removeDashboard(dashboardId));
+    // Use DashboardService to coordinate removal of dashboard and all associated data
+    DashboardService.removeDashboard(dispatch, store.getState, dashboardId);
   };
 
   return (
     <>
       <div className="w-full flex justify-center">
         <div className="flex items-center gap-3">
-          <div className="backdrop-blur rounded-full bg-white/15 px-2 py-2 flex gap-2 border border-white/10 shadow-md">
+          <div className="backdrop-blur rounded-full bg-white/25 px-2 py-2 flex gap-2 border border-slate-300/30 shadow-md">
             {dashboardList.length > 0 ? (
               dashboardList.map((dash) => {
                 const canRemove =
@@ -163,7 +163,7 @@ export default function DashboardTabs() {
           <button
             type="button"
             onClick={handleAddDashboard}
-            className="flex items-center gap-2 rounded-full border border-white/30 bg-white/20 px-3 py-2 text-sm text-white/80 transition hover:bg-white/40 hover:text-white"
+            className="flex items-center gap-2 rounded-full border border-slate-300/40 bg-white/40 px-3 py-2 text-sm text-slate-700/90 transition hover:bg-white/55 hover:text-slate-900"
             aria-label="Add dashboard"
           >
             <span className="text-lg leading-none translate-y-[-1px]">+</span>

@@ -4,6 +4,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
 import DashboardTabs from "@/components/layout/DashboardTabs";
+import LLMPromptBar from "@/components/layout/LLMPromptBar";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
 import ConfigSheet from "@/components/ui/ConfigSheet";
@@ -13,6 +14,8 @@ import ModuleWrapper from "@/components/modules/ModuleWrapper";
 import {
   updateDashboardLayouts,
 } from "@/lib/store/slices/dashboardsSlice";
+import { setGridContainerParams } from "@/lib/store/slices/uiSlice";
+import { GRID_LAYOUT_CONFIG } from "@/lib/constants/grid";
 import { WidthProvider, Responsive, type Layout, type Layouts } from "react-grid-layout";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -70,26 +73,43 @@ export default function Home() {
     );
   }
 
+  function handleWidthChange(
+    containerWidth: number,
+    margin: [number, number],
+    cols: number,
+    containerPadding: [number, number] | null
+  ) {
+    dispatch(
+      setGridContainerParams({
+        containerWidth,
+        margin,
+        cols,
+        containerPadding,
+      })
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b to-blue-100 from-slate-600">
-      <div className="py-6">
-        {/* dashboard tabs (centered) */}
+      <div className="sticky top-0 z-10 pt-2 pb-2 space-y-3">
         <DashboardTabs />
+        <LLMPromptBar />
       </div>
 
-      <div className="mx-auto px-4 pb-24 max-w-full">
+      <div className="mx-auto px-2 pb-24 max-w-full">
         <ResponsiveGridLayout
           className="layout"
           layouts={layouts}
-          breakpoints={{ lg: 1024, md: 768, sm: 640, xs: 480, xxs: 0 }}
-          cols={{ lg: 8, md: 6, sm: 4, xs: 3, xxs: 1 }}
-          rowHeight={100}
-          margin={[16, 16]}
+          breakpoints={GRID_LAYOUT_CONFIG.breakpoints}
+          cols={GRID_LAYOUT_CONFIG.cols}
+          rowHeight={GRID_LAYOUT_CONFIG.rowHeight}
+          margin={GRID_LAYOUT_CONFIG.margin}
           compactType="vertical"
           draggableHandle=".module-drag-handle"
           draggableCancel=".module-actions-interactive"
           preventCollision={false}
           onLayoutChange={(layout, allLayouts) => handleLayoutChange(layout, allLayouts as Layouts)}
+          onWidthChange={handleWidthChange}
         >
           {active?.modules.map((m) => {
             const meta = getModuleByType(m.type);

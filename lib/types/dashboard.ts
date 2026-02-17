@@ -186,6 +186,85 @@ export interface DetailModuleConfig {
 }
 
 /**
+ * Single item in the ai-output module
+ */
+export interface ListItem {
+  text: string;
+  url?: string;
+  done?: boolean;
+}
+
+/**
+ * Config for the ai-output (Item List) module
+ */
+export interface ListModuleConfig {
+  title?: string;
+  items: ListItem[];
+}
+
+/**
+ * Config for a long-form article/body module.
+ * Intended for LLM-populated markdown content laid out like a magazine article.
+ */
+export interface ArticleBodyModuleConfig {
+  /** Optional heading for the article block. */
+  title?: string;
+  /** Markdown content for the article body. */
+  body: string;
+  /** Visual emphasis level for styling (primary = main story). */
+  style?: "primary" | "secondary";
+}
+
+/**
+ * Config for an image module – a single image with optional caption.
+ * The LLM can use either a direct URL or a logical imageRef that the app resolves.
+ */
+export interface ImageModuleConfig {
+  /** Direct URL for the image, if known. */
+  imageUrl?: string;
+  /** Logical reference, e.g. image://upload-1, that the host app can resolve. */
+  imageRef?: string;
+  /** Accessible alt text describing the image. */
+  alt?: string;
+  /** Optional visible caption shown under the image. */
+  caption?: string;
+  /** Photographer name (for Unsplash images). */
+  photographerName?: string;
+  /** Photographer profile URL (for Unsplash images). */
+  photographerUrl?: string;
+  /** Link to the Unsplash photo page (for Unsplash images). */
+  unsplashPhotoUrl?: string;
+}
+
+/**
+ * Config for a pull-quote module – highlighted short quote with attribution.
+ */
+export interface PullQuoteModuleConfig {
+  /** The quoted text to display. */
+  quote: string;
+  /** Who or what the quote is attributed to. */
+  attribution?: string;
+  /** Visual emphasis level for styling. */
+  emphasis?: "low" | "medium" | "high";
+}
+
+/**
+ * Single stat/metric inside a stat-block module.
+ */
+export interface StatBlockItem {
+  label: string;
+  value: string;
+}
+
+/**
+ * Config for a stat-block module – compact list of key numbers/specs.
+ */
+export interface StatBlockModuleConfig {
+  title?: string;
+  items: StatBlockItem[];
+}
+
+/**
  * UI state
  */
 export interface UiState {

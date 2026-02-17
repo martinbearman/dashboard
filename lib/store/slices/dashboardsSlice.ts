@@ -1,9 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Dashboard, ModuleInstance, Breakpoint } from "@/lib/types/dashboard";
 import type { Layout, Layouts } from "react-grid-layout";
-
-// Central source of truth for the breakpoints the grid supports
-const BREAKPOINTS: Breakpoint[] = ["lg", "md", "sm", "xs", "xxs"];
+import { GRID_BREAKPOINTS } from "@/lib/constants/grid";
 
 export interface DashboardsState {
   activeDashboardId: string | null;
@@ -36,34 +34,34 @@ export const createInitialDashboardsState = (): DashboardsState => ({
       ],
       layouts: {
         lg: [
-          { i: "m-1", x: 0, y: 0, w: 2, h: 4 },
-          { i: "m-2", x: 2, y: 0, w: 3, h: 3 },
-          { i: "m-3", x: 5, y: 0, w: 3, h: 3 },
-          { i: "m-4", x: 8, y: 0, w: 3, h: 3 }
+          { i: "m-1", x: 0, y: 0, w: 6, h: 3 },
+          { i: "m-2", x: 6, y: 0, w: 6, h: 3 },
+          { i: "m-3", x: 0, y: 3, w: 6, h: 3 },
+          { i: "m-4", x: 6, y: 3, w: 6, h: 3 }
         ],
         md: [
-          { i: "m-1", x: 0, y: 0, w: 2, h: 4 },
-          { i: "m-2", x: 2, y: 0, w: 3, h: 3 },
+          { i: "m-1", x: 0, y: 0, w: 3, h: 3 },
+          { i: "m-2", x: 3, y: 0, w: 3, h: 3 },
           { i: "m-3", x: 0, y: 3, w: 3, h: 3 },
           { i: "m-4", x: 3, y: 3, w: 3, h: 3 }
         ],
         sm: [
-          { i: "m-1", x: 0, y: 0, w: 2, h: 4 },
-          { i: "m-2", x: 2, y: 0, w: 2, h: 3 },
-          { i: "m-3", x: 0, y: 3, w: 4, h: 3 },
-          { i: "m-4", x: 0, y: 6, w: 4, h: 3 }
+          { i: "m-1", x: 0, y: 0, w: 3, h: 3 },
+          { i: "m-2", x: 3, y: 0, w: 3, h: 3 },
+          { i: "m-3", x: 0, y: 3, w: 3, h: 3 },
+          { i: "m-4", x: 3, y: 3, w: 3, h: 3 }
         ],
         xs: [
-          { i: "m-1", x: 0, y: 0, w: 3, h: 4 },
-          { i: "m-2", x: 0, y: 4, w: 3, h: 3 },
-          { i: "m-3", x: 0, y: 7, w: 3, h: 3 },
-          { i: "m-4", x: 0, y: 10, w: 3, h: 3 }
+          { i: "m-1", x: 0, y: 0, w: 3, h: 3 },
+          { i: "m-2", x: 0, y: 3, w: 3, h: 3 },
+          { i: "m-3", x: 0, y: 6, w: 3, h: 3 },
+          { i: "m-4", x: 0, y: 9, w: 3, h: 3 }
         ],
         xxs: [
-          { i: "m-1", x: 0, y: 0, w: 1, h: 4 },
-          { i: "m-2", x: 0, y: 4, w: 1, h: 3 },
-          { i: "m-3", x: 0, y: 7, w: 1, h: 3 },
-          { i: "m-4", x: 0, y: 10, w: 1, h: 3 }
+          { i: "m-1", x: 0, y: 0, w: 1, h: 3 },
+          { i: "m-2", x: 0, y: 3, w: 1, h: 3 },
+          { i: "m-3", x: 0, y: 6, w: 1, h: 3 },
+          { i: "m-4", x: 0, y: 9, w: 1, h: 3 }
         ]
       }
     },
@@ -106,7 +104,7 @@ const dashboardsSlice = createSlice({
     
       // Initialize the module in all breakpoint layouts with the initial position
       // Layouts are now the single source of truth for module positions
-      BREAKPOINTS.forEach((bp) => {
+      GRID_BREAKPOINTS.forEach((bp) => {
         const layout = dashboard.layouts![bp];
     
         if (layout) {
@@ -142,7 +140,7 @@ const dashboardsSlice = createSlice({
       dashboard.modules = dashboard.modules.filter((m) => m.id !== moduleId);
     
       if (dashboard.layouts) {
-        BREAKPOINTS.forEach((bp) => {
+        GRID_BREAKPOINTS.forEach((bp) => {
           const layout = dashboard.layouts![bp];
           if (layout) {
             // Drop the module from every breakpoint layout to avoid ghost grid items
