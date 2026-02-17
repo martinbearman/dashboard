@@ -12,15 +12,14 @@ export default function AddModuleButton() {
   const activeDashboardId = useAppSelector((s) => s.dashboards.activeDashboardId);
 
   // Basic search filter (name + description)
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return moduleRegistry;
-    return moduleRegistry.filter(
-      (m) =>
-        m.displayName.toLowerCase().includes(q) ||
-        m.description.toLowerCase().includes(q)
-    );
-  }, [query]);
+
+  const q = query.trim().toLowerCase();
+  const filtered = q ? moduleRegistry.filter(
+    (m) =>
+      m.displayName.toLowerCase().includes(q) ||
+      m.description.toLowerCase().includes(q)
+  ) : moduleRegistry;
+    
 
   // Close on Escape
   useEffect(() => {
