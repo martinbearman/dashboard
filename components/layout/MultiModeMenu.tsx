@@ -7,11 +7,18 @@ import {
   setMultiMenuMode,
 } from "@/lib/store/slices/uiSlice";
 
-const modes: { id: Exclude<MultiMenuMode, null>; label: string; color: string; title: string }[] = [
-  { id: "context",  label: "C", color: "bg-green-500",  title: "Context mode" },
-  { id: "organise", label: "O", color: "bg-yellow-400", title: "Organise mode" },
-  { id: "delete",   label: "D", color: "bg-red-500",    title: "Delete mode" },
-  { id: "stash",    label: "S", color: "bg-blue-500",   title: "Stash mode" },
+const modes: {
+  id: Exclude<MultiMenuMode, null>;
+  label: string;
+  color: string;
+  title: string;
+  /** When active: translate classes so this cell "pops" like a jigsaw piece */
+  activeOffset: string;
+}[] = [
+  { id: "context",  label: "C", color: "bg-green-500",  title: "Context mode",  activeOffset: "-translate-x-[10px] -translate-y-[10px]" },
+  { id: "organise", label: "O", color: "bg-yellow-400", title: "Organise mode", activeOffset: "translate-x-[10px] -translate-y-[10px]" },
+  { id: "delete",   label: "D", color: "bg-red-500",    title: "Delete mode",   activeOffset: "-translate-x-[10px] translate-y-[10px]" },
+  { id: "stash",    label: "S", color: "bg-blue-500",   title: "Stash mode",    activeOffset: "translate-x-[10px] translate-y-[10px]" },
 ];
 
 export default function MultiModeMenu() {
@@ -25,7 +32,7 @@ export default function MultiModeMenu() {
 
   return (
     <div className="fixed top-4 right-4 z-40">
-      <div className="w-24 aspect-square grid grid-cols-2 grid-rows-2 rounded-xl overflow-hidden shadow-xl bg-slate-900/80 backdrop-blur">
+      <div className="w-24 aspect-square grid grid-cols-2 grid-rows-2 rounded-xl overflow-visible shadow-xl">
         {modes.map((m) => (
           <button
             key={m.id}
@@ -33,10 +40,10 @@ export default function MultiModeMenu() {
             title={m.title}
             onClick={() => handleClick(m.id)}
             className={clsx(
-              "flex items-center justify-center text-white text-lg font-semibold transition-all",
+              "relative flex items-center justify-center text-white text-lg font-semibold transition-all",
               m.color,
               activeMode === m.id
-                ? "ring-2 ring-white shadow-inner scale-[1.03]"
+                ? "z-10 ring-2 ring-white shadow-inner scale-[1.03] " + m.activeOffset
                 : "opacity-80 hover:opacity-100"
             )}
           >
