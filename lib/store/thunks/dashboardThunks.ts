@@ -149,3 +149,56 @@ export const populateContentList =
       })
     );
   };
+
+import type { MultiMenuMode } from "../slices/uiSlice";
+import { setMultiMenuMode, clearSelectedModules } from "../slices/uiSlice";
+import ModuleService from "@/lib/services/moduleService";
+
+/**
+ * Thunk to execute multi-mode actions on selected modules.
+ * Triggered by Enter key or clicking the active mode button when modules are selected.
+ */
+export const executeMultiModeAction =
+  () =>
+  (dispatch: AppDispatch, getState: () => RootState) => {
+    const state = getState();
+    const { multiMenuMode, selectedModuleIds } = state.ui;
+    const dashboardId = state.ui.activeDashboardId;
+
+    // Early return if no mode is active or no modules are selected
+    if (!multiMenuMode || !selectedModuleIds.length || !dashboardId) {
+      return;
+    }
+
+    // Execute action based on mode
+    switch (multiMenuMode) {
+      case "delete":
+        // Delete each selected module using ModuleService
+        selectedModuleIds.forEach((moduleId) => {
+          ModuleService.removeModule(dispatch, dashboardId, moduleId);
+        });
+        break;
+
+      case "stash":
+        // TODO: Implement stash functionality
+        console.log("Stash mode not yet implemented", selectedModuleIds);
+        break;
+
+      case "context":
+        // TODO: Implement context functionality
+        console.log("Context mode not yet implemented", selectedModuleIds);
+        break;
+
+      case "organise":
+        // TODO: Implement organise functionality
+        console.log("Organise mode not yet implemented", selectedModuleIds);
+        break;
+
+      default:
+        break;
+    }
+
+    // Clear selection and turn off mode after action
+    dispatch(clearSelectedModules());
+    dispatch(setMultiMenuMode(null));
+  };

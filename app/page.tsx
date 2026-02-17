@@ -8,6 +8,7 @@ import LLMPromptBar from "@/components/layout/LLMPromptBar";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
 import ConfigSheet from "@/components/ui/ConfigSheet";
+import MultiModeMenu from "@/components/layout/MultiModeMenu";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { getModuleByType } from "@/modules/registry";
 import ModuleWrapper from "@/components/modules/ModuleWrapper";
@@ -126,7 +127,8 @@ export default function Home() {
         </ResponsiveGridLayout>
       </div>
 
-      {/* Floating add button (will become a dropdown sourced from the registry) */}
+      {/* Floating mode & add buttons */}
+      <MultiModeMenu />
       <AddModuleButton />
       
       {/* Version display */}
