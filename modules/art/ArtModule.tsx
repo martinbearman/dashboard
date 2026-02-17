@@ -12,7 +12,7 @@ import ArtDisplay from "./components/ArtDisplay";
  */
 export default function ArtModule({ moduleId, config }: ModuleProps) {
   return (
-    <div className="h-full w-full overflow-auto">
+    <div className="h-full w-full overflow-auto p-4">
       <ArtDisplay moduleId={moduleId} config={config} />
     </div>
   );

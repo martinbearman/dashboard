@@ -12,7 +12,7 @@ import QuoteDisplay from "./components/QuoteDisplay";
  */
 export default function QuoteModule({ moduleId, config }: ModuleProps) {
   return (
-    <div className="h-full w-full overflow-auto">
+    <div className="h-full w-full overflow-auto p-4">
       <QuoteDisplay moduleId={moduleId} config={config} />
     </div>
   );

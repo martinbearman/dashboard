@@ -12,7 +12,7 @@ import TodoList from "./components/TodoList";
  */
 export default function TodoModule({ moduleId, config }: ModuleProps) {
   return (
-    <div className="h-full w-full overflow-auto">
+    <div className="h-full w-full overflow-auto p-4">
       <TodoList moduleId={moduleId} config={config} />
     </div>
   );

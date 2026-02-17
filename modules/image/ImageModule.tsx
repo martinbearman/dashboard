@@ -26,7 +26,7 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
 
   if (!src || (typeof src === "string" && src.trim() === "")) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50/60 px-4 py-6 text-xs text-slate-500 italic">
+      <div className="flex h-full w-full items-center justify-center border border-dashed border-slate-300 bg-slate-50/60 px-4 py-6 text-xs text-slate-500 italic">
         No image configured.
       </div>
     );
@@ -38,7 +38,7 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
     src.trim().length > 0;
 
   return (
-    <figure className="group flex h-full w-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/80 shadow-sm">
+    <figure className="group flex h-full w-full flex-col overflow-hidden border border-slate-200 bg-white/80 shadow-sm">
       <div className="relative flex min-h-0 flex-1 w-full flex-col bg-slate-100">
         {hasError ? (
           <div className="flex min-h-0 flex-1 w-full flex-col items-center justify-center gap-1 px-4 py-6 text-xs text-red-600">
