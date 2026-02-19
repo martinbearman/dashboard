@@ -81,6 +81,10 @@ export default function MultiModeMenu() {
             className={clsx(
               "relative flex items-center justify-center text-white text-lg font-semibold transition-all",
               m.color,
+              m.id === "context" && "rounded-tl-xl",
+              m.id === "organise" && "rounded-tr-xl",
+              m.id === "delete" && "rounded-bl-xl",
+              m.id === "stash" && "rounded-br-xl",
               activeMode === m.id
                 ? clsx(
                     "z-10 ring-2 ring-white shadow-inner scale-[1.03] ",
