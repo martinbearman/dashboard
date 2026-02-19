@@ -68,7 +68,27 @@ export default function ModuleWrapper({
       data-locked={locked}
     >
       <ModuleActionsMenu moduleId={moduleId} locked={locked} moduleName={moduleName} />
-      <div className="flex-1 overflow-auto">{children}</div>
+      <div className="flex-1 overflow-auto relative">
+        <div className={mode ? "pointer-events-none" : ""}>
+          {children}
+        </div>
+        {/* Overlay to block interactions when in selection mode */}
+        {mode && (
+          <div 
+            className="absolute inset-0 z-10 cursor-pointer"
+            onClick={(e) => {
+              // Prevent clicks from reaching content below, but allow bubbling to wrapper
+              e.stopPropagation();
+              // Trigger selection directly
+              if (!locked || mode !== "delete") {
+                dispatch(toggleModuleSelected(moduleId));
+              }
+            }}
+            onMouseDown={(e) => e.preventDefault()}
+            onMouseUp={(e) => e.preventDefault()}
+          />
+        )}
+      </div>
     </div>
   );
 }
