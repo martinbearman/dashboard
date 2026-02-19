@@ -6,6 +6,9 @@ import { selectModulePositions } from "../selectors/dashboardSelectors";
 import { moduleRegistry, DEFAULT_GRID_SIZE } from "@/modules/registry";
 import type { ListItem } from "@/lib/types/dashboard";
 import { GRID_COLS } from "@/lib/constants/grid";
+import type { MultiMenuMode } from "../slices/uiSlice";
+import { setMultiMenuMode, clearSelectedModules } from "../slices/uiSlice";
+import ModuleService from "@/lib/services/moduleService";
 
 /** Grid columns at lg breakpoint (used when computing next position) */
 const LG_COLS = GRID_COLS.lg;
@@ -150,30 +153,30 @@ export const populateContentList =
     );
   };
 
-import type { MultiMenuMode } from "../slices/uiSlice";
-import { setMultiMenuMode, clearSelectedModules } from "../slices/uiSlice";
-import ModuleService from "@/lib/services/moduleService";
-
 /**
  * Thunk to execute multi-mode actions on selected modules.
  * Triggered by Enter key or clicking the active mode button when modules are selected.
+ * @param modeOverride - Optional mode to use instead of reading from state (useful for one-shot actions like "organise")
  */
 export const executeMultiModeAction =
-  () =>
+  (modeOverride?: MultiMenuMode) =>
   (dispatch: AppDispatch, getState: () => RootState) => {
     const state = getState();
     const { multiMenuMode, selectedModuleIds } = state.ui;
     const dashboardId = state.dashboards.activeDashboardId;
 
-    console.log("Execute multi mode action", multiMenuMode, selectedModuleIds, dashboardId);
+    const mode = modeOverride ?? multiMenuMode;
 
-    // Early return if no mode is active or no modules are selected
-    if (!multiMenuMode || !selectedModuleIds.length || !dashboardId) {
+    // Need a dashboard either way
+    if (!mode || !dashboardId) return;
+
+    // For all modes except "organise", still require selection
+    if (mode !== "organise" && !selectedModuleIds.length) {
       return;
     }
 
     // Execute action based on mode
-    switch (multiMenuMode) {
+    switch (mode) {
       case "delete":
         // Delete each selected module using ModuleService
         console.log("Delete mode", selectedModuleIds);
@@ -193,15 +196,22 @@ export const executeMultiModeAction =
         break;
 
       case "organise":
-        // TODO: Implement organise functionality
-        console.log("Organise mode not yet implemented", selectedModuleIds);
+        // Set mode to "organise" to trigger react-grid-layout's compactType="vertical"
+        // The compaction will happen automatically via the compactType prop
+        // Clear the mode after a brief delay to allow react-grid-layout to process the compaction
+        dispatch(setMultiMenuMode("organise"));
+        setTimeout(() => {
+          dispatch(setMultiMenuMode(null));
+        }, 200);
         break;
 
       default:
         break;
     }
 
-    // Clear selection and turn off mode after action
-    dispatch(clearSelectedModules());
-    dispatch(setMultiMenuMode(null));
+    // Clear selection after action (except for organise which handles its own cleanup)
+    if (mode !== "organise") {
+      dispatch(clearSelectedModules());
+      dispatch(setMultiMenuMode(null));
+    }
   };

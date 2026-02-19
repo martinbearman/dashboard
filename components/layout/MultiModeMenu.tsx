@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import clsx from "clsx";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
@@ -50,8 +51,19 @@ export default function MultiModeMenu() {
   const { multiMenuMode: activeMode, selectedModuleIds } = useAppSelector(
     (s) => s.ui
   );
+  const [organiseAnimating, setOrganiseAnimating] = useState(false);
 
   const handleClick = (mode: MultiMenuMode) => {
+    // Organise is a one-shot action - no selection required
+    if (mode === "organise") {
+      dispatch(executeMultiModeAction("organise"));
+
+      // Trigger animation
+      setOrganiseAnimating(true);
+      setTimeout(() => setOrganiseAnimating(false), 300);
+      return;
+    }
+
     // If clicking the active mode while modules are selected, execute the action
     if (activeMode === mode && selectedModuleIds.length > 0) {
       console.log("Execute multi mode action", selectedModuleIds);
@@ -66,38 +78,44 @@ export default function MultiModeMenu() {
   return (
     <div className="fixed top-4 right-4 z-40">
       <div className="w-24 aspect-square grid grid-cols-2 grid-rows-2 rounded-xl overflow-visible shadow-xl">
-        {modes.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            title={
-              activeMode === m.id && selectedModuleIds.length > 0
-                ? `${m.title} – apply to ${selectedModuleIds.length} selected module${
-                    selectedModuleIds.length > 1 ? "s" : ""
-                  }`
-                : m.title
-            }
-            onClick={() => handleClick(m.id)}
-            className={clsx(
-              "relative flex items-center justify-center text-white text-lg font-semibold transition-all",
-              m.color,
-              m.id === "context" && "rounded-tl-xl",
-              m.id === "organise" && "rounded-tr-xl",
-              m.id === "delete" && "rounded-bl-xl",
-              m.id === "stash" && "rounded-br-xl",
-              activeMode === m.id
-                ? clsx(
-                    "z-10 ring-2 ring-white shadow-inner scale-[1.03] ",
-                    m.activeOffset,
-                    selectedModuleIds.length > 0 &&
-                      "animate-pulse ring-4 ring-white shadow-xl"
-                  )
-                : "opacity-80 hover:opacity-100"
-            )}
-          >
-            {m.label}
-          </button>
-        ))}
+        {modes.map((m) => {
+          const isOrganise = m.id === "organise";
+          const isActive = activeMode === m.id && !isOrganise;
+
+          return (
+            <button
+              key={m.id}
+              type="button"
+              title={
+                activeMode === m.id && selectedModuleIds.length > 0
+                  ? `${m.title} – apply to ${selectedModuleIds.length} selected module${
+                      selectedModuleIds.length > 1 ? "s" : ""
+                    }`
+                  : m.title
+              }
+              onClick={() => handleClick(m.id)}
+              className={clsx(
+                "relative flex items-center justify-center text-white text-lg font-semibold transition-all",
+                m.color,
+                m.id === "context" && "rounded-tl-xl",
+                m.id === "organise" && "rounded-tr-xl",
+                m.id === "delete" && "rounded-bl-xl",
+                m.id === "stash" && "rounded-br-xl",
+                isActive
+                  ? clsx(
+                      "z-10 ring-2 ring-white shadow-inner scale-[1.03]",
+                      m.activeOffset,
+                      selectedModuleIds.length > 0 &&
+                        "animate-pulse ring-4 ring-white shadow-xl"
+                    )
+                  : "opacity-80 hover:opacity-100",
+                isOrganise && organiseAnimating && "organise-pop-animation"
+              )}
+            >
+              {m.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
