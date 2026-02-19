@@ -163,7 +163,9 @@ export const executeMultiModeAction =
   (dispatch: AppDispatch, getState: () => RootState) => {
     const state = getState();
     const { multiMenuMode, selectedModuleIds } = state.ui;
-    const dashboardId = state.ui.activeDashboardId;
+    const dashboardId = state.dashboards.activeDashboardId;
+
+    console.log("Execute multi mode action", multiMenuMode, selectedModuleIds, dashboardId);
 
     // Early return if no mode is active or no modules are selected
     if (!multiMenuMode || !selectedModuleIds.length || !dashboardId) {
@@ -174,6 +176,7 @@ export const executeMultiModeAction =
     switch (multiMenuMode) {
       case "delete":
         // Delete each selected module using ModuleService
+        console.log("Delete mode", selectedModuleIds);
         selectedModuleIds.forEach((moduleId) => {
           ModuleService.removeModule(dispatch, dashboardId, moduleId);
         });

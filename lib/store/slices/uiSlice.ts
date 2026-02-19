@@ -11,7 +11,6 @@ export interface GridContainerParams {
 export type MultiMenuMode = "context" | "organise" | "delete" | "stash" | null;
 
 export interface UiState {
-  activeDashboardId: string | null;
   moduleConfigPanel: { moduleId: string } | null;
   /** Latest grid container params from ResponsiveGridLayout onWidthChange */
   gridContainerParams: GridContainerParams | null;
@@ -22,7 +21,6 @@ export interface UiState {
 };
 
 const initialState: UiState = {
-  activeDashboardId: null,
   moduleConfigPanel: null,
   gridContainerParams: null,
   multiMenuMode: null,
@@ -33,9 +31,6 @@ const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
-    setActiveDashboardId: (state, action: PayloadAction<string>) => {
-      state.activeDashboardId = action.payload;
-    },
     openModuleConfigPanel: (state, action: PayloadAction<{ moduleId: string }>) => {
       state.moduleConfigPanel = action.payload;
     },
@@ -67,7 +62,6 @@ const uiSlice = createSlice({
 });
 
 export const { 
-    setActiveDashboardId, 
     openModuleConfigPanel, 
     closeModuleConfigPanel,
     setGridContainerParams,
