@@ -90,3 +90,20 @@ body {
   animation: slide-out-to-right 0.3s ease-out forwards;
 }
 
+/* Organise button animation - seamless "there and back" */
+@keyframes organise-pop {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  40% {
+    transform: translate(10px, -10px) scale(1.05);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+.organise-pop-animation {
+  animation: organise-pop 0.3s ease-in-out;
+}
+

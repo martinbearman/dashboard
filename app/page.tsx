@@ -8,6 +8,7 @@ import LLMPromptBar from "@/components/layout/LLMPromptBar";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
 import ConfigSheet from "@/components/ui/ConfigSheet";
+import MultiModeMenu from "@/components/layout/MultiModeMenu";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { getModuleByType } from "@/modules/registry";
 import ModuleWrapper from "@/components/modules/ModuleWrapper";
@@ -25,6 +26,7 @@ export default function Home() {
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
   const moduleConfigs = useAppSelector((s) => s.moduleConfigs.configs);
+  const multiMenuMode = useAppSelector((s) => s.ui.multiMenuMode);
   const dispatch = useAppDispatch();
 
   // react-grid-layout expects a layout array for every breakpoint; start with empty defaults
@@ -104,7 +106,7 @@ export default function Home() {
           cols={GRID_LAYOUT_CONFIG.cols}
           rowHeight={GRID_LAYOUT_CONFIG.rowHeight}
           margin={GRID_LAYOUT_CONFIG.margin}
-          compactType="vertical"
+          compactType={multiMenuMode === "organise" ? "vertical" : null}
           draggableHandle=".module-drag-handle"
           draggableCancel=".module-actions-interactive"
           preventCollision={false}
@@ -126,7 +128,8 @@ export default function Home() {
         </ResponsiveGridLayout>
       </div>
 
-      {/* Floating add button (will become a dropdown sourced from the registry) */}
+      {/* Floating mode & add buttons */}
+      <MultiModeMenu />
       <AddModuleButton />
       
       {/* Version display */}
