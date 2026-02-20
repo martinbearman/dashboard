@@ -15,6 +15,8 @@ import ArticleModuleComponent from "./article/ArticleModule";
 import ImageModuleComponent from "./image/ImageModule";
 import PullQuoteModuleComponent from "./pull-quote/PullQuoteModule";
 import StatBlockModuleComponent from "./stats/StatBlockModule";
+import NestedGridModuleComponent from "./nested-grid/NestedGridModule";
+import DocumentBuilderModuleComponent from "./nested-grid/DocumentBuilderModule";
 
 /** Default grid size when a module type is not in the registry (e.g. unknown/legacy). */
 export const DEFAULT_GRID_SIZE = { w: 4, h: 3 };
@@ -136,6 +138,26 @@ const StatBlockModule: DashboardModule = {
   component: StatBlockModuleComponent,
 };
 
+const NestedGridModule: DashboardModule = {
+  type: "nested-grid",
+  displayName: "Nested Grid",
+  description: "Module with draggable elements inside (demo)",
+  defaultGridSize: { w: 6, h: 4 },
+  minGridSize: { w: 4, h: 3 },
+  maxGridSize: { w: 8, h: 6 },
+  component: NestedGridModuleComponent,
+};
+
+const DocumentBuilderModule: DashboardModule = {
+  type: "document-builder",
+  displayName: "Document Builder",
+  description: "Build documents with draggable titles, lists, and summaries",
+  defaultGridSize: { w: 8, h: 8 },
+  minGridSize: { w: 6, h: 6 },
+  maxGridSize: { w: 12, h: 12 },
+  component: DocumentBuilderModuleComponent,
+};
+
 const DateTimeModule: DashboardModule = {
   type: "datetime",
   displayName: "Date & Time",
@@ -168,6 +190,8 @@ export const moduleRegistry: DashboardModule[] = [
   ImageModule,
   PullQuoteModule,
   StatBlockModule,
+  NestedGridModule,
+  DocumentBuilderModule,
   // DateTimeModule, // Not built yet
   // WeatherModule, // Not built yet
 ];

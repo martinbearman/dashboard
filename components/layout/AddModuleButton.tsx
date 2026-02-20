@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { moduleRegistry } from "@/modules/registry";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { addModuleToDashboard } from "@/lib/store/thunks/dashboardThunks";
