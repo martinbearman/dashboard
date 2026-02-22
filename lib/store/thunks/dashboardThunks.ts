@@ -4,11 +4,45 @@ import { addModule } from "../slices/dashboardsSlice";
 import { setModuleConfig } from "../slices/moduleConfigsSlice";
 import { selectModulePositions } from "../selectors/dashboardSelectors";
 import { moduleRegistry, DEFAULT_GRID_SIZE } from "@/modules/registry";
-import type { ListItem } from "@/lib/types/dashboard";
+import type { ListItem, ImageModuleConfig } from "@/lib/types/dashboard";
 import { GRID_COLS } from "@/lib/constants/grid";
 import type { MultiMenuMode } from "../slices/uiSlice";
 import { setMultiMenuMode, clearSelectedModules } from "../slices/uiSlice";
 import ModuleService from "@/lib/services/moduleService";
+
+/** Build context payload for selected modules (for logging or passing to search). */
+export function getContextForSelectedModules(
+  state: RootState,
+  selectedModuleIds: string[]
+): Record<string, unknown>[] {
+  const dashboardId = state.dashboards.activeDashboardId;
+  if (!dashboardId || !selectedModuleIds.length) return [];
+  const dashboard = state.dashboards.dashboards[dashboardId];
+  if (!dashboard) return [];
+  return selectedModuleIds.map((moduleId) => {
+    const moduleInstance = dashboard.modules.find((m) => m.id === moduleId);
+    const config = state.moduleConfigs.configs[moduleId];
+    if (moduleInstance?.type === "image" && config) {
+      const imageConfig = config as ImageModuleConfig;
+      return {
+        moduleId,
+        type: "image",
+        alt: imageConfig.alt,
+        caption: imageConfig.caption,
+        photographerName: imageConfig.photographerName,
+        photographerUrl: imageConfig.photographerUrl,
+        unsplashPhotoUrl: imageConfig.unsplashPhotoUrl,
+        imageUrl: imageConfig.imageUrl,
+        imageRef: imageConfig.imageRef,
+      };
+    }
+    return {
+      moduleId,
+      type: moduleInstance?.type ?? "unknown",
+      config: config ?? null,
+    };
+  });
+}
 
 /** Grid columns at lg breakpoint (used when computing next position) */
 const LG_COLS = GRID_COLS.lg;
@@ -190,10 +224,11 @@ export const executeMultiModeAction =
         console.log("Stash mode not yet implemented", selectedModuleIds);
         break;
 
-      case "context":
-        // TODO: Implement context functionality
-        console.log("Context mode not yet implemented", selectedModuleIds);
+      case "context": {
+        const context = getContextForSelectedModules(state, selectedModuleIds);
+        if (context.length) console.log("Context (apply):", context);
         break;
+      }
 
       case "organise":
         // Set mode to "organise" to trigger react-grid-layout's compactType="vertical"

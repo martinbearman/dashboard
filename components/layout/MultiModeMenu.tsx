@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import clsx from "clsx";
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import {
   type MultiMenuMode,
   setMultiMenuMode,
 } from "@/lib/store/slices/uiSlice";
-import { executeMultiModeAction } from "@/lib/store/thunks/dashboardThunks";
+import {
+  executeMultiModeAction,
+  getContextForSelectedModules,
+} from "@/lib/store/thunks/dashboardThunks";
 
 const modes: {
   id: Exclude<MultiMenuMode, null>;
@@ -48,10 +51,19 @@ const modes: {
 
 export default function MultiModeMenu() {
   const dispatch = useAppDispatch();
+  const store = useAppStore();
   const { multiMenuMode: activeMode, selectedModuleIds } = useAppSelector(
     (s) => s.ui
   );
   const [organiseAnimating, setOrganiseAnimating] = useState(false);
+
+  // Log accumulated context whenever selection changes in context mode
+  useEffect(() => {
+    if (activeMode !== "context" || selectedModuleIds.length === 0) return;
+    const state = store.getState();
+    const context = getContextForSelectedModules(state, selectedModuleIds);
+    if (context.length) console.log("Context:", context);
+  }, [activeMode, selectedModuleIds, store]);
 
   const handleClick = (mode: MultiMenuMode) => {
     // Organise is a one-shot action - no selection required
