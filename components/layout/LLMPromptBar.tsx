@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useAppDispatch, useAppStore } from "@/lib/store/hooks";
-import { addModuleToDashboard } from "@/lib/store/thunks/dashboardThunks";
+import { useState, useMemo } from "react";
+import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
+import { addModuleToDashboard, getContextForSelectedModules } from "@/lib/store/thunks/dashboardThunks";
 import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
 
 type UnsplashImage = {
@@ -25,6 +25,19 @@ function capitalizeFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+/** Build tooltip text for a context item (for pill hover). */
+function getContextTooltip(item: Record<string, unknown>): string {
+  const type = (item.type as string) ?? "module";
+  if (type === "image") {
+    const caption = (item.caption as string) || (item.alt as string);
+    return caption ? String(caption) : "No caption";
+  }
+  if (item.config && typeof item.config === "object") {
+    return JSON.stringify(item.config, null, 2);
+  }
+  return "Context";
+}
+
 /**
  * Search bar for Unsplash images.
  * Disables the LLM and uses the input to search Unsplash, then adds results as image modules to the dashboard.
@@ -35,11 +48,36 @@ export default function LLMPromptBar() {
   const [error, setError] = useState<string | null>(null);
   const dispatch = useAppDispatch();
   const store = useAppStore();
+  const { multiMenuMode, selectedModuleIds } = useAppSelector((s) => s.ui);
+
+  const contextPills = useMemo(() => {
+    if (multiMenuMode !== "context" || selectedModuleIds.length === 0) return [];
+    const state = store.getState();
+    const context = getContextForSelectedModules(state, selectedModuleIds);
+    return context.map((item) => ({
+      moduleId: item.moduleId as string,
+      type: capitalizeFirst((item.type as string) ?? "module"),
+      tooltip: getContextTooltip(item),
+    }));
+  }, [multiMenuMode, selectedModuleIds, store]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canSubmit) return;
+
     const prompt = input.trim();
-    if (!prompt) return;
+    const state = store.getState();
+    const context = getContextForSelectedModules(state, selectedModuleIds);
+
+    // Build search query: user input, or from context (e.g. image captions), or fallback
+    const buildQueryFromContext = (ctx: Record<string, unknown>[]): string => {
+      const parts = ctx
+        .filter((item) => item.type === "image")
+        .map((item) => (item.caption as string) || (item.alt as string))
+        .filter(Boolean) as string[];
+      return parts.join(" ").trim();
+    };
+    const searchQuery = prompt || buildQueryFromContext(context) || "images";
 
     setIsLoadingImages(true);
     setError(null);
@@ -47,7 +85,11 @@ export default function LLMPromptBar() {
 
     void (async () => {
       try {
-        const res = await fetch(`/api/unsplash?q=${encodeURIComponent(prompt)}`);
+        const res = await fetch("/api/unsplash", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ q: searchQuery, context }),
+        });
         if (!res.ok) {
           // Try to parse error message from response
           let errorMessage = "Failed to search for images";
@@ -138,6 +180,8 @@ export default function LLMPromptBar() {
     })();
   };
 
+  const canSubmit = (input.trim().length > 0 || contextPills.length > 0) && !isLoadingImages;
+
   return (
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-4 gap-3">
       <form onSubmit={onSubmit} className="flex items-center gap-2 w-full">
@@ -160,12 +204,30 @@ export default function LLMPromptBar() {
         />
         <button
           type="submit"
-          disabled={!input.trim() || isLoadingImages}
-          className="shrink-0 rounded-full border border-slate-300/40 bg-white/40 px-4 py-2.5 text-sm font-medium text-slate-700/90 transition hover:bg-white/55 hover:text-slate-900 disabled:opacity-50 disabled:pointer-events-none"
+          disabled={!canSubmit}
+          className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition disabled:opacity-50 disabled:pointer-events-none ${
+            contextPills.length > 0 && canSubmit
+              ? "border-green-400/80 bg-green-500/90 text-white shadow-lg animate-glow-up hover:bg-green-500 hover:border-green-400"
+              : "border-slate-300/40 bg-white/40 text-slate-700/90 hover:bg-white/55 hover:text-slate-900"
+          }`}
         >
           {isLoadingImages ? "…" : "Search"}
         </button>
       </form>
+
+      {contextPills.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 w-full justify-center">
+          {contextPills.map((pill) => (
+            <span
+              key={pill.moduleId}
+              title={pill.tooltip}
+              className="inline-flex items-center rounded-full bg-slate-200/90 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm border border-slate-300/60 cursor-default"
+            >
+              {pill.type}
+            </span>
+          ))}
+        </div>
+      )}
 
       {isLoadingImages && (
         <div className="flex items-center justify-center w-full">

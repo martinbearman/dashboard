@@ -23,7 +23,7 @@ interface UnsplashSearchResult {
   }>;
 }
 
-export async function GET(req: Request) {
+async function runSearch(req: Request, query: string) {
   const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY;
   if (!unsplashAccessKey) {
     return new Response(
@@ -35,7 +35,6 @@ export async function GET(req: Request) {
     );
   }
 
-  // Check rate limit
   const clientId = getClientIdentifier(req);
   const rateLimit = unsplashRateLimiter.check(clientId);
 
@@ -58,16 +57,6 @@ export async function GET(req: Request) {
         },
       }
     );
-  }
-
-  const { searchParams } = new URL(req.url);
-  const query = searchParams.get("q")?.trim();
-
-  if (!query) {
-    return new Response(JSON.stringify({ error: "Missing q query param" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
   }
 
   const unsplashUrl =
@@ -125,5 +114,41 @@ export async function GET(req: Request) {
       "X-RateLimit-Reset": Math.ceil(rateLimit.resetAt / 1000).toString(),
     },
   });
+}
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const query = searchParams.get("q")?.trim();
+  if (!query) {
+    return new Response(JSON.stringify({ error: "Missing q query param" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  return runSearch(req, query);
+}
+
+export async function POST(req: Request) {
+  let body: { q?: string; context?: unknown };
+  try {
+    body = (await req.json()) as { q?: string; context?: unknown };
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  const query = typeof body.q === "string" ? body.q.trim() : null;
+  if (!query) {
+    return new Response(
+      JSON.stringify({ error: "Missing search query (q in body)" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+  // body.context is available for future LLM use
+  return runSearch(req, query);
 }
 
