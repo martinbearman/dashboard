@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Dashboard, ModuleInstance, Breakpoint } from "@/lib/types/dashboard";
 import type { Layout, Layouts } from "react-grid-layout";
 import { GRID_BREAKPOINTS } from "@/lib/constants/grid";
+import { current } from "@reduxjs/toolkit";
 
 export interface DashboardsState {
   activeDashboardId: string | null;
@@ -80,10 +81,67 @@ const dashboardsSlice = createSlice({
       if (!state.activeDashboardId) {
         state.activeDashboardId = action.payload.id;
       }
+      console.log("plain state", current(state));
     },
     setActiveDashboard: (state, action: PayloadAction<string>) => {
       if (state.dashboards[action.payload]) {
         state.activeDashboardId = action.payload;
+      }
+    },
+    removeDashboard: (state, action: PayloadAction<string>) => {
+      const dashboardId = action.payload;
+      // Never remove the seeded default dashboard.
+      if (dashboardId === "board-1") {
+        return;
+      }
+      // Exit early if the requested dashboard no longer exists.
+      if (!state.dashboards[dashboardId]) {
+        return;
+      }
+
+      // Sort ids so we can deterministically pick neighbouring dashboards.
+      const sortedIds = Object.keys(state.dashboards).sort((a, b) => {
+        const [, aSuffix] = a.split("-");
+        const [, bSuffix] = b.split("-");
+        const aNum = Number(aSuffix);
+        const bNum = Number(bSuffix);
+        if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+          return aNum - bNum;
+        }
+        return a.localeCompare(b);
+      });
+
+      // Track the position of the dashboard being deleted within the sorted list.
+      const index = sortedIds.indexOf(dashboardId);
+
+      // Remove the dashboard from the collection.
+      delete state.dashboards[dashboardId];
+
+      // Keep a list of the remaining dashboards that still exist in state.
+      const remainingIds = sortedIds.filter((id) => id !== dashboardId && state.dashboards[id]);
+
+      if (state.activeDashboardId === dashboardId) {
+        // Prefer the previous sorted dashboard, otherwise the next, otherwise the first remaining.
+        const previousId = index > 0 ? sortedIds[index - 1] : undefined;
+        const nextId = sortedIds[index + 1];
+
+        const candidate =
+          (previousId && state.dashboards[previousId] ? previousId : undefined) ??
+          (nextId && state.dashboards[nextId] ? nextId : undefined) ??
+          remainingIds[0] ??
+          null;
+
+        state.activeDashboardId = candidate;
+      }
+
+      if (state.activeDashboardId && !state.dashboards[state.activeDashboardId]) {
+        // Active id points to a removed dashboard; fall back to the first available.
+        state.activeDashboardId = remainingIds[0] ?? null;
+      }
+
+      if (!state.activeDashboardId && remainingIds.length > 0) {
+        // No active dashboard selected yet; promote the first remaining option.
+        state.activeDashboardId = remainingIds[0];
       }
     },
     addModule: (
@@ -152,62 +210,6 @@ const dashboardsSlice = createSlice({
     // Note: updateModulePosition has been removed.
     // Module positions are now stored only in Dashboard.layouts.
     // Use updateDashboardLayouts to update positions when layouts change.
-    removeDashboard: (state, action: PayloadAction<string>) => {
-      const dashboardId = action.payload;
-      // Never remove the seeded default dashboard.
-      if (dashboardId === "board-1") {
-        return;
-      }
-      // Exit early if the requested dashboard no longer exists.
-      if (!state.dashboards[dashboardId]) {
-        return;
-      }
-
-      // Sort ids so we can deterministically pick neighbouring dashboards.
-      const sortedIds = Object.keys(state.dashboards).sort((a, b) => {
-        const [, aSuffix] = a.split("-");
-        const [, bSuffix] = b.split("-");
-        const aNum = Number(aSuffix);
-        const bNum = Number(bSuffix);
-        if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
-          return aNum - bNum;
-        }
-        return a.localeCompare(b);
-      });
-
-      // Track the position of the dashboard being deleted within the sorted list.
-      const index = sortedIds.indexOf(dashboardId);
-
-      // Remove the dashboard from the collection.
-      delete state.dashboards[dashboardId];
-
-      // Keep a list of the remaining dashboards that still exist in state.
-      const remainingIds = sortedIds.filter((id) => id !== dashboardId && state.dashboards[id]);
-
-      if (state.activeDashboardId === dashboardId) {
-        // Prefer the previous sorted dashboard, otherwise the next, otherwise the first remaining.
-        const previousId = index > 0 ? sortedIds[index - 1] : undefined;
-        const nextId = sortedIds[index + 1];
-
-        const candidate =
-          (previousId && state.dashboards[previousId] ? previousId : undefined) ??
-          (nextId && state.dashboards[nextId] ? nextId : undefined) ??
-          remainingIds[0] ??
-          null;
-
-        state.activeDashboardId = candidate;
-      }
-
-      if (state.activeDashboardId && !state.dashboards[state.activeDashboardId]) {
-        // Active id points to a removed dashboard; fall back to the first available.
-        state.activeDashboardId = remainingIds[0] ?? null;
-      }
-
-      if (!state.activeDashboardId && remainingIds.length > 0) {
-        // No active dashboard selected yet; promote the first remaining option.
-        state.activeDashboardId = remainingIds[0];
-      }
-    },
     updateDashboardLayouts: (
       state,
       action: PayloadAction<{

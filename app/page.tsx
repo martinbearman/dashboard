@@ -7,6 +7,7 @@ import DashboardTabs from "@/components/layout/DashboardTabs";
 import LLMPromptBar from "@/components/layout/LLMPromptBar";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
+import StorageWriteCounter from "@/components/dev/StorageWriteCounter";
 import ConfigSheet from "@/components/ui/ConfigSheet";
 import MultiModeMenu from "@/components/layout/MultiModeMenu";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
@@ -134,6 +135,7 @@ export default function Home() {
       
       {/* Version display */}
       <AppVersion />
+      <StorageWriteCounter />
 
       {/* Configuration Sheet - off-canvas menu for module configuration */}
       <ConfigSheet />
