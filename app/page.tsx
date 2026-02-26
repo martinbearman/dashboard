@@ -135,7 +135,6 @@ export default function Home() {
       
       {/* Version display */}
       <AppVersion />
-      <StorageWriteCounter />
 
       {/* Configuration Sheet - off-canvas menu for module configuration */}
       <ConfigSheet />
