@@ -2,19 +2,24 @@ import { Middleware } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { saveState } from "../localStorage";
 
-/**
- * Redux middleware that saves state to localStorage after each action
- * Uses debouncing to avoid excessive writes
- */
+const DEBOUNCE_TIME = 1000;
+let saveTimeoutID: ReturnType<typeof setTimeout> | null = null;
+
 export const localStorageMiddleware: Middleware<{}, RootState> =
   (store) => (next) => (action) => {
     const result = next(action);
     const state = store.getState();
     
-    // Save to localStorage after state update
-    // In a real app, you might want to debounce this
-    saveState(state);
+    if(saveTimeoutID !== null) {
+      clearTimeout(saveTimeoutID);
+    }
+
+    saveTimeoutID = setTimeout(() => {
+      saveState(state);
+    }, DEBOUNCE_TIME);
     
+    (state);
+    saveState
     return result;
   };
 
