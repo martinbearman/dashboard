@@ -32,8 +32,10 @@ function getContextTooltip(item: Record<string, unknown>): string {
     const caption = (item.caption as string) || (item.alt as string);
     return caption ? String(caption) : "No caption";
   }
-  if (item.config && typeof item.config === "object") {
-    return JSON.stringify(item.config, null, 2);
+  const title = (item.title as string) ?? "";
+  const content = (item.content as string) ?? "";
+  if (title || content) {
+    return [title, content].filter(Boolean).join("\n\n");
   }
   return "Context";
 }
@@ -72,13 +74,29 @@ export default function LLMPromptBar() {
     // Build search query: user input, or from context (e.g. image captions), or fallback
     const buildQueryFromContext = (ctx: Record<string, unknown>[]): string => {
       const parts = ctx
-        .filter((item) => item.type === "image")
+        .filter((item) => (item.type as string) === "image")
         .map((item) => (item.caption as string) || (item.alt as string))
         .filter(Boolean) as string[];
       return parts.join(" ").trim();
     };
-    const searchQuery = prompt || buildQueryFromContext(context) || "images";
 
+    const searchQuery = prompt || buildQueryFromContext(context) || "images";
+    // Format context as readable text for the API (title + content, or caption for images)
+    const contextPayload =
+      context.length > 0
+        ? (() => {
+            const item = context[0];
+            if ((item.type as string) === "image") {
+              return (item.caption as string) ?? "";
+            }
+            const title = (item.title as string) ?? "";
+            const content = (item.content as string) ?? "";
+            return [title, content].filter(Boolean).join("\n");
+          })()
+        : "";
+
+    console.log("searchQuery", searchQuery);
+    console.log("context (sent to API)", contextPayload);
     setIsLoadingImages(true);
     setError(null);
     setInput("");
@@ -88,7 +106,10 @@ export default function LLMPromptBar() {
         const res = await fetch("/api/unsplash", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ q: searchQuery, context }),
+          body: JSON.stringify({
+            q: searchQuery,
+            context: contextPayload,
+          }),
         });
         if (!res.ok) {
           // Try to parse error message from response
