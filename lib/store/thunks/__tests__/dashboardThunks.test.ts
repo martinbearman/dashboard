@@ -1,10 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { makeStore } from "../../store";
+import { makeStore, type RootState } from "../../store";
 import { setModuleConfig } from "../../slices/moduleConfigsSlice";
+import { createInitialDashboardsState } from "../../slices/dashboardsSlice";
 import {
   nextPosition,
   addModuleToDashboard,
   populateContentList,
+  getContextForSelectedModules,
 } from "../dashboardThunks";
 
 const BOARD_ID = "board-1";
@@ -138,5 +140,140 @@ describe("populateContentList", () => {
     const config = store.getState().moduleConfigs.configs[moduleId];
     expect(config.title).toBe("Original Title");
     expect(config.items).toEqual([{ text: "New item" }]);
+  });
+});
+
+describe("getContextForSelectedModules", () => {
+  it("returns only moduleId, type, and caption for image modules (no other image fields)", () => {
+    const store = makeStore();
+    const imageModuleId = store.dispatch(
+      addModuleToDashboard({ dashboardId: BOARD_ID, type: "image" })
+    );
+    store.dispatch(
+      setModuleConfig({
+        moduleId: imageModuleId,
+        config: {
+          caption: "A sunny beach",
+          alt: "Beach photo",
+          photographerName: "Jane",
+          unsplashPhotoUrl: "https://example.com/photo",
+        },
+      })
+    );
+
+    const state = store.getState();
+    const context = getContextForSelectedModules(state, [imageModuleId]);
+
+    expect(context).toHaveLength(1);
+    expect(context[0]).toEqual({
+      moduleId: imageModuleId,
+      type: "image",
+      caption: "A sunny beach",
+    });
+    expect(Object.keys(context[0]).sort()).toEqual(["caption", "moduleId", "type"]);
+  });
+
+  it("returns moduleId, type, title, and content for non-image modules from config", () => {
+    const store = makeStore();
+    store.dispatch(
+      setModuleConfig({
+        moduleId: "m-3",
+        config: { title: "My Quote", content: "Quote body text" },
+      })
+    );
+
+    const state = store.getState();
+    const context = getContextForSelectedModules(state, ["m-3"]);
+
+    expect(context).toHaveLength(1);
+    expect(context[0]).toEqual({
+      moduleId: "m-3",
+      type: "quote",
+      title: "My Quote",
+      content: "Quote body text",
+    });
+  });
+
+  it("uses body as content when content is missing (body fallback)", () => {
+    const store = makeStore();
+    store.dispatch(
+      setModuleConfig({
+        moduleId: "m-3",
+        config: { title: "Note", body: "Body-only text" },
+      })
+    );
+
+    const state = store.getState();
+    const context = getContextForSelectedModules(state, ["m-3"]);
+
+    expect(context[0].content).toBe("Body-only text");
+    expect(context[0].title).toBe("Note");
+  });
+
+  it("returns empty title and content when config is missing", () => {
+    const store = makeStore();
+    // m-3 exists on dashboard but has no config set
+    const state = store.getState();
+    const context = getContextForSelectedModules(state, ["m-3"]);
+
+    expect(context).toHaveLength(1);
+    expect(context[0]).toEqual({
+      moduleId: "m-3",
+      type: "quote",
+      title: "",
+      content: "",
+    });
+  });
+
+  it("returns empty title and content when config is non-object", () => {
+    const store = makeStore();
+    const state = store.getState();
+    const badState = {
+      ...state,
+      moduleConfigs: {
+        ...state.moduleConfigs,
+        configs: { ...state.moduleConfigs.configs, "m-3": "not an object" },
+      },
+    } as unknown as RootState;
+
+    const context = getContextForSelectedModules(badState, ["m-3"]);
+
+    expect(context).toHaveLength(1);
+    expect(context[0]).toEqual({
+      moduleId: "m-3",
+      type: "quote",
+      title: "",
+      content: "",
+    });
+  });
+
+  it("returns empty array when selectedModuleIds is empty", () => {
+    const store = makeStore();
+    const state = store.getState();
+
+    expect(getContextForSelectedModules(state, [])).toEqual([]);
+  });
+
+  it("returns empty array when there is no active dashboard", () => {
+    const preloaded = {
+      dashboards: { ...createInitialDashboardsState(), activeDashboardId: null as string | null },
+    };
+    const store = makeStore(preloaded);
+    const state = store.getState();
+
+    expect(getContextForSelectedModules(state, ["m-1"])).toEqual([]);
+  });
+
+  it("returns empty array when active dashboard does not exist in dashboards", () => {
+    const preloaded = {
+      dashboards: {
+        activeDashboardId: "board-1",
+        dashboards: {},
+      },
+    };
+    const store = makeStore(preloaded);
+    const state = store.getState();
+
+    expect(getContextForSelectedModules(state, ["m-1"])).toEqual([]);
   });
 });
