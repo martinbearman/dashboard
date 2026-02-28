@@ -10,7 +10,7 @@ import type { MultiMenuMode } from "../slices/uiSlice";
 import { setMultiMenuMode, clearSelectedModules } from "../slices/uiSlice";
 import ModuleService from "@/lib/services/moduleService";
 
-/** Build context payload for selected modules (for logging or passing to search). */
+/** Build context payload for selected modules (one plain object per module, for pills and LLM). */
 export function getContextForSelectedModules(
   state: RootState,
   selectedModuleIds: string[]
@@ -19,27 +19,29 @@ export function getContextForSelectedModules(
   if (!dashboardId || !selectedModuleIds.length) return [];
   const dashboard = state.dashboards.dashboards[dashboardId];
   if (!dashboard) return [];
+
   return selectedModuleIds.map((moduleId) => {
     const moduleInstance = dashboard.modules.find((m) => m.id === moduleId);
     const config = state.moduleConfigs.configs[moduleId];
+
     if (moduleInstance?.type === "image" && config) {
       const imageConfig = config as ImageModuleConfig;
       return {
         moduleId,
         type: "image",
-        alt: imageConfig.alt,
-        caption: imageConfig.caption,
-        photographerName: imageConfig.photographerName,
-        photographerUrl: imageConfig.photographerUrl,
-        unsplashPhotoUrl: imageConfig.unsplashPhotoUrl,
-        imageUrl: imageConfig.imageUrl,
-        imageRef: imageConfig.imageRef,
+        caption: imageConfig.caption ?? "",
       };
     }
+
+    const configObj = config && typeof config === "object" ? (config as Record<string, unknown>) : null;
+    const title = (configObj?.title as string) ?? "";
+    const content = (configObj?.content as string) ?? (configObj?.body as string) ?? "";
+
     return {
       moduleId,
       type: moduleInstance?.type ?? "unknown",
-      config: config ?? null,
+      title,
+      content,
     };
   });
 }
@@ -226,7 +228,7 @@ export const executeMultiModeAction =
 
       case "context": {
         const context = getContextForSelectedModules(state, selectedModuleIds);
-        if (context.length) console.log("Context (apply):", context);
+        if (context.length > 0) console.log("Context (apply):", context);
         break;
       }
 
