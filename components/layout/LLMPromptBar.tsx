@@ -71,17 +71,7 @@ export default function LLMPromptBar() {
     const state = store.getState();
     const context = getContextForSelectedModules(state, selectedModuleIds);
 
-    // Build search query: user input, or from context (e.g. image captions), or fallback
-    const buildQueryFromContext = (ctx: Record<string, unknown>[]): string => {
-      const parts = ctx
-        .filter((item) => (item.type as string) === "image")
-        .map((item) => (item.caption as string) || (item.alt as string))
-        .filter(Boolean) as string[];
-      return parts.join(" ").trim();
-    };
-
-    const searchQuery = prompt || buildQueryFromContext(context) || "images";
-    // Format context as readable text for the API (title + content, or caption for images)
+    // Format context as readable text (title + content, or caption for images)
     const contextPayload =
       context.length > 0
         ? (() => {
@@ -95,8 +85,21 @@ export default function LLMPromptBar() {
           })()
         : "";
 
+    // Build search query: combine prompt + context + image captions (space-separated), or fallback to "images"
+    const buildQueryFromImageContext = (ctx: Record<string, unknown>[]): string => {
+      const parts = ctx
+        .filter((item) => (item.type as string) === "image")
+        .map((item) => (item.caption as string) || (item.alt as string))
+        .filter(Boolean) as string[];
+      return parts.join(" ").trim();
+    };
+    const contextSearchPart = contextPayload ? contextPayload.replace(/\s+/g, " ").trim() : "";
+    const imageSearchPart = buildQueryFromImageContext(context);
+    const combined = [prompt, contextSearchPart, imageSearchPart].filter(Boolean).join(" ");
+    const searchQuery = combined || "images";
+
     console.log("searchQuery", searchQuery);
-    console.log("context (sent to API)", contextPayload);
+    console.log("context (sent to API)", searchQuery);
     setIsLoadingImages(true);
     setError(null);
     setInput("");
@@ -108,7 +111,7 @@ export default function LLMPromptBar() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             q: searchQuery,
-            context: contextPayload,
+            context: searchQuery,
           }),
         });
         if (!res.ok) {
