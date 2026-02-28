@@ -62,7 +62,18 @@ export default function MultiModeMenu() {
     if (activeMode !== "context" || selectedModuleIds.length === 0) return;
     const state = store.getState();
     const context = getContextForSelectedModules(state, selectedModuleIds);
-    if (context.length) console.log("Context:", context);
+    if (context.length > 0) {
+      // Format context as readable text: title + content per module (or caption for images), separated by ---
+      const blocks = context.map((item) => {
+        if ((item.type as string) === "image") {
+          return (item.caption as string) ?? "";
+        }
+        const title = (item.title as string) ?? "";
+        const content = (item.content as string) ?? "";
+        return [title, content].filter(Boolean).join("\n");
+      });
+      console.log("Context:\n" + blocks.join("\n---\n"));
+    }
   }, [activeMode, selectedModuleIds, store]);
 
   const handleClick = (mode: MultiMenuMode) => {
