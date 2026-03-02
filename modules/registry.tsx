@@ -22,7 +22,7 @@ export const DEFAULT_GRID_SIZE = { w: 4, h: 3 };
 // Timer module - component lives in modules/timer/ folder
 const TimerModule: DashboardModule = {
   type: "Timer",
-  displayName: "Pomodoro Timer",
+  displayName: "Timer",
   description: "Pomodoro-style timer for focused work sessions",
   defaultGridSize: { w: 4, h: 4 },
   minGridSize: { w: 2, h: 4 },
@@ -34,7 +34,7 @@ const TimerModule: DashboardModule = {
 // Todo module - component lives in modules/todo/ folder
 const TodoModule: DashboardModule = {
   type: "todo",
-  displayName: "List",
+  displayName: "Todo List",
   description: "Create and manage customisable lists",
   defaultGridSize: { w: 3, h: 3 },
   minGridSize: { w: 2, h: 2 },
@@ -161,13 +161,13 @@ export const moduleRegistry: DashboardModule[] = [
   TodoModule,
   CompletedModule,
   QuoteModule,
-  ArtModule,
+  // ArtModule,
   DetailModule,
-  AIOutputModule,
+  // AIOutputModule,
   ArticleModule,
   ImageModule,
-  PullQuoteModule,
-  StatBlockModule,
+  // PullQuoteModule,
+  // StatBlockModule,
   // DateTimeModule, // Not built yet
   // WeatherModule, // Not built yet
 ];
