@@ -3,6 +3,8 @@ import {
   getClientIdentifier,
 } from "@/lib/utils/rateLimiter";
 
+import { ImageSearchResult, ImageSearchResponse } from "@/lib/types/search";
+
 interface UnsplashSearchResult {
   results: Array<{
     id: string;
@@ -90,9 +92,8 @@ async function runSearch(req: Request, query: string) {
     );
   }
 
-  const data = (await res.json()) as UnsplashSearchResult;
-
-  const images = data.results.map((photo) => ({
+  const data: UnsplashSearchResult = await res.json();
+  const images: ImageSearchResult[] = data.results.map((photo) => ({
     id: photo.id,
     width: photo.width,
     height: photo.height,
@@ -105,7 +106,12 @@ async function runSearch(req: Request, query: string) {
     photographerUrl: photo.user.links.html,
   }));
 
-  return new Response(JSON.stringify({ images }), {
+  const payload: ImageSearchResponse = {
+    query,
+    images,
+  };
+
+  return new Response(JSON.stringify({ payload }), {
     status: 200,
     headers: {
       "Content-Type": "application/json",

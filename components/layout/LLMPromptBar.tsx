@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import { addModuleToDashboard, getContextForSelectedModules } from "@/lib/store/thunks/dashboardThunks";
 import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
+import { ImageSearchResponse } from "@/lib/types/search";
 
 type UnsplashImage = {
   id: string;
@@ -114,6 +115,7 @@ export default function LLMPromptBar() {
             context: searchQuery,
           }),
         });
+        
         if (!res.ok) {
           // Try to parse error message from response
           let errorMessage = "Failed to search for images";
@@ -149,8 +151,12 @@ export default function LLMPromptBar() {
           setIsLoadingImages(false);
           return;
         }
-        const data = (await res.json()) as { images?: UnsplashImage[] };
-        if (!Array.isArray(data.images) || data.images.length === 0) {
+        const data = (await res.json()) as { payload?: ImageSearchResponse };
+        const images = data.payload?.images ?? [];
+
+        console.log("unsplash raw data", data);
+
+        if (!Array.isArray(images) || images.length === 0) {
           setIsLoadingImages(false);
           return;
         }
@@ -164,7 +170,7 @@ export default function LLMPromptBar() {
 
         const gridParams = state.ui.gridContainerParams ?? undefined;
 
-        for (const img of data.images) {
+        for (const img of images) {
           const altText = img.alt ? capitalizeFirst(img.alt) : undefined;
 
           const { w, h } = computeGridSizeForModule(
