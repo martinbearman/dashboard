@@ -6,18 +6,6 @@ import { addModuleToDashboard, getContextForSelectedModules } from "@/lib/store/
 import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
 import { ImageSearchResponse } from "@/lib/types/search";
 
-type UnsplashImage = {
-  id: string;
-  width: number;
-  height: number;
-  alt: string;
-  thumbUrl: string;
-  regularUrl: string;
-  fullUrl: string;
-  photographerName: string;
-  photographerUrl: string;
-};
-
 /**
  * Capitalizes the first letter of a string.
  */
@@ -151,8 +139,8 @@ export default function LLMPromptBar() {
           setIsLoadingImages(false);
           return;
         }
-        const data = (await res.json()) as { payload?: ImageSearchResponse };
-        const images = data.payload?.images ?? [];
+        const data = (await res.json()) as ImageSearchResponse;
+        const images = data.images ?? [];
 
         console.log("unsplash raw data", data);
 
