@@ -69,9 +69,7 @@ export default function ModuleWrapper({
     >
       <ModuleActionsMenu moduleId={moduleId} locked={locked} moduleName={moduleName} />
       <div className="flex-1 overflow-auto relative">
-        <div className={mode ? "pointer-events-none" : ""}>
-          {children}
-        </div>
+        {children}
         {/* Overlay to block interactions when in selection mode */}
         {mode && (
           <div 
