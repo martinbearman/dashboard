@@ -15,6 +15,7 @@ import ArticleModuleComponent from "./article/ArticleModule";
 import ImageModuleComponent from "./image/ImageModule";
 import PullQuoteModuleComponent from "./pull-quote/PullQuoteModule";
 import StatBlockModuleComponent from "./stats/StatBlockModule";
+import DocumentBuilderModuleComponent from "./document-builder/DocumentBuilderModule";
 
 /** Default grid size when a module type is not in the registry (e.g. unknown/legacy). */
 export const DEFAULT_GRID_SIZE = { w: 4, h: 3 };
@@ -136,6 +137,16 @@ const StatBlockModule: DashboardModule = {
   component: StatBlockModuleComponent,
 };
 
+const DocumentBuilderModule: DashboardModule = {
+  type: "document-builder",
+  displayName: "Document builder",
+  description: "Build documents from blocks (headings, paragraphs, lists, tables, images). Drag to reorder.",
+  defaultGridSize: { w: 4, h: 6 },
+  minGridSize: { w: 3, h: 4 },
+  maxGridSize: { w: 8, h: 12 },
+  component: DocumentBuilderModuleComponent,
+};
+
 const DateTimeModule: DashboardModule = {
   type: "datetime",
   displayName: "Date & Time",
@@ -166,6 +177,7 @@ export const moduleRegistry: DashboardModule[] = [
   // AIOutputModule,
   // ArticleModule,
   ImageModule,
+  DocumentBuilderModule,
   // PullQuoteModule,
   // StatBlockModule,
   // DateTimeModule, // Not built yet

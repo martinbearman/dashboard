@@ -4,6 +4,7 @@ import globalConfigReducer from "./slices/globalConfigSlice";
 import moduleConfigsReducer from "./slices/moduleConfigsSlice";
 import moduleLinksReducer from "./slices/moduleLinksSlice";
 import todoReducer from "./slices/todoSlice";
+import documentBuilderReducer from "./slices/documentBuilderSlice";
 import uiReducer from "./slices/uiSlice";
 // Timer module slices
 import timerReducer from "../../modules/timer/store/slices/timerSlice";
@@ -16,6 +17,7 @@ const rootReducer = combineReducers({
   moduleConfigs: moduleConfigsReducer,
   moduleLinks: moduleLinksReducer,
   todo: todoReducer,
+  documentBuilder: documentBuilderReducer,
   timer: timerReducer,
   ui: uiReducer,
 });
