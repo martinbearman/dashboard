@@ -22,7 +22,15 @@ export default function DashboardTabs() {
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const dashboardList = Object.values(dashboards);
+  // Sort by numeric ID suffix so tab order matches removeDashboard's "adjacent" logic
+  const dashboardList = Object.values(dashboards).sort((a, b) => {
+    const [, aSuffix] = a.id.split("-");
+    const [, bSuffix] = b.id.split("-");
+    const aNum = Number(aSuffix);
+    const bNum = Number(bSuffix);
+    if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) return aNum - bNum;
+    return a.id.localeCompare(b.id);
+  });
   const tabClass = (isActive: boolean) =>
     clsx(
       "px-4 py-2 rounded-full text-sm transition",
