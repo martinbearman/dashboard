@@ -3,8 +3,8 @@
 import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import { addModuleToDashboard, getContextForSelectedModules } from "@/lib/store/thunks/dashboardThunks";
+import { searchUnsplash } from "@/lib/services/imageSearch";
 import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
-import { ImageSearchResponse } from "@/lib/types/search";
 
 /**
  * Capitalizes the first letter of a string.
@@ -95,51 +95,7 @@ export default function LLMPromptBar() {
 
     void (async () => {
       try {
-        const res = await fetch("/api/unsplash", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            q: searchQuery,
-            context: searchQuery,
-          }),
-        });
-        
-        if (!res.ok) {
-          // Try to parse error message from response
-          let errorMessage = "Failed to search for images";
-          try {
-            const errorData = (await res.json()) as {
-              error?: string;
-              message?: string;
-              resetAt?: string;
-            };
-            errorMessage = errorData.message || errorData.error || errorMessage;
-            
-            // Format reset time if available
-            if (errorData.resetAt && res.status === 429) {
-              const resetDate = new Date(errorData.resetAt);
-              const now = new Date();
-              const secondsUntilReset = Math.ceil((resetDate.getTime() - now.getTime()) / 1000);
-              const minutesUntilReset = Math.ceil(secondsUntilReset / 60);
-              
-              if (minutesUntilReset > 0) {
-                errorMessage = `Rate limit exceeded. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? 's' : ''}.`;
-              } else {
-                errorMessage = `Rate limit exceeded. Please try again in ${secondsUntilReset} second${secondsUntilReset > 1 ? 's' : ''}.`;
-              }
-            }
-          } catch {
-            // If JSON parsing fails, use default message
-            if (res.status === 429) {
-              errorMessage = "Too many requests. Please wait a moment and try again.";
-            }
-          }
-          
-          setError(errorMessage);
-          setIsLoadingImages(false);
-          return;
-        }
-        const data = (await res.json()) as ImageSearchResponse;
+        const data = await searchUnsplash(searchQuery);
         const images = data.images ?? [];
 
         console.log("unsplash raw data", data);
@@ -190,9 +146,7 @@ export default function LLMPromptBar() {
         
         setIsLoadingImages(false);
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to fetch Unsplash images", err);
-        setError("Failed to search for images. Please try again.");
+        setError(err instanceof Error ? err.message : "Failed to search for images. Please try again.");
         setIsLoadingImages(false);
       }
     })();
