@@ -93,7 +93,11 @@ async function runSearch(req: Request, query: string) {
   }
 
   const data: UnsplashSearchResult = await res.json();
-  const images: ImageSearchResult[] = data.results.map((photo) => ({
+  const maxResults = process.env.UNSPLASH_MAX_RESULTS
+    ? Math.min(Math.max(1, parseInt(process.env.UNSPLASH_MAX_RESULTS, 10)), 30)
+    : undefined;
+  const results = maxResults ? data.results.slice(0, maxResults) : data.results;
+  const images: ImageSearchResult[] = results.map((photo) => ({
     id: photo.id,
     width: photo.width,
     height: photo.height,
