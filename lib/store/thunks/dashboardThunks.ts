@@ -6,10 +6,11 @@ import { selectModulePositions } from "../selectors/dashboardSelectors";
 import { moduleRegistry, DEFAULT_GRID_SIZE } from "@/modules/registry";
 import type { ListItem, ImageModuleConfig } from "@/lib/types/dashboard";
 import type { ImageSearchResult } from "@/lib/types/search";
+import type { SearchResult } from "@/lib/types/search";
 import { GRID_COLS } from "@/lib/constants/grid";
 import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
 import type { MultiMenuMode } from "../slices/uiSlice";
-import { setMultiMenuMode, clearSelectedModules } from "../slices/uiSlice";
+import { setMultiMenuMode, clearSelectedModules, clearSearchResultSelection } from "../slices/uiSlice";
 import ModuleService from "@/lib/services/moduleService";
 
 /**
@@ -201,6 +202,27 @@ export const addModuleToDashboard =
 
     dispatch(setModuleConfig({ moduleId, config: initialConfig }));
     return moduleId;
+  };
+
+/**
+ * Thunk to add only the currently selected search results (from the search results panel) to the active dashboard.
+ * Supports image results now; other types (e.g. text) can be wired later.
+ * No-op if no active dashboard or no selected results. Clears selection after adding.
+ */
+export const addSelectedSearchResultsToDashboard =
+  () =>
+  (dispatch: AppDispatch, getState: () => RootState): void => {
+    const state = getState();
+    const { results, selectedResultIds } = state.ui.searchResultsPanel;
+    const activeId = state.dashboards.activeDashboardId;
+    if (!activeId || selectedResultIds.length === 0) return;
+
+    const selected = results.filter((r) => selectedResultIds.includes(r.id));
+    const images = selected.filter((r): r is SearchResult & { type: "image" } => r.type === "image").map((r) => r.data);
+    if (images.length > 0) {
+      dispatch(addUnsplashImagesToDashboard(images));
+    }
+    dispatch(clearSearchResultSelection());
   };
 
 /**

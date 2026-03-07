@@ -8,6 +8,8 @@ import LLMPromptBar from "@/components/layout/LLMPromptBar";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
 import ConfigSheet from "@/components/ui/ConfigSheet";
+import SearchResultsPanel from "@/components/layout/SearchResultsPanel";
+import SearchResultsTab from "@/components/layout/SearchResultsTab";
 import MultiModeMenu from "@/components/layout/MultiModeMenu";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { getModuleByType } from "@/modules/registry";
@@ -137,6 +139,10 @@ export default function Home() {
 
       {/* Configuration Sheet - off-canvas menu for module configuration */}
       <ConfigSheet />
+
+      {/* Search results tab (right edge, only when results exist) and off-canvas panel */}
+      <SearchResultsTab />
+      <SearchResultsPanel />
     </main>
   );
 }

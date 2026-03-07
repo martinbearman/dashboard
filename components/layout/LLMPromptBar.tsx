@@ -3,11 +3,12 @@
 import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import {
-  addUnsplashImagesToDashboard,
   getContextForSelectedModules,
   buildQueryFromModuleContext,
 } from "@/lib/store/thunks/dashboardThunks";
+import { openSearchResultsPanel } from "@/lib/store/slices/uiSlice";
 import { searchUnsplash } from "@/lib/services/imageSearch";
+import type { SearchResult } from "@/lib/types/search";
 
 /**
  * Capitalizes the first letter of a string.
@@ -80,9 +81,17 @@ export default function LLMPromptBar() {
       try {
         const data = await searchUnsplash(searchQuery);
         const images = data.images ?? [];
-        if (images.length > 0) {
-          dispatch(addUnsplashImagesToDashboard(images));
-        }
+        const results: SearchResult[] = images.map((img) => ({
+          type: "image" as const,
+          id: img.id,
+          data: img,
+        }));
+        dispatch(
+          openSearchResultsPanel({
+            query: searchQuery,
+            results: results.length > 0 ? results : [],
+          })
+        );
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to search for images. Please try again.");
       } finally {
