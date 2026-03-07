@@ -7,6 +7,7 @@ import {
   addModuleToDashboard,
   populateContentList,
   getContextForSelectedModules,
+  buildQueryFromModuleContext,
 } from "../dashboardThunks";
 
 const BOARD_ID = "board-1";
@@ -275,5 +276,49 @@ describe("getContextForSelectedModules", () => {
     const state = store.getState();
 
     expect(getContextForSelectedModules(state, ["m-1"])).toEqual([]);
+  });
+});
+
+describe("buildQueryFromModuleContext", () => {
+  it("returns image caption/alt for image modules", () => {
+    const context = [
+      { moduleId: "img-1", type: "image", caption: "A sunny beach", alt: "Beach photo" },
+    ];
+    expect(buildQueryFromModuleContext(context)).toBe("A sunny beach");
+    expect(buildQueryFromModuleContext(context, { types: ["image"] })).toBe("A sunny beach");
+  });
+
+  it("uses alt when caption is missing for images", () => {
+    const context = [{ moduleId: "img-1", type: "image", alt: "Mountain view" }];
+    expect(buildQueryFromModuleContext(context)).toBe("Mountain view");
+  });
+
+  it("returns title and content for non-image modules", () => {
+    const context = [
+      { moduleId: "m-1", type: "quote", title: "My Quote", content: "Quote body text" },
+    ];
+    expect(buildQueryFromModuleContext(context)).toBe("My Quote Quote body text");
+  });
+
+  it("combines multiple modules of mixed types", () => {
+    const context = [
+      { moduleId: "img-1", type: "image", caption: "Ocean" },
+      { moduleId: "m-1", type: "note", title: "Note", content: "Some text" },
+    ];
+    expect(buildQueryFromModuleContext(context)).toBe("Ocean Note Some text");
+  });
+
+  it("filters by types when options.types is provided", () => {
+    const context = [
+      { moduleId: "img-1", type: "image", caption: "Ocean" },
+      { moduleId: "m-1", type: "note", title: "Note", content: "Some text" },
+    ];
+    expect(buildQueryFromModuleContext(context, { types: ["image"] })).toBe("Ocean");
+    expect(buildQueryFromModuleContext(context, { types: ["note"] })).toBe("Note Some text");
+  });
+
+  it("returns empty string for empty context", () => {
+    expect(buildQueryFromModuleContext([])).toBe("");
+    expect(buildQueryFromModuleContext([], { types: ["image"] })).toBe("");
   });
 });

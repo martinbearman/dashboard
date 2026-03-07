@@ -2,9 +2,12 @@
 
 import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
-import { addModuleToDashboard, getContextForSelectedModules } from "@/lib/store/thunks/dashboardThunks";
+import {
+  addUnsplashImagesToDashboard,
+  getContextForSelectedModules,
+  buildQueryFromModuleContext,
+} from "@/lib/store/thunks/dashboardThunks";
 import { searchUnsplash } from "@/lib/services/imageSearch";
-import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
 
 /**
  * Capitalizes the first letter of a string.
@@ -60,30 +63,10 @@ export default function LLMPromptBar() {
     const state = store.getState();
     const context = getContextForSelectedModules(state, selectedModuleIds);
 
-    // Format context as readable text (title + content, or caption for images)
-    const contextPayload =
-      context.length > 0
-        ? (() => {
-            const item = context[0];
-            if ((item.type as string) === "image") {
-              return (item.caption as string) ?? "";
-            }
-            const title = (item.title as string) ?? "";
-            const content = (item.content as string) ?? "";
-            return [title, content].filter(Boolean).join("\n");
-          })()
-        : "";
-
-    // Build search query: combine prompt + context + image captions (space-separated), or fallback to "images"
-    const buildQueryFromImageContext = (ctx: Record<string, unknown>[]): string => {
-      const parts = ctx
-        .filter((item) => (item.type as string) === "image")
-        .map((item) => (item.caption as string) || (item.alt as string))
-        .filter(Boolean) as string[];
-      return parts.join(" ").trim();
-    };
-    const contextSearchPart = contextPayload ? contextPayload.replace(/\s+/g, " ").trim() : "";
-    const imageSearchPart = buildQueryFromImageContext(context);
+    // Build context string from all selected modules (for general search/LLM use)
+    const contextSearchPart = buildQueryFromModuleContext(context);
+    // Image-only context for Unsplash; other APIs can use buildQueryFromModuleContext(context, { types: ["…"] })
+    const imageSearchPart = buildQueryFromModuleContext(context, { types: ["image"] });
     const combined = [prompt, contextSearchPart, imageSearchPart].filter(Boolean).join(" ");
     const searchQuery = combined || "images";
 
@@ -97,56 +80,12 @@ export default function LLMPromptBar() {
       try {
         const data = await searchUnsplash(searchQuery);
         const images = data.images ?? [];
-
-        console.log("unsplash raw data", data);
-
-        if (!Array.isArray(images) || images.length === 0) {
-          setIsLoadingImages(false);
-          return;
+        if (images.length > 0) {
+          dispatch(addUnsplashImagesToDashboard(images));
         }
-
-        const state = store.getState();
-        const activeId = state.dashboards.activeDashboardId;
-        if (!activeId) {
-          setIsLoadingImages(false);
-          return;
-        }
-
-        const gridParams = state.ui.gridContainerParams ?? undefined;
-
-        for (const img of images) {
-          const altText = img.alt ? capitalizeFirst(img.alt) : undefined;
-
-          const { w, h } = computeGridSizeForModule(
-            "image",
-            {
-              kind: "image",
-              width: img.width,
-              height: img.height,
-            },
-            gridParams
-          );
-
-          dispatch(
-            addModuleToDashboard({
-              dashboardId: activeId,
-              type: "image",
-              position: { w, h },
-              initialConfig: {
-                imageUrl: img.regularUrl,
-                alt: altText || "Unsplash image",
-                caption: altText || undefined,
-                photographerName: img.photographerName,
-                photographerUrl: img.photographerUrl,
-                unsplashPhotoUrl: `https://unsplash.com/photos/${img.id}`,
-              },
-            })
-          );
-        }
-        
-        setIsLoadingImages(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to search for images. Please try again.");
+      } finally {
         setIsLoadingImages(false);
       }
     })();

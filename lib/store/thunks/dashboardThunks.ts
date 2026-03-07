@@ -5,10 +5,40 @@ import { setModuleConfig } from "../slices/moduleConfigsSlice";
 import { selectModulePositions } from "../selectors/dashboardSelectors";
 import { moduleRegistry, DEFAULT_GRID_SIZE } from "@/modules/registry";
 import type { ListItem, ImageModuleConfig } from "@/lib/types/dashboard";
+import type { ImageSearchResult } from "@/lib/types/search";
 import { GRID_COLS } from "@/lib/constants/grid";
+import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
 import type { MultiMenuMode } from "../slices/uiSlice";
 import { setMultiMenuMode, clearSelectedModules } from "../slices/uiSlice";
 import ModuleService from "@/lib/services/moduleService";
+
+/**
+ * Builds a single query/context string from selected-module context items.
+ * Used for search APIs (e.g. Unsplash) and future LLM or other API calls.
+ * @param context - Array of context items from getContextForSelectedModules
+ * @param options - Optional filter: include only these module types (e.g. ["image"] for image search). Omit to use all types.
+ */
+export function buildQueryFromModuleContext(
+  context: Record<string, unknown>[],
+  options?: { types?: string[] }
+): string {
+  const types = options?.types;
+  const items = types?.length
+    ? context.filter((item) => types.includes((item.type as string) ?? ""))
+    : context;
+
+  const parts = items.map((item) => {
+    const type = (item.type as string) ?? "";
+    if (type === "image") {
+      return ((item.caption as string) || (item.alt as string) || "").trim();
+    }
+    const title = ((item.title as string) ?? "").trim();
+    const content = ((item.content as string) ?? "").trim();
+    return [title, content].filter(Boolean).join(" ");
+  });
+
+  return parts.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+}
 
 /** Build context payload for selected modules (one plain object per module, for pills and LLM). */
 export function getContextForSelectedModules(
@@ -171,6 +201,44 @@ export const addModuleToDashboard =
 
     dispatch(setModuleConfig({ moduleId, config: initialConfig }));
     return moduleId;
+  };
+
+/**
+ * Thunk to add Unsplash search results as image modules to the active dashboard.
+ * No-op if there is no active dashboard. Uses grid params from state for sizing.
+ */
+export const addUnsplashImagesToDashboard =
+  (images: ImageSearchResult[]) =>
+  (dispatch: AppDispatch, getState: () => RootState): void => {
+    const state = getState();
+    const activeId = state.dashboards.activeDashboardId;
+    if (!activeId || !Array.isArray(images) || images.length === 0) return;
+
+    const gridParams = state.ui.gridContainerParams ?? undefined;
+
+    for (const img of images) {
+      const altText = img.alt ? img.alt.charAt(0).toUpperCase() + img.alt.slice(1) : undefined;
+      const { w, h } = computeGridSizeForModule(
+        "image",
+        { kind: "image", width: img.width, height: img.height },
+        gridParams
+      );
+      dispatch(
+        addModuleToDashboard({
+          dashboardId: activeId,
+          type: "image",
+          position: { w, h },
+          initialConfig: {
+            imageUrl: img.regularUrl,
+            alt: altText || "Unsplash image",
+            caption: altText || undefined,
+            photographerName: img.photographerName,
+            photographerUrl: img.photographerUrl,
+            unsplashPhotoUrl: `https://unsplash.com/photos/${img.id}`,
+          },
+        })
+      );
+    }
   };
 
 /**
