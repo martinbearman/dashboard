@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import {
   closeSearchResultsPanel,
@@ -31,10 +33,13 @@ function ResultItem({
       <span className="flex-1 min-w-0">
         {result.type === "image" && (
           <span className="flex flex-col gap-2">
-            <img
+            <Image
               src={result.data.regularUrl}
               alt={result.data.alt || ""}
+              width={result.data.width}
+              height={result.data.height}
               className="w-full h-auto object-cover rounded"
+              sizes="(max-width: 448px) 100vw, 448px"
             />
             <span className="text-sm text-slate-700 line-clamp-2">{result.data.alt || "Image"}</span>
           </span>
@@ -56,6 +61,7 @@ export default function SearchResultsPanel() {
     (s) => s.ui.searchResultsPanel
   );
   const activeDashboardId = useAppSelector((s) => s.dashboards.activeDashboardId);
+  const [isExiting, setIsExiting] = useState(false);
 
   const selectedCount = selectedResultIds.length;
   const canAdd = activeDashboardId && selectedCount > 0;
@@ -65,20 +71,41 @@ export default function SearchResultsPanel() {
     dispatch(addSelectedSearchResultsToDashboard());
   };
 
-  if (!isOpen) return null;
+  const requestClose = () => {
+    if (!isExiting) setIsExiting(true);
+  };
+
+  useEffect(() => {
+    if (!isExiting) return;
+    const t = setTimeout(() => {
+      dispatch(closeSearchResultsPanel());
+      setIsExiting(false);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [isExiting, dispatch]);
+
+  if (!isOpen && !isExiting) return null;
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 z-40 transition-opacity"
+        className={`fixed inset-0 z-40 bg-black/40 ${
+          isExiting
+            ? "animate-[fade-out_0.25s_ease-out_forwards]"
+            : "animate-[fade-in_0.25s_ease-out]"
+        }`}
         aria-hidden
-        onClick={() => dispatch(closeSearchResultsPanel())}
+        onClick={requestClose}
       />
 
       {/* Slide-out panel */}
       <div
-        className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl z-50 flex flex-col animate-[slide-in-from-right_0.25s_ease-out]"
+        className={`fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl z-50 flex flex-col ${
+          isExiting
+            ? "animate-[slide-out-to-right_0.25s_ease-out_forwards]"
+            : "animate-[slide-in-from-right_0.25s_ease-out]"
+        }`}
         role="dialog"
         aria-label="Search results"
       >
@@ -88,7 +115,7 @@ export default function SearchResultsPanel() {
           </h2>
           <button
             type="button"
-            onClick={() => dispatch(closeSearchResultsPanel())}
+            onClick={requestClose}
             className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Close panel"
           >
