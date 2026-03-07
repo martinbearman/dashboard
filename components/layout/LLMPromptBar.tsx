@@ -2,20 +2,13 @@
 
 import { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
-import { addModuleToDashboard, getContextForSelectedModules } from "@/lib/store/thunks/dashboardThunks";
-import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
-
-type UnsplashImage = {
-  id: string;
-  width: number;
-  height: number;
-  alt: string;
-  thumbUrl: string;
-  regularUrl: string;
-  fullUrl: string;
-  photographerName: string;
-  photographerUrl: string;
-};
+import {
+  getContextForSelectedModules,
+  buildQueryFromModuleContext,
+} from "@/lib/store/thunks/dashboardThunks";
+import { openSearchResultsPanel } from "@/lib/store/slices/uiSlice";
+import { searchUnsplash } from "@/lib/services/imageSearch";
+import type { SearchResult } from "@/lib/types/search";
 
 /**
  * Capitalizes the first letter of a string.
@@ -71,30 +64,10 @@ export default function LLMPromptBar() {
     const state = store.getState();
     const context = getContextForSelectedModules(state, selectedModuleIds);
 
-    // Format context as readable text (title + content, or caption for images)
-    const contextPayload =
-      context.length > 0
-        ? (() => {
-            const item = context[0];
-            if ((item.type as string) === "image") {
-              return (item.caption as string) ?? "";
-            }
-            const title = (item.title as string) ?? "";
-            const content = (item.content as string) ?? "";
-            return [title, content].filter(Boolean).join("\n");
-          })()
-        : "";
-
-    // Build search query: combine prompt + context + image captions (space-separated), or fallback to "images"
-    const buildQueryFromImageContext = (ctx: Record<string, unknown>[]): string => {
-      const parts = ctx
-        .filter((item) => (item.type as string) === "image")
-        .map((item) => (item.caption as string) || (item.alt as string))
-        .filter(Boolean) as string[];
-      return parts.join(" ").trim();
-    };
-    const contextSearchPart = contextPayload ? contextPayload.replace(/\s+/g, " ").trim() : "";
-    const imageSearchPart = buildQueryFromImageContext(context);
+    // Build context string from all selected modules (for general search/LLM use)
+    const contextSearchPart = buildQueryFromModuleContext(context);
+    // Image-only context for Unsplash; other APIs can use buildQueryFromModuleContext(context, { types: ["…"] })
+    const imageSearchPart = buildQueryFromModuleContext(context, { types: ["image"] });
     const combined = [prompt, contextSearchPart, imageSearchPart].filter(Boolean).join(" ");
     const searchQuery = combined || "images";
 
@@ -106,99 +79,22 @@ export default function LLMPromptBar() {
 
     void (async () => {
       try {
-        const res = await fetch("/api/unsplash", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            q: searchQuery,
-            context: searchQuery,
-          }),
-        });
-        if (!res.ok) {
-          // Try to parse error message from response
-          let errorMessage = "Failed to search for images";
-          try {
-            const errorData = (await res.json()) as {
-              error?: string;
-              message?: string;
-              resetAt?: string;
-            };
-            errorMessage = errorData.message || errorData.error || errorMessage;
-            
-            // Format reset time if available
-            if (errorData.resetAt && res.status === 429) {
-              const resetDate = new Date(errorData.resetAt);
-              const now = new Date();
-              const secondsUntilReset = Math.ceil((resetDate.getTime() - now.getTime()) / 1000);
-              const minutesUntilReset = Math.ceil(secondsUntilReset / 60);
-              
-              if (minutesUntilReset > 0) {
-                errorMessage = `Rate limit exceeded. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? 's' : ''}.`;
-              } else {
-                errorMessage = `Rate limit exceeded. Please try again in ${secondsUntilReset} second${secondsUntilReset > 1 ? 's' : ''}.`;
-              }
-            }
-          } catch {
-            // If JSON parsing fails, use default message
-            if (res.status === 429) {
-              errorMessage = "Too many requests. Please wait a moment and try again.";
-            }
-          }
-          
-          setError(errorMessage);
-          setIsLoadingImages(false);
-          return;
-        }
-        const data = (await res.json()) as { images?: UnsplashImage[] };
-        if (!Array.isArray(data.images) || data.images.length === 0) {
-          setIsLoadingImages(false);
-          return;
-        }
-
-        const state = store.getState();
-        const activeId = state.dashboards.activeDashboardId;
-        if (!activeId) {
-          setIsLoadingImages(false);
-          return;
-        }
-
-        const gridParams = state.ui.gridContainerParams ?? undefined;
-
-        for (const img of data.images) {
-          const altText = img.alt ? capitalizeFirst(img.alt) : undefined;
-
-          const { w, h } = computeGridSizeForModule(
-            "image",
-            {
-              kind: "image",
-              width: img.width,
-              height: img.height,
-            },
-            gridParams
-          );
-
-          dispatch(
-            addModuleToDashboard({
-              dashboardId: activeId,
-              type: "image",
-              position: { w, h },
-              initialConfig: {
-                imageUrl: img.regularUrl,
-                alt: altText || "Unsplash image",
-                caption: altText || undefined,
-                photographerName: img.photographerName,
-                photographerUrl: img.photographerUrl,
-                unsplashPhotoUrl: `https://unsplash.com/photos/${img.id}`,
-              },
-            })
-          );
-        }
-        
-        setIsLoadingImages(false);
+        const data = await searchUnsplash(searchQuery);
+        const images = data.images ?? [];
+        const results: SearchResult[] = images.map((img) => ({
+          type: "image" as const,
+          id: img.id,
+          data: img,
+        }));
+        dispatch(
+          openSearchResultsPanel({
+            query: searchQuery,
+            results: results.length > 0 ? results : [],
+          })
+        );
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to fetch Unsplash images", err);
-        setError("Failed to search for images. Please try again.");
+        setError(err instanceof Error ? err.message : "Failed to search for images. Please try again.");
+      } finally {
         setIsLoadingImages(false);
       }
     })();
