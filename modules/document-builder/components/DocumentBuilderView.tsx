@@ -6,6 +6,7 @@ import {
   removeBlock,
   reorderBlocks,
   setBlocks,
+  updateBlock,
 } from "@/lib/store/slices/documentBuilderSlice";
 import type {
   DocumentBlock,
@@ -15,7 +16,7 @@ import type {
   TableBlock,
   ImageBlock,
 } from "@/lib/types/document";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -103,8 +104,16 @@ interface DocumentBuilderViewProps {
 
 export default function DocumentBuilderView({ moduleId }: DocumentBuilderViewProps) {
   const dispatch = useAppDispatch();
+  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
   const blocks = useAppSelector(
     (state) => state.documentBuilder?.byModuleId?.[moduleId] ?? []
+  );
+
+  const handleUpdate = useCallback(
+    (blockId: string, updates: Record<string, unknown>) => {
+      dispatch(updateBlock({ moduleId, blockId, updates }));
+    },
+    [dispatch, moduleId]
   );
 
   const sensors = useSensors(
@@ -192,6 +201,10 @@ export default function DocumentBuilderView({ moduleId }: DocumentBuilderViewPro
                     key={block.id}
                     block={block}
                     onRemove={handleRemove}
+                    isEditing={editingBlockId === block.id}
+                    onStartEdit={() => setEditingBlockId(block.id)}
+                    onEndEdit={() => setEditingBlockId(null)}
+                    onUpdate={handleUpdate}
                   />
                 ))}
               </div>

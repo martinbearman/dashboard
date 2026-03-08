@@ -9,11 +9,19 @@ import type { DocumentBlock } from "@/lib/types/document";
 interface SortableDocumentBlockProps {
   block: DocumentBlock;
   onRemove: (blockId: string) => void;
+  isEditing?: boolean;
+  onStartEdit?: () => void;
+  onEndEdit?: () => void;
+  onUpdate?: (blockId: string, updates: Record<string, unknown>) => void;
 }
 
 export default function SortableDocumentBlock({
   block,
   onRemove,
+  isEditing = false,
+  onStartEdit,
+  onEndEdit,
+  onUpdate,
 }: SortableDocumentBlockProps) {
   const {
     attributes,
@@ -74,8 +82,29 @@ export default function SortableDocumentBlock({
             />
           </svg>
         </div>
-        <div className="flex-1 min-w-0">
-          <BlockContent block={block} />
+        <div
+          className="flex-1 min-w-0 cursor-text"
+          onClick={(e) => {
+            if (!isEditing && onStartEdit) {
+              e.stopPropagation();
+              onStartEdit();
+            }
+          }}
+          role={!isEditing && onStartEdit ? "button" : undefined}
+          tabIndex={!isEditing && onStartEdit ? 0 : undefined}
+          onKeyDown={(e) => {
+            if (!isEditing && onStartEdit && (e.key === "Enter" || e.key === " ")) {
+              e.preventDefault();
+              onStartEdit();
+            }
+          }}
+        >
+          <BlockContent
+            block={block}
+            isEditing={isEditing}
+            onContentChange={(updates) => onUpdate?.(block.id, updates)}
+            onEditEnd={onEndEdit}
+          />
         </div>
         <button
           type="button"
