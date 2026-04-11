@@ -1,43 +1,59 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Provider } from "react-redux";
-import { makeStore, AppStore, RootState } from "./store";
+import { makeStore, AppStore } from "./store";
 import { loadState } from "./localStorage";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
+
+/** Single store per full page load; survives Strict Mode double-mount. */
+let clientStore: AppStore | undefined;
+
+function getOrCreateClientStore(): AppStore {
+  if (!clientStore) {
+    try {
+      clientStore = makeStore(loadState() || undefined);
+    } catch (error) {
+      console.error("Failed to initialize store with preloaded state:", error);
+      try {
+        clientStore = makeStore();
+      } catch (fallbackError) {
+        console.error("Failed to create store:", fallbackError);
+        clientStore = makeStore();
+      }
+    }
+  }
+  return clientStore;
+}
+
+function subscribe(_onStoreChange: () => void) {
+  return () => {};
+}
+
+function getClientSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
 
 export default function StoreProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const storeRef = useRef<AppStore>();
-  const [ready, setReady] = useState(false);
+  // Avoid useEffect for readiness: after hydration, flip to client without relying on
+  // effects (more reliable across Next.js / Strict Mode / extension edge cases).
+  const isClient = useSyncExternalStore(
+    subscribe,
+    getClientSnapshot,
+    getServerSnapshot
+  );
 
-  useEffect(() => {
-    if (!storeRef.current) {
-      try {
-        // Create the store on the client with preloaded state to avoid SSR/CSR mismatches
-        const preloaded = loadState() || undefined;
-        storeRef.current = makeStore(preloaded);
-      } catch (error) {
-        // If loading state fails, create store without preloaded state as fallback
-        console.error("Failed to initialize store with preloaded state:", error);
-        try {
-          storeRef.current = makeStore();
-        } catch (fallbackError) {
-          // If even creating a basic store fails, log and create anyway
-          console.error("Failed to create store:", fallbackError);
-          storeRef.current = makeStore();
-        }
-      }
-    }
-    // Always set ready to true, even if there was an error
-    // This prevents the app from hanging on the skeleton screen
-    setReady(true);
-  }, []);
+  if (!isClient) {
+    return <DashboardSkeleton />;
+  }
 
-  if (!ready || !storeRef.current) return <DashboardSkeleton />;
-
-  return <Provider store={storeRef.current}>{children}</Provider>;
+  return <Provider store={getOrCreateClientStore()}>{children}</Provider>;
 }
