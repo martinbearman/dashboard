@@ -96,7 +96,7 @@ export default function LandingPage() {
         </section>
 
         {/* Right: auth — UI placeholder until auth is implemented */}
-        <section className="flex flex-1 flex-col justify-center py-12 lg:min-w-0 lg:bg-white/90 lg:py-14 lg:backdrop-blur-sm">
+        <section className="flex flex-1 flex-col justify-center py-12 lg:min-w-0 lg:py-14">
           <div className="mx-auto w-full max-w-md">
             <div
               role="region"
