@@ -15,56 +15,14 @@ export const createInitialDashboardsState = (): DashboardsState => ({
     "board-1": {
       id: "board-1",
       name: "Board 1",
-      modules: [
-        {
-          id: "m-1",
-          type: "Timer", // Pomodoro Timer
-        },
-        {
-          id: "m-2",
-          type: "todo", // Todo List
-        },
-        {
-          id: "m-3",
-          type: "quote", // Quotes
-        },
-        {
-          id: "m-4",
-          type: "completed", // Completed Tasks
-        },
-      ],
+      modules: [],
       layouts: {
-        lg: [
-          { i: "m-1", x: 0, y: 0, w: 6, h: 3 },
-          { i: "m-2", x: 6, y: 0, w: 6, h: 3 },
-          { i: "m-3", x: 0, y: 3, w: 6, h: 3 },
-          { i: "m-4", x: 6, y: 3, w: 6, h: 3 }
-        ],
-        md: [
-          { i: "m-1", x: 0, y: 0, w: 3, h: 3 },
-          { i: "m-2", x: 3, y: 0, w: 3, h: 3 },
-          { i: "m-3", x: 0, y: 3, w: 3, h: 3 },
-          { i: "m-4", x: 3, y: 3, w: 3, h: 3 }
-        ],
-        sm: [
-          { i: "m-1", x: 0, y: 0, w: 3, h: 3 },
-          { i: "m-2", x: 3, y: 0, w: 3, h: 3 },
-          { i: "m-3", x: 0, y: 3, w: 3, h: 3 },
-          { i: "m-4", x: 3, y: 3, w: 3, h: 3 }
-        ],
-        xs: [
-          { i: "m-1", x: 0, y: 0, w: 3, h: 3 },
-          { i: "m-2", x: 0, y: 3, w: 3, h: 3 },
-          { i: "m-3", x: 0, y: 6, w: 3, h: 3 },
-          { i: "m-4", x: 0, y: 9, w: 3, h: 3 }
-        ],
-        xxs: [
-          { i: "m-1", x: 0, y: 0, w: 1, h: 3 },
-          { i: "m-2", x: 0, y: 3, w: 1, h: 3 },
-          { i: "m-3", x: 0, y: 6, w: 1, h: 3 },
-          { i: "m-4", x: 0, y: 9, w: 1, h: 3 }
-        ]
-      }
+        lg: [],
+        md: [],
+        sm: [],
+        xs: [],
+        xxs: [],
+      },
     },
   },
 });
