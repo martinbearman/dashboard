@@ -55,7 +55,7 @@ describe("addModuleToDashboard", () => {
     expect(moduleId.length).toBeGreaterThan(0);
 
     const dashboard = store.getState().dashboards.dashboards[BOARD_ID];
-    expect(dashboard.modules).toHaveLength(5);
+    expect(dashboard.modules).toHaveLength(1);
     const added = dashboard.modules.find((m) => m.id === moduleId);
     expect(added).toBeDefined();
     expect(added?.type).toBe("quote");
@@ -176,19 +176,22 @@ describe("getContextForSelectedModules", () => {
 
   it("returns moduleId, type, title, and content for non-image modules from config", () => {
     const store = makeStore();
+    const moduleId = store.dispatch(
+      addModuleToDashboard({ dashboardId: BOARD_ID, type: "quote" })
+    );
     store.dispatch(
       setModuleConfig({
-        moduleId: "m-3",
+        moduleId,
         config: { title: "My Quote", content: "Quote body text" },
       })
     );
 
     const state = store.getState();
-    const context = getContextForSelectedModules(state, ["m-3"]);
+    const context = getContextForSelectedModules(state, [moduleId]);
 
     expect(context).toHaveLength(1);
     expect(context[0]).toEqual({
-      moduleId: "m-3",
+      moduleId,
       type: "quote",
       title: "My Quote",
       content: "Quote body text",
@@ -197,15 +200,18 @@ describe("getContextForSelectedModules", () => {
 
   it("uses body as content when content is missing (body fallback)", () => {
     const store = makeStore();
+    const moduleId = store.dispatch(
+      addModuleToDashboard({ dashboardId: BOARD_ID, type: "quote" })
+    );
     store.dispatch(
       setModuleConfig({
-        moduleId: "m-3",
+        moduleId,
         config: { title: "Note", body: "Body-only text" },
       })
     );
 
     const state = store.getState();
-    const context = getContextForSelectedModules(state, ["m-3"]);
+    const context = getContextForSelectedModules(state, [moduleId]);
 
     expect(context[0].content).toBe("Body-only text");
     expect(context[0].title).toBe("Note");
@@ -213,13 +219,15 @@ describe("getContextForSelectedModules", () => {
 
   it("returns empty title and content when config is missing", () => {
     const store = makeStore();
-    // m-3 exists on dashboard but has no config set
+    const moduleId = store.dispatch(
+      addModuleToDashboard({ dashboardId: BOARD_ID, type: "quote" })
+    );
     const state = store.getState();
-    const context = getContextForSelectedModules(state, ["m-3"]);
+    const context = getContextForSelectedModules(state, [moduleId]);
 
     expect(context).toHaveLength(1);
     expect(context[0]).toEqual({
-      moduleId: "m-3",
+      moduleId,
       type: "quote",
       title: "",
       content: "",
@@ -228,20 +236,23 @@ describe("getContextForSelectedModules", () => {
 
   it("returns empty title and content when config is non-object", () => {
     const store = makeStore();
+    const moduleId = store.dispatch(
+      addModuleToDashboard({ dashboardId: BOARD_ID, type: "quote" })
+    );
     const state = store.getState();
     const badState = {
       ...state,
       moduleConfigs: {
         ...state.moduleConfigs,
-        configs: { ...state.moduleConfigs.configs, "m-3": "not an object" },
+        configs: { ...state.moduleConfigs.configs, [moduleId]: "not an object" },
       },
     } as unknown as RootState;
 
-    const context = getContextForSelectedModules(badState, ["m-3"]);
+    const context = getContextForSelectedModules(badState, [moduleId]);
 
     expect(context).toHaveLength(1);
     expect(context[0]).toEqual({
-      moduleId: "m-3",
+      moduleId,
       type: "quote",
       title: "",
       content: "",
