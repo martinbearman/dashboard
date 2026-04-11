@@ -74,24 +74,20 @@ export default function LandingPage() {
                 Incognito
               </span> */}
               <div className="py-7">
-                <h1 className="text-2xl lg:text-3xl font-semibold text-slate-900">Create Dashboard</h1>
-                <p className="mt-2 text-sm text-slate-600">
-                  No account required. Session data persists in local storage.
-                </p>
+                <div className="mx-auto w-full max-w-md text-center lg:text-left">
+                  <h1 className="text-2xl font-semibold text-slate-900 lg:text-3xl">Create a Dashboard</h1>
+                  <p className="mt-2 text-sm text-slate-600">
+                    No account required. Session data persists in local storage.
+                  </p>
+                </div>
                 <Link
                   href="/dashboard"
-                  className="mt-6 flex w-full min-w-0 max-w-full items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 via-sky-600 to-slate-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition hover:from-sky-400 hover:via-sky-500 hover:to-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 sm:w-1/2"
+                  className="mt-6 flex w-full min-w-0 max-w-full items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 via-sky-600 to-slate-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition hover:from-sky-400 hover:via-sky-500 hover:to-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 sm:w-1/2 max-lg:mx-auto lg:mx-0"
                 >
                   Create new dashboard
                 </Link>
               </div>
             </div>
-            <p className="mt-6 text-sm text-slate-500">
-              New here?{" "}
-              <Link href="/guide" className="font-medium text-sky-700 underline-offset-4 hover:underline">
-                How to use the dashboard
-              </Link>
-            </p>
           </div>
         </section>
 
