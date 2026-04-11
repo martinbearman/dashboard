@@ -34,10 +34,10 @@ const modes: {
     activeOffset: "translate-x-[10px] -translate-y-[10px]",
   },
   {
-    id: "delete",
-    label: "D",
+    id: "remove",
+    label: "R",
     color: "bg-red-500",
-    title: "Delete",
+    title: "Remove",
     activeOffset: "-translate-x-[10px] translate-y-[10px]",
   },
   {
@@ -122,7 +122,7 @@ export default function MultiModeMenu() {
                 m.color,
                 m.id === "context" && "rounded-tl-xl",
                 m.id === "organise" && "rounded-tr-xl",
-                m.id === "delete" && "rounded-bl-xl",
+                m.id === "remove" && "rounded-bl-xl",
                 m.id === "stash" && "rounded-br-xl",
                 isActive
                   ? clsx(

@@ -7,6 +7,8 @@ import ModuleService from "@/lib/services/moduleService";
 import { getModuleByType } from "@/modules/registry";
 import type { MultiMenuMode } from "@/lib/store/slices/uiSlice";
 import { toggleModuleSelected } from "@/lib/store/slices/uiSlice";
+import { toastMessages } from "@/lib/strings/toastMessages";
+import { toast } from "sonner";
 
 export default function ModuleWrapper({
   children,
@@ -36,14 +38,14 @@ export default function ModuleWrapper({
   const hoverRingByMode: Record<Exclude<MultiMenuMode, null>, string> = {
     context: "hover:ring-4 hover:ring-green-500",
     organise: "hover:ring-4 hover:ring-yellow-400",
-    delete: "hover:ring-4 hover:ring-red-500",
+    remove: "hover:ring-4 hover:ring-red-500",
     stash: "hover:ring-4 hover:ring-blue-500",
   };
 
   const selectedRingByMode: Record<Exclude<MultiMenuMode, null>, string> = {
     context: "ring-4 ring-green-500",
     organise: "ring-4 ring-yellow-400",
-    delete: "ring-4 ring-red-500",
+    remove: "ring-4 ring-red-500",
     stash: "ring-4 ring-blue-500",
   };
 
@@ -56,8 +58,13 @@ export default function ModuleWrapper({
 
   const handleMultiModeInteraction = () => {
     if (!mode) return;
-    if (locked && mode === "delete") return;
-    if (mode === "delete") {
+    if (locked && mode === "remove") {
+      toast.warning(toastMessages.lockedRemove.directTitle(), {
+        description: toastMessages.lockedRemove.directDescription(moduleName),
+      });
+      return;
+    }
+    if (mode === "remove") {
       if (!activeDashboardId) return;
       ModuleService.removeModule(dispatch, () => store.getState(), activeDashboardId, moduleId);
       if (selectedModuleIds.includes(moduleId)) {

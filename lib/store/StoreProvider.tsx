@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { Provider } from "react-redux";
+import { Toaster } from "sonner";
 import { makeStore, AppStore } from "./store";
 import { loadState } from "./localStorage";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
@@ -55,5 +56,10 @@ export default function StoreProvider({
     return <DashboardSkeleton />;
   }
 
-  return <Provider store={getOrCreateClientStore()}>{children}</Provider>;
+  return (
+    <Provider store={getOrCreateClientStore()}>
+      {children}
+      <Toaster richColors position="bottom-center" />
+    </Provider>
+  );
 }
