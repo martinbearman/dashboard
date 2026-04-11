@@ -111,7 +111,7 @@ export default function Home() {
           compactType={multiMenuMode === "organise" ? "vertical" : null}
           draggableHandle=".module-drag-handle"
           draggableCancel=".module-actions-interactive"
-          preventCollision={false}
+          preventCollision={true}
           onLayoutChange={(layout, allLayouts) => handleLayoutChange(layout, allLayouts as Layouts)}
           onWidthChange={handleWidthChange}
         >
