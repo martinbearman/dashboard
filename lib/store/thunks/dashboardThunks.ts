@@ -307,7 +307,7 @@ export const executeMultiModeAction =
         // Delete each selected module using ModuleService
         console.log("Delete mode", selectedModuleIds);
         selectedModuleIds.forEach((moduleId) => {
-          ModuleService.removeModule(dispatch, dashboardId, moduleId);
+          ModuleService.removeModule(dispatch, getState, dashboardId, moduleId);
         });
         break;
 
