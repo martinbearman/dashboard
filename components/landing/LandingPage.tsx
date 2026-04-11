@@ -48,22 +48,6 @@ export default function LandingPage() {
               Support
             </span>
           </nav> */}
-          <div className="hidden items-center gap-3 md:flex md:gap-4">
-            {/* <Link href="/guide" className="text-sm font-medium text-slate-500 hover:text-slate-900">
-              How to use
-            </Link>
-            <span className="text-sm font-medium text-slate-500 cursor-not-allowed" title="Coming soon">
-              Sign in
-            </span> */}
-            <button
-              type="button"
-              disabled
-              className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white opacity-60 cursor-not-allowed"
-              title="Coming soon"
-            >
-              Get started
-            </button>
-          </div>
         </div>
       </header>
 
