@@ -48,7 +48,7 @@ export default function LandingPage() {
               Support
             </span>
           </nav> */}
-          <div className="flex items-center gap-3 md:gap-4">
+          <div className="hidden items-center gap-3 md:flex md:gap-4">
             {/* <Link href="/guide" className="text-sm font-medium text-slate-500 hover:text-slate-900">
               How to use
             </Link>
@@ -72,7 +72,7 @@ export default function LandingPage() {
         {/* Left: hero + anonymous card */}
         <section
           id="product"
-          className="relative flex flex-col justify-center px-5 py-12 sm:px-6 sm:py-14 lg:flex-1 lg:min-w-0 lg:px-8 lg:py-16"
+          className="relative flex flex-col justify-center px-0 pb-0 pt-12 sm:px-6 sm:py-14 lg:flex-1 lg:min-w-0 lg:px-8 lg:py-16"
         >
           {/* <div className="max-w-xl space-y-6">
             <h1 className="text-4xl font-bold tracking-tight text-slate-800 md:text-5xl lg:text-[2.75rem] lg:leading-tight">
@@ -96,7 +96,7 @@ export default function LandingPage() {
                 </p>
                 <Link
                   href="/dashboard"
-                  className="mt-6 flex w-1/2 min-w-0 max-w-full items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 via-sky-600 to-slate-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition hover:from-sky-400 hover:via-sky-500 hover:to-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2"
+                  className="mt-6 flex w-full min-w-0 max-w-full items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 via-sky-600 to-slate-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition hover:from-sky-400 hover:via-sky-500 hover:to-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 sm:w-1/2"
                 >
                   Create new dashboard
                 </Link>
@@ -112,7 +112,7 @@ export default function LandingPage() {
         </section>
 
         {/* Right: auth — UI placeholder until auth is implemented */}
-        <section className="flex flex-1 flex-col justify-center bg-white/90 py-12 backdrop-blur-sm lg:min-w-0 lg:py-14">
+        <section className="flex flex-1 flex-col justify-center py-12 lg:min-w-0 lg:bg-white/90 lg:py-14 lg:backdrop-blur-sm">
           <div className="mx-auto w-full max-w-md">
             <div
               role="region"
