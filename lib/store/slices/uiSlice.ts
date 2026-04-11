@@ -9,7 +9,7 @@ export interface GridContainerParams {
   containerPadding: [number, number] | null;
 }
 
-export type MultiMenuMode = "context" | "organise" | "delete" | "stash" | null;
+export type MultiMenuMode = "context" | "organise" | "remove" | "stash" | null;
 
 /** Search results slide-out panel: query, results list, and selected ids for "Add selected". */
 export interface SearchResultsPanelState {
@@ -23,9 +23,9 @@ export interface UiState {
   moduleConfigPanel: { moduleId: string } | null;
   /** Latest grid container params from ResponsiveGridLayout onWidthChange */
   gridContainerParams: GridContainerParams | null;
-  /** Current multi-mode menu selection (C/O/D/S) */
+  /** Current multi-mode menu selection (C/O/R/S) */
   multiMenuMode: MultiMenuMode;
-  /** Modules currently selected for multi-actions (context/delete/stash/organise) */
+  /** Modules currently selected for multi-actions (context/remove/stash/organise) */
   selectedModuleIds: string[];
   /** Off-canvas search results panel (images now; later text, etc.) */
   searchResultsPanel: SearchResultsPanelState;

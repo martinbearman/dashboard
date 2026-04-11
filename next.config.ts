@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["images.unsplash.com"],
   },
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.properties$/,
+      type: "asset/source",
+    });
+    return config;
+  },
 };
 
 export default nextConfig;

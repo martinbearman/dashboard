@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type MouseEvent } from "react";
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import { useClickOutside } from "@/lib/hooks/useClickOutside";
 import { getModuleByType } from "@/modules/registry";
 import ModuleService from "@/lib/services/moduleService";
@@ -17,6 +17,7 @@ type ModuleActionsMenuProps = {
 export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useAppDispatch();
+  const store = useAppStore();
   // Track the dashboard so removal can target the proper slice entry.
   const { activeDashboardId, dashboards } = useAppSelector((state) => state.dashboards);
   
@@ -89,7 +90,7 @@ export function ModuleActionsMenu({ moduleId, locked, moduleName }: ModuleAction
     }
 
     // Use ModuleService to coordinate removal of both module instance and config
-    ModuleService.removeModule(dispatch, activeDashboardId, moduleId);
+    ModuleService.removeModule(dispatch, () => store.getState(), activeDashboardId, moduleId);
   };
 
   return (

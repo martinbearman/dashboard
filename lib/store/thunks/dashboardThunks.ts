@@ -12,6 +12,8 @@ import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
 import type { MultiMenuMode } from "../slices/uiSlice";
 import { setMultiMenuMode, clearSelectedModules, clearSearchResultSelection } from "../slices/uiSlice";
 import ModuleService from "@/lib/services/moduleService";
+import { toastMessages } from "@/lib/strings/toastMessages";
+import { toast } from "sonner";
 
 /**
  * Builds a single query/context string from selected-module context items.
@@ -303,13 +305,23 @@ export const executeMultiModeAction =
 
     // Execute action based on mode
     switch (mode) {
-      case "delete":
-        // Delete each selected module using ModuleService
-        console.log("Delete mode", selectedModuleIds);
+      case "remove": {
+        const lockedIds = selectedModuleIds.filter(
+          (id) => state.moduleConfigs.configs[id]?.locked
+        );
+        if (lockedIds.length > 0) {
+          toast.warning(
+            lockedIds.length === 1
+              ? toastMessages.lockedRemove.batchTitleOne()
+              : toastMessages.lockedRemove.batchTitleMany(lockedIds.length),
+            { description: toastMessages.lockedRemove.batchDescription() }
+          );
+        }
         selectedModuleIds.forEach((moduleId) => {
-          ModuleService.removeModule(dispatch, dashboardId, moduleId);
+          ModuleService.removeModule(dispatch, getState, dashboardId, moduleId);
         });
         break;
+      }
 
       case "stash":
         // TODO: Implement stash functionality

@@ -25,7 +25,7 @@ const TimerModule: DashboardModule = {
   type: "Timer",
   displayName: "Timer",
   description: "Pomodoro-style timer for focused work sessions",
-  defaultGridSize: { w: 4, h: 4 },
+  defaultGridSize: { w: 2, h: 4 },
   minGridSize: { w: 2, h: 4 },
   maxGridSize: { w: 6, h: 6 },
   component: TimerModuleComponent,
