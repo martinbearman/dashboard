@@ -3,6 +3,7 @@
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import DashboardTabs from "@/components/layout/DashboardTabs";
 import LLMPromptBar from "@/components/layout/LLMPromptBar";
@@ -20,17 +21,37 @@ import {
 } from "@/lib/store/slices/dashboardsSlice";
 import { setGridContainerParams } from "@/lib/store/slices/uiSlice";
 import { GRID_LAYOUT_CONFIG } from "@/lib/constants/grid";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { WidthProvider, Responsive, type Layout, type Layouts } from "react-grid-layout";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 export default function DashboardPage() {
+  const [username, setUsername] = useState<string>("");
   // Read the active dashboard and all dashboards from Redux
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
   const moduleConfigs = useAppSelector((s) => s.moduleConfigs.configs);
   const multiMenuMode = useAppSelector((s) => s.ui.multiMenuMode);
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+        const fullName = user.user_metadata?.full_name;
+        setUsername(typeof fullName === "string" && fullName.trim() ? fullName : user.email ?? "");
+      } catch {
+        setUsername("");
+      }
+    }
+
+    void loadUser();
+  }, []);
 
   // react-grid-layout expects a layout array for every breakpoint; start with empty defaults
   const defaultLayouts: Layouts = { lg: [], md: [], sm: [], xs: [], xxs: [] };
@@ -94,6 +115,11 @@ export default function DashboardPage() {
     );
   }
 
+  async function handleLogout() {
+    const supabase = getSupabaseBrowserClient();
+    await supabase.auth.signOut();
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b to-blue-100 from-slate-600">
       <div className="relative sticky top-0 z-10 pt-2 pb-2 space-y-3">
@@ -118,6 +144,13 @@ export default function DashboardPage() {
             />
           </svg>
         </Link>
+        <div className="pl-16 pt-1 text-xs text-slate-100">
+          Logged in as{" "}
+          <span className="font-semibold text-white">{username || "User"}</span>{" "}
+          <Link href="/" onClick={handleLogout} className="underline hover:text-white">
+            Logout
+          </Link>
+        </div>
         <DashboardTabs />
         <LLMPromptBar />
       </div>
