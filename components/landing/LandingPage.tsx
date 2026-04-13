@@ -95,7 +95,7 @@ export default function LandingPage() {
               <div className="space-y-5">
                 <GoogleSignInButton />
 
-                <div className="pointer-events-none select-none">
+                <div className="pointer-events-none select-none hidden">
                   <div className="relative py-1">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-slate-200" />

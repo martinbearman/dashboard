@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function GoogleMark() {
@@ -29,6 +29,20 @@ function GoogleMark() {
 export default function GoogleSignInButton() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [userLabel, setUserLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+
+    async function readCurrentUser() {
+      const { data } = await supabase.auth.getUser();
+      const user = data.user;
+      const label = user?.email ?? user?.user_metadata?.full_name ?? null;
+      setUserLabel(label);
+    }
+
+    void readCurrentUser();
+  }, []);
 
   async function handleGoogle() {
     setMessage(null);
@@ -66,7 +80,16 @@ export default function GoogleSignInButton() {
         className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-80"
       >
         <GoogleMark />
-        {loading ? "Redirecting…" : "Continue with Google"}
+        {loading ? (
+          "Redirecting…"
+        ) : userLabel ? (
+          <span className="flex min-w-0 items-center gap-1">
+            <span>Logged in as</span>
+            <span className="max-w-[8ch] truncate">{userLabel}</span>
+          </span>
+        ) : (
+          "Continue with Google"
+        )}
       </button>
       {message ? <p className="text-center text-sm text-red-600">{message}</p> : null}
     </div>
