@@ -3,6 +3,7 @@
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import DashboardTabs from "@/components/layout/DashboardTabs";
 import LLMPromptBar from "@/components/layout/LLMPromptBar";
@@ -20,17 +21,44 @@ import {
 } from "@/lib/store/slices/dashboardsSlice";
 import { setGridContainerParams } from "@/lib/store/slices/uiSlice";
 import { GRID_LAYOUT_CONFIG } from "@/lib/constants/grid";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { WidthProvider, Responsive, type Layout, type Layouts } from "react-grid-layout";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 export default function DashboardPage() {
+  const [username, setUsername] = useState<string>("");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   // Read the active dashboard and all dashboards from Redux
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
   const moduleConfigs = useAppSelector((s) => s.moduleConfigs.configs);
   const multiMenuMode = useAppSelector((s) => s.ui.multiMenuMode);
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setUsername("");
+          setIsAuthenticated(false);
+          return;
+        }
+        const fullName = user.user_metadata?.full_name;
+        setUsername(typeof fullName === "string" && fullName.trim() ? fullName : user.email ?? "");
+        setIsAuthenticated(true);
+      } catch {
+        setUsername("");
+        setIsAuthenticated(false);
+      }
+    }
+
+    void loadUser();
+  }, []);
 
   // react-grid-layout expects a layout array for every breakpoint; start with empty defaults
   const defaultLayouts: Layouts = { lg: [], md: [], sm: [], xs: [], xxs: [] };
@@ -94,30 +122,47 @@ export default function DashboardPage() {
     );
   }
 
+  async function handleLogout() {
+    const supabase = getSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    setIsAuthenticated(false);
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b to-blue-100 from-slate-600">
       <div className="relative sticky top-0 z-10 pt-2 pb-2 space-y-3">
-        <Link
-          href="/"
-          className="absolute left-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/40 bg-white/40 text-slate-800 shadow-md backdrop-blur transition hover:bg-white/60 hover:text-slate-900"
-          aria-label="Back to home"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-5 w-5"
-            aria-hidden
+        <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
+          <Link
+            href="/"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/40 bg-white/40 text-slate-800 shadow-md backdrop-blur transition hover:bg-white/60 hover:text-slate-900"
+            aria-label="Back to home"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-            />
-          </svg>
-        </Link>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-5 w-5"
+              aria-hidden
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+              />
+            </svg>
+          </Link>
+          {isAuthenticated ? (
+            <div className="inline-flex items-center gap-1 text-xs leading-none text-slate-100">
+              <span>Logged in as</span>
+              <span className="font-semibold text-white">{username || "User"}</span>
+              <Link href="/" onClick={handleLogout} className="underline hover:text-white">
+                Logout
+              </Link>
+            </div>
+          ) : null}
+        </div>
         <DashboardTabs />
         <LLMPromptBar />
       </div>
