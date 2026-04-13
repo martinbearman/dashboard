@@ -3,13 +3,18 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Provider } from "react-redux";
 import { Toaster } from "sonner";
-import { makeStore, type AppStore } from "./store";
+import { makeStore, type AppStore, type RootState } from "./store";
 import { loadState } from "./localStorage";
 import { loadStateFromSupabase } from "./remoteState";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
+import {
+  PersistenceContextProvider,
+  type InitialDataSource,
+} from "./persistenceContext";
 
-let clientStore: AppStore | undefined;
+type ClientStoreBundle = { store: AppStore; initialDataSource: InitialDataSource };
+let clientBundle: ClientStoreBundle | undefined;
 
 function subscribe(_onStoreChange: () => void) {
   return () => {};
@@ -23,10 +28,10 @@ function getServerSnapshot() {
 
 export default function StoreProvider({ children }: { children: React.ReactNode }) {
   const isClient = useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot);
-  const [store, setStore] = useState<AppStore | null>(clientStore ?? null);
+  const [bundle, setBundle] = useState<ClientStoreBundle | null>(() => clientBundle ?? null);
 
   useEffect(() => {
-    if (!isClient || store) return;
+    if (!isClient || bundle) return;
 
     let cancelled = false;
 
@@ -39,18 +44,37 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
           data: { user },
         } = await supabase.auth.getUser();
 
-        const preloaded = user
-          ? (await loadStateFromSupabase(supabase, user.id)) ?? local
-          : local;
+        let initialDataSource: InitialDataSource;
+        let preloaded: Partial<RootState> | undefined;
+
+        if (!user) {
+          preloaded = local;
+          initialDataSource = local ? "local" : "empty";
+        } else {
+          const remote = await loadStateFromSupabase(supabase, user.id);
+          preloaded = remote.state ?? local;
+          const usedCloud = remote.rowFound && remote.state != null;
+          if (usedCloud) {
+            initialDataSource = "cloud";
+          } else {
+            initialDataSource = local ? "local" : "empty";
+          }
+        }
 
         const nextStore = makeStore(preloaded);
-        clientStore = nextStore;
-        if (!cancelled) setStore(nextStore);
+        const nextBundle = { store: nextStore, initialDataSource };
+        clientBundle = nextBundle;
+        if (!cancelled) setBundle(nextBundle);
       } catch (error) {
         console.error("Failed to initialize store:", error);
-        const fallback = makeStore(loadState() || undefined);
-        clientStore = fallback;
-        if (!cancelled) setStore(fallback);
+        const localFallback = loadState() || undefined;
+        const fallbackStore = makeStore(localFallback);
+        const nextBundle: ClientStoreBundle = {
+          store: fallbackStore,
+          initialDataSource: localFallback ? "local" : "empty",
+        };
+        clientBundle = nextBundle;
+        if (!cancelled) setBundle(nextBundle);
       }
     }
 
@@ -58,14 +82,16 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     return () => {
       cancelled = true;
     };
-  }, [isClient, store]);
+  }, [isClient, bundle]);
 
-  if (!isClient || !store) return <DashboardSkeleton />;
+  if (!isClient || !bundle) return <DashboardSkeleton />;
 
   return (
-    <Provider store={store}>
-      {children}
-      <Toaster richColors position="bottom-center" />
-    </Provider>
+    <PersistenceContextProvider initialDataSource={bundle.initialDataSource}>
+      <Provider store={bundle.store}>
+        {children}
+        <Toaster richColors position="bottom-center" />
+      </Provider>
+    </PersistenceContextProvider>
   );
 }

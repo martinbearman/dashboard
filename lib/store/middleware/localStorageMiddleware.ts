@@ -17,9 +17,7 @@ export const localStorageMiddleware: Middleware<{}, RootState> =
     saveTimeoutID = setTimeout(() => {
       saveState(state);
     }, DEBOUNCE_TIME);
-    
-    (state);
-    saveState
+
     return result;
   };
 

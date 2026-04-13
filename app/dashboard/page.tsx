@@ -9,6 +9,7 @@ import DashboardTabs from "@/components/layout/DashboardTabs";
 import LLMPromptBar from "@/components/layout/LLMPromptBar";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
+import PersistenceStatus from "@/components/layout/PersistenceStatus";
 import ConfigSheet from "@/components/ui/ConfigSheet";
 import SearchResultsPanel from "@/components/layout/SearchResultsPanel";
 import SearchResultsTab from "@/components/layout/SearchResultsTab";
@@ -201,6 +202,9 @@ export default function DashboardPage() {
       <MultiModeMenu />
       <AddModuleButton />
       
+      {/* Local vs cloud persistence (and dev source hint) */}
+      <PersistenceStatus />
+
       {/* Version display */}
       <AppVersion />
 

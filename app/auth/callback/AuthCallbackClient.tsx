@@ -1,6 +1,7 @@
 "use client";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { setLastCloudSyncTimestamp } from "@/lib/store/persistenceMeta";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -25,13 +26,16 @@ async function syncLocalStateToSupabase(supabase: SupabaseClient, userId: string
 
   try {
     const parsed = JSON.parse(raw);
+    const updatedAt = new Date().toISOString();
     const { error } = await supabase.from("user_dashboard_state").upsert({
       user_id: userId,
       state: parsed,
-      updated_at: new Date().toISOString(),
+      updated_at: updatedAt,
     });
     if (error) {
       console.warn("Failed syncing local dashboard state to Supabase:", error.message);
+    } else {
+      setLastCloudSyncTimestamp(updatedAt);
     }
   } catch (error) {
     console.warn("Skipping dashboard sync because localStorage state is invalid JSON:", error);
