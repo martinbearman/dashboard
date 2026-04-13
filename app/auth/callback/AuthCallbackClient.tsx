@@ -1,8 +1,14 @@
 "use client";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+const DASHBOARD_LOCAL_STORAGE_KEY = "dashboard-state";
+const MISSING_AUTH_CODE_MESSAGE =
+  "Missing authorization code. Check the browser address bar: you should see ?code= after redirect. " +
+  "Confirm Supabase Redirect URLs include this exact origin and /auth/callback.";
 
 function parseOAuthParams() {
   if (typeof window === "undefined") {
@@ -11,6 +17,25 @@ function parseOAuthParams() {
   const url = new URL(window.location.href);
   const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
   return { search: url.searchParams, hash: hashParams };
+}
+
+async function syncLocalStateToSupabase(supabase: SupabaseClient, userId: string) {
+  const raw = localStorage.getItem(DASHBOARD_LOCAL_STORAGE_KEY);
+  if (!raw) return;
+
+  try {
+    const parsed = JSON.parse(raw);
+    const { error } = await supabase.from("user_dashboard_state").upsert({
+      user_id: userId,
+      state: parsed,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) {
+      console.warn("Failed syncing local dashboard state to Supabase:", error.message);
+    }
+  } catch (error) {
+    console.warn("Skipping dashboard sync because localStorage state is invalid JSON:", error);
+  }
 }
 
 export default function AuthCallbackClient() {
@@ -22,7 +47,7 @@ export default function AuthCallbackClient() {
       return "Creating your dashboard...";
     }
     try {
-      return localStorage.getItem("dashboard-state")
+      return localStorage.getItem(DASHBOARD_LOCAL_STORAGE_KEY)
         ? "Generating your dashboard..."
         : "Creating your dashboard...";
     } catch {
@@ -41,22 +66,35 @@ export default function AuthCallbackClient() {
 
     async function finish() {
       const supabase = getSupabaseBrowserClient();
+      const fail = (message: string) => {
+        setStatus("error");
+        setDetail(message);
+      };
+      const getCurrentSession = async () => {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        return session;
+      };
+      const completeSignIn = async (userId: string) => {
+        await syncLocalStateToSupabase(supabase, userId);
+        if (!cancelled) {
+          router.replace("/dashboard");
+        }
+      };
 
       // Let the client consume PKCE / URL auth params (more reliable than useSearchParams alone).
       const { error: initError } = await supabase.auth.initialize();
       if (cancelled) return;
       if (initError) {
-        setStatus("error");
-        setDetail(initError.message);
+        fail(initError.message);
         return;
       }
 
-      const {
-        data: { session: afterInit },
-      } = await supabase.auth.getSession();
+      const afterInit = await getCurrentSession();
       if (cancelled) return;
       if (afterInit) {
-        router.replace("/dashboard");
+        await completeSignIn(afterInit.user.id);
         return;
       }
 
@@ -65,8 +103,7 @@ export default function AuthCallbackClient() {
       const oauthError = search.get("error") ?? hash.get("error");
       const oauthDescription = search.get("error_description") ?? hash.get("error_description");
       if (oauthError) {
-        setStatus("error");
-        setDetail(oauthDescription ?? oauthError);
+        fail(oauthDescription ?? oauthError);
         return;
       }
 
@@ -75,22 +112,23 @@ export default function AuthCallbackClient() {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (cancelled) return;
         if (error) {
-          setStatus("error");
-          setDetail(error.message);
+          fail(error.message);
           return;
         }
-        router.replace("/dashboard");
-        return;
+        const afterExchange = await getCurrentSession();
+        if (cancelled) return;
+        if (afterExchange) {
+          await completeSignIn(afterExchange.user.id);
+          return;
+        }
       }
 
       // Implicit-style tokens in hash (older / alternate flows)
       if (hash.get("access_token")) {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const session = await getCurrentSession();
         if (cancelled) return;
         if (session) {
-          router.replace("/dashboard");
+          await completeSignIn(session.user.id);
           return;
         }
       }
@@ -105,11 +143,7 @@ export default function AuthCallbackClient() {
         });
       }
 
-      setStatus("error");
-      setDetail(
-        "Missing authorization code. Check the browser address bar: you should see ?code= after redirect. " +
-          "Confirm Supabase Redirect URLs include this exact origin and /auth/callback.",
-      );
+      fail(MISSING_AUTH_CODE_MESSAGE);
     }
 
     void finish();
