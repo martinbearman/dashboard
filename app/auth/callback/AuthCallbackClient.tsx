@@ -17,8 +17,26 @@ export default function AuthCallbackClient() {
   const router = useRouter();
   const [status, setStatus] = useState<"working" | "error">("working");
   const [detail, setDetail] = useState<string | null>(null);
+  const [dashboardLoadingCopy] = useState(() => {
+    if (typeof window === "undefined") {
+      return "Creating your dashboard...";
+    }
+    try {
+      return localStorage.getItem("dashboard-state")
+        ? "Generating your dashboard..."
+        : "Creating your dashboard...";
+    } catch {
+      return "Creating your dashboard...";
+    }
+  });
+  const isPreviewMode =
+    process.env.NODE_ENV === "development" &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("preview") === "1";
 
   useEffect(() => {
+    if (isPreviewMode) return;
+
     let cancelled = false;
 
     async function finish() {
@@ -98,7 +116,7 @@ export default function AuthCallbackClient() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [isPreviewMode, router]);
 
   if (status === "error") {
     return (
@@ -117,8 +135,12 @@ export default function AuthCallbackClient() {
   }
 
   return (
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2 px-4 text-slate-600">
-      <p className="text-sm">Finishing sign-in…</p>
-    </div>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-slate-600 to-blue-100 px-4 text-center">
+      <p className="text-sm font-medium text-slate-100">{dashboardLoadingCopy}</p>
+      <div
+        className="mt-3 h-6 w-6 animate-spin rounded-full border-2 border-slate-200/70 border-t-transparent"
+        aria-label="Loading"
+      />
+    </main>
   );
 }
