@@ -28,6 +28,7 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 
 export default function DashboardPage() {
   const [username, setUsername] = useState<string>("");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   // Read the active dashboard and all dashboards from Redux
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
@@ -42,11 +43,17 @@ export default function DashboardPage() {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          setUsername("");
+          setIsAuthenticated(false);
+          return;
+        }
         const fullName = user.user_metadata?.full_name;
         setUsername(typeof fullName === "string" && fullName.trim() ? fullName : user.email ?? "");
+        setIsAuthenticated(true);
       } catch {
         setUsername("");
+        setIsAuthenticated(false);
       }
     }
 
@@ -118,6 +125,7 @@ export default function DashboardPage() {
   async function handleLogout() {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
+    setIsAuthenticated(false);
   }
 
   return (
@@ -145,13 +153,15 @@ export default function DashboardPage() {
               />
             </svg>
           </Link>
-          <div className="inline-flex items-center gap-1 text-xs leading-none text-slate-100">
-            <span>Logged in as</span>
-            <span className="font-semibold text-white">{username || "User"}</span>
-            <Link href="/" onClick={handleLogout} className="underline hover:text-white">
-              Logout
-            </Link>
-          </div>
+          {isAuthenticated ? (
+            <div className="inline-flex items-center gap-1 text-xs leading-none text-slate-100">
+              <span>Logged in as</span>
+              <span className="font-semibold text-white">{username || "User"}</span>
+              <Link href="/" onClick={handleLogout} className="underline hover:text-white">
+                Logout
+              </Link>
+            </div>
+          ) : null}
         </div>
         <DashboardTabs />
         <LLMPromptBar />
