@@ -64,11 +64,9 @@ export default function LLMPromptBar() {
     const state = store.getState();
     const context = getContextForSelectedModules(state, selectedModuleIds);
 
-    // Build context string from all selected modules (for general search/LLM use)
-    const contextSearchPart = buildQueryFromModuleContext(context);
-    // Image-only context for Unsplash; other APIs can use buildQueryFromModuleContext(context, { types: ["…"] })
+    // Image-only context for Unsplash to avoid duplicating terms from mixed context.
     const imageSearchPart = buildQueryFromModuleContext(context, { types: ["image"] });
-    const combined = [prompt, contextSearchPart, imageSearchPart].filter(Boolean).join(" ");
+    const combined = [prompt, imageSearchPart].filter(Boolean).join(" ");
     const searchQuery = combined || "images";
 
     console.log("searchQuery", searchQuery);
