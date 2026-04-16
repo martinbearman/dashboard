@@ -67,15 +67,27 @@ type StoreLike = {
   subscribe: (listener: () => void) => () => void;
 };
 
+type DebouncedCloudSyncOptions = {
+  failureThreshold?: number;
+  failureCooldownMs?: number;
+  onRepeatedFailures?: (failureCount: number) => void;
+};
+
 export function startDebouncedCloudSync(
   store: StoreLike,
   supabase: SupabaseClient,
-  userId: string
-): () => void {
+  userId: string,
+  options?: DebouncedCloudSyncOptions
+): { stop: () => void; flushNow: () => Promise<void> } {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let lastSyncedSerialized = JSON.stringify(store.getState());
   let syncInFlight = false;
   let needsResync = false;
+  let consecutiveFailures = 0;
+  let lastFailureNoticeAt = 0;
+
+  const failureThreshold = options?.failureThreshold ?? 3;
+  const failureCooldownMs = options?.failureCooldownMs ?? 60000;
 
   const clearTimer = () => {
     if (timeoutId !== null) {
@@ -101,6 +113,17 @@ export function startDebouncedCloudSync(
 
     if (success) {
       lastSyncedSerialized = serialized;
+      consecutiveFailures = 0;
+    } else {
+      consecutiveFailures += 1;
+      const now = Date.now();
+      if (
+        consecutiveFailures >= failureThreshold &&
+        now - lastFailureNoticeAt >= failureCooldownMs
+      ) {
+        lastFailureNoticeAt = now;
+        options?.onRepeatedFailures?.(consecutiveFailures);
+      }
     }
     if (needsResync) {
       needsResync = false;
@@ -118,8 +141,15 @@ export function startDebouncedCloudSync(
     }, CLOUD_SYNC_DEBOUNCE_MS);
   });
 
-  return () => {
+  const stop = () => {
     clearTimer();
     unsubscribe();
   };
+
+  const flushNow = async () => {
+    clearTimer();
+    await flush();
+  };
+
+  return { stop, flushNow };
 }

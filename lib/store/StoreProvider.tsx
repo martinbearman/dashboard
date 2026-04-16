@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Provider } from "react-redux";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import { makeStore, type AppStore } from "./store";
 import { loadState } from "./localStorage";
 import { loadStateFromSupabase, startDebouncedCloudSync } from "./remoteState";
@@ -10,7 +10,33 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
 
 let clientStore: AppStore | undefined;
-let cloudSyncTeardown: (() => void) | null = null;
+let cloudSyncController: { stop: () => void; flushNow: () => Promise<void> } | null = null;
+let currentCloudSyncUserId: string | null = null;
+
+function stopCloudSync() {
+  cloudSyncController?.stop();
+  cloudSyncController = null;
+  currentCloudSyncUserId = null;
+}
+
+function startCloudSyncForUser(userId: string, store: AppStore) {
+  const supabase = getSupabaseBrowserClient();
+  if (currentCloudSyncUserId === userId && cloudSyncController) {
+    return;
+  }
+  stopCloudSync();
+  cloudSyncController = startDebouncedCloudSync(store, supabase, userId, {
+    failureThreshold: 3,
+    failureCooldownMs: 60000,
+    onRepeatedFailures: () => {
+      toast.error("Cloud sync is failing", {
+        description:
+          "Changes are still saved locally. We will keep retrying cloud sync in the background.",
+      });
+    },
+  });
+  currentCloudSyncUserId = userId;
+}
 
 function subscribe(_onStoreChange: () => void) {
   return () => {};
@@ -45,17 +71,16 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
           : local;
 
         const nextStore = makeStore(preloaded);
-        cloudSyncTeardown?.();
-        cloudSyncTeardown = null;
         if (user) {
-          cloudSyncTeardown = startDebouncedCloudSync(nextStore, supabase, user.id);
+          startCloudSyncForUser(user.id, nextStore);
+        } else {
+          stopCloudSync();
         }
         clientStore = nextStore;
         if (!cancelled) setStore(nextStore);
       } catch (error) {
         console.error("Failed to initialize store:", error);
-        cloudSyncTeardown?.();
-        cloudSyncTeardown = null;
+        stopCloudSync();
         const fallback = makeStore(loadState() || undefined);
         clientStore = fallback;
         if (!cancelled) setStore(fallback);
@@ -65,6 +90,48 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     void initStore();
     return () => {
       cancelled = true;
+    };
+  }, [isClient, store]);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    const flushCloudState = () => {
+      void cloudSyncController?.flushNow();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushCloudState();
+      }
+    };
+
+    window.addEventListener("pagehide", flushCloudState);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("pagehide", flushCloudState);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isClient]);
+
+  useEffect(() => {
+    if (!isClient || !store) return;
+
+    const supabase = getSupabaseBrowserClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const userId = session?.user?.id ?? null;
+      if (userId) {
+        startCloudSyncForUser(userId, store);
+      } else {
+        stopCloudSync();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
   }, [isClient, store]);
 
