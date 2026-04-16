@@ -4,6 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useRef, useEffect, useState } from "react";
 import TodoCard from "./TodoCard";
+import { DRAG_HEIGHT_RESET_DELAY_MS } from "@/lib/constants/ui";
 import type { Todo, TodoLinkType } from "@/lib/store/slices/todoSlice";
 
 export interface SortableTodoCardProps {
@@ -65,7 +66,7 @@ export default function SortableTodoCard({
       setFixedHeight(height);
     } else if (!isDragging) {
       // Clear fixed height after drag ends (with delay to allow transition)
-      const timer = setTimeout(() => setFixedHeight(null), 300);
+      const timer = setTimeout(() => setFixedHeight(null), DRAG_HEIGHT_RESET_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [isDragging]);

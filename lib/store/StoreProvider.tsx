@@ -5,11 +5,12 @@ import { Provider } from "react-redux";
 import { Toaster } from "sonner";
 import { makeStore, type AppStore } from "./store";
 import { loadState } from "./localStorage";
-import { loadStateFromSupabase } from "./remoteState";
+import { loadStateFromSupabase, startDebouncedCloudSync } from "./remoteState";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
 
 let clientStore: AppStore | undefined;
+let cloudSyncTeardown: (() => void) | null = null;
 
 function subscribe(_onStoreChange: () => void) {
   return () => {};
@@ -44,10 +45,17 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
           : local;
 
         const nextStore = makeStore(preloaded);
+        cloudSyncTeardown?.();
+        cloudSyncTeardown = null;
+        if (user) {
+          cloudSyncTeardown = startDebouncedCloudSync(nextStore, supabase, user.id);
+        }
         clientStore = nextStore;
         if (!cancelled) setStore(nextStore);
       } catch (error) {
         console.error("Failed to initialize store:", error);
+        cloudSyncTeardown?.();
+        cloudSyncTeardown = null;
         const fallback = makeStore(loadState() || undefined);
         clientStore = fallback;
         if (!cancelled) setStore(fallback);

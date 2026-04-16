@@ -1,11 +1,10 @@
 "use client";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { DASHBOARD_LOCAL_STORAGE_KEY } from "@/lib/constants/store";
 import { syncLocalStateToSupabase } from "@/lib/store/remoteState";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const DASHBOARD_LOCAL_STORAGE_KEY = "dashboard-state";
 const MISSING_AUTH_CODE_MESSAGE =
   "Missing authorization code. Check the browser address bar: you should see ?code= after redirect. " +
   "Confirm Supabase Redirect URLs include this exact origin and /auth/callback.";

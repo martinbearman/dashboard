@@ -4,6 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useRef, useEffect, useState } from "react";
 import BlockContent from "./BlockContent";
+import { DRAG_HEIGHT_RESET_DELAY_MS } from "@/lib/constants/ui";
 import type { DocumentBlock } from "@/lib/types/document";
 
 interface SortableDocumentBlockProps {
@@ -39,7 +40,7 @@ export default function SortableDocumentBlock({
     if (isDragging && containerRef.current) {
       setFixedHeight(containerRef.current.offsetHeight);
     } else if (!isDragging) {
-      const t = setTimeout(() => setFixedHeight(null), 300);
+      const t = setTimeout(() => setFixedHeight(null), DRAG_HEIGHT_RESET_DELAY_MS);
       return () => clearTimeout(t);
     }
   }, [isDragging]);
