@@ -34,6 +34,11 @@ function startCloudSyncForUser(userId: string, store: AppStore) {
           "Changes are still saved locally. We will keep retrying cloud sync in the background.",
       });
     },
+    onStatusChange: (status) => {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("dashboard-cloud-sync-status", { detail: status }));
+      }
+    },
   });
   currentCloudSyncUserId = userId;
 }
@@ -51,6 +56,8 @@ function getServerSnapshot() {
 export default function StoreProvider({ children }: { children: React.ReactNode }) {
   const isClient = useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot);
   const [store, setStore] = useState<AppStore | null>(clientStore ?? null);
+  const [isCloudSyncEnabled, setIsCloudSyncEnabled] = useState(false);
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<"pending" | "synced" | "error">("synced");
 
   useEffect(() => {
     if (!isClient || store) return;
@@ -73,14 +80,20 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
         const nextStore = makeStore(preloaded);
         if (user) {
           startCloudSyncForUser(user.id, nextStore);
+          setIsCloudSyncEnabled(true);
+          setCloudSyncStatus("synced");
         } else {
           stopCloudSync();
+          setIsCloudSyncEnabled(false);
+          setCloudSyncStatus("synced");
         }
         clientStore = nextStore;
         if (!cancelled) setStore(nextStore);
       } catch (error) {
         console.error("Failed to initialize store:", error);
         stopCloudSync();
+        setIsCloudSyncEnabled(false);
+        setCloudSyncStatus("synced");
         const fallback = makeStore(loadState() || undefined);
         clientStore = fallback;
         if (!cancelled) setStore(fallback);
@@ -96,6 +109,13 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (!isClient) return;
 
+    const handleCloudSyncStatus = (event: Event) => {
+      const detail = (event as CustomEvent<"pending" | "synced" | "error">).detail;
+      if (detail) {
+        setCloudSyncStatus(detail);
+      }
+    };
+
     const flushCloudState = () => {
       void cloudSyncController?.flushNow();
     };
@@ -107,10 +127,12 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
     };
 
     window.addEventListener("pagehide", flushCloudState);
+    window.addEventListener("dashboard-cloud-sync-status", handleCloudSyncStatus as EventListener);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener("pagehide", flushCloudState);
+      window.removeEventListener("dashboard-cloud-sync-status", handleCloudSyncStatus as EventListener);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [isClient]);
@@ -125,8 +147,12 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
       const userId = session?.user?.id ?? null;
       if (userId) {
         startCloudSyncForUser(userId, store);
+        setIsCloudSyncEnabled(true);
+        setCloudSyncStatus("synced");
       } else {
         stopCloudSync();
+        setIsCloudSyncEnabled(false);
+        setCloudSyncStatus("synced");
       }
     });
 
@@ -136,6 +162,21 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
   }, [isClient, store]);
 
   if (!isClient || !store) return <DashboardSkeleton />;
+
+  const statusText = !isCloudSyncEnabled
+    ? "Saved locally"
+    : cloudSyncStatus === "pending"
+      ? "Syncing..."
+      : cloudSyncStatus === "error"
+        ? "Saved locally"
+        : "Saved";
+  const statusDotClass = !isCloudSyncEnabled
+    ? "bg-slate-400"
+    : cloudSyncStatus === "pending"
+      ? "bg-amber-400"
+      : cloudSyncStatus === "error"
+        ? "bg-rose-500"
+        : "bg-emerald-500";
 
   return (
     <Provider store={store}>

@@ -13,6 +13,7 @@ import ConfigSheet from "@/components/ui/ConfigSheet";
 import SearchResultsPanel from "@/components/layout/SearchResultsPanel";
 import SearchResultsTab from "@/components/layout/SearchResultsTab";
 import MultiModeMenu from "@/components/layout/MultiModeMenu";
+import CloudStatusIndicator from "@/components/layout/CloudStatusIndicator";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { getModuleByType } from "@/modules/registry";
 import ModuleWrapper from "@/components/modules/ModuleWrapper";
@@ -29,6 +30,8 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 export default function DashboardPage() {
   const [username, setUsername] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [cloudStatus, setCloudStatus] = useState<"pending" | "synced" | "error">("synced");
+  const [cloudEnabled, setCloudEnabled] = useState(false);
   // Read the active dashboard and all dashboards from Redux
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
@@ -58,6 +61,24 @@ export default function DashboardPage() {
     }
 
     void loadUser();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleStatus = (event: Event) => {
+      const detail = (event as CustomEvent<"pending" | "synced" | "error">).detail;
+      if (detail) {
+        setCloudStatus(detail);
+        setCloudEnabled(true);
+      }
+    };
+
+    window.addEventListener("dashboard-cloud-sync-status", handleStatus as EventListener);
+
+    return () => {
+      window.removeEventListener("dashboard-cloud-sync-status", handleStatus as EventListener);
+    };
   }, []);
 
   // react-grid-layout expects a layout array for every breakpoint; start with empty defaults
@@ -128,8 +149,23 @@ export default function DashboardPage() {
     setIsAuthenticated(false);
   }
 
+  const statusText = !cloudEnabled
+    ? "Saved locally"
+    : cloudStatus === "pending"
+      ? "Syncing..."
+      : cloudStatus === "error"
+        ? "Saved locally"
+        : "Saved";
+  const statusDotClass = !cloudEnabled
+    ? "bg-slate-400"
+    : cloudStatus === "pending"
+      ? "bg-amber-400"
+      : cloudStatus === "error"
+        ? "bg-rose-500"
+        : "bg-emerald-500";
+
   return (
-    <main className="min-h-screen bg-gradient-to-b to-blue-100 from-slate-600">
+    <main className="relative min-h-screen bg-gradient-to-b to-blue-100 from-slate-600">
       <div className="relative sticky top-0 z-10 pt-2 pb-2 space-y-3">
         <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
           <Link
@@ -210,6 +246,8 @@ export default function DashboardPage() {
       {/* Search results tab (right edge, only when results exist) and off-canvas panel */}
       <SearchResultsTab />
       <SearchResultsPanel />
+      {/* Cloud/local sync status indicator dot (bottom-left) */}
+      <CloudStatusIndicator statusDotClass={statusDotClass} />
     </main>
   );
 }

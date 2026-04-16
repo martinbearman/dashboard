@@ -71,6 +71,7 @@ type DebouncedCloudSyncOptions = {
   failureThreshold?: number;
   failureCooldownMs?: number;
   onRepeatedFailures?: (failureCount: number) => void;
+  onStatusChange?: (status: "pending" | "synced" | "error") => void;
 };
 
 export function startDebouncedCloudSync(
@@ -114,8 +115,10 @@ export function startDebouncedCloudSync(
     if (success) {
       lastSyncedSerialized = serialized;
       consecutiveFailures = 0;
+      options?.onStatusChange?.("synced");
     } else {
       consecutiveFailures += 1;
+      options?.onStatusChange?.("error");
       const now = Date.now();
       if (
         consecutiveFailures >= failureThreshold &&
@@ -135,6 +138,7 @@ export function startDebouncedCloudSync(
   };
 
   const unsubscribe = store.subscribe(() => {
+    options?.onStatusChange?.("pending");
     clearTimer();
     timeoutId = setTimeout(() => {
       void flush();

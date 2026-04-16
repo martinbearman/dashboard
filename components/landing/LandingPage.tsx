@@ -46,16 +46,19 @@ export default function LandingPage() {
             </p>
           </div> */}
 
-          <div id="workspace">
-            <div className="relative rounded-xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-200/60 backdrop-blur-sm">
-              {/* <span className="absolute left-5 top-5 inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                Incognito
-              </span> */}
-              <div className="py-7">
+          <div id="workspace" className="h-full">
+            <div className="relative flex h-full flex-1 flex-col rounded-xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-200/60 backdrop-blur-sm">
+              <p
+                id="auth-soon-note"
+                className="mb-6 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500"
+              >
+                Quick Start (local Storage only)
+              </p>
+              <div className="">
                 <div className="mx-auto w-full max-w-md text-center lg:text-left">
-                  <h1 className="text-2xl font-semibold text-slate-900 lg:text-3xl">Create a Dashboard</h1>
+                  <h1 className="text-2xl font-semibold text-slate-900">Create a Dashboard</h1>
                   <p className="mt-2 text-sm text-slate-600">
-                    No account required. Session data persists in local storage.
+                    No account required.
                   </p>
                 </div>
                 <Link
@@ -70,13 +73,13 @@ export default function LandingPage() {
         </section>
 
         {/* Right: auth */}
-        <section className="flex flex-1 flex-col justify-center py-12 lg:min-w-0 lg:py-14">
-          <div className="mx-auto w-full max-w-md">
+        <section className="flex flex-1 flex-col justify-center py-12 lg:min-w-0 lg:py-16">
+          <div className="mx-auto flex h-full w-full max-w-md">
             <div
               role="region"
               aria-labelledby="auth-heading"
               aria-describedby="auth-soon-note"
-              className="rounded-2xl border border-dashed border-slate-300/90 bg-slate-100/70 p-6 shadow-inner ring-1 ring-slate-200/40 md:p-8"
+              className="flex h-full flex-1 flex-col rounded-2xl border border-dashed border-slate-300/90 bg-slate-100/70 p-6 shadow-inner ring-1 ring-slate-200/40 md:p-8"
             >
               <p
                 id="auth-soon-note"
@@ -89,7 +92,7 @@ export default function LandingPage() {
                 <h2 id="auth-heading" className="text-2xl font-semibold text-slate-900">
                   Welcome back
                 </h2>
-                <p className="text-sm text-slate-500">Sign in with Google or use email when available.</p>
+                <p className="text-sm text-slate-500">Sign in with Google.</p>
               </div>
 
               <div className="space-y-5">
