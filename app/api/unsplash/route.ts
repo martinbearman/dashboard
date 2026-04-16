@@ -99,6 +99,7 @@ async function runSearch(req: Request, query: string) {
   const results = maxResults ? data.results.slice(0, maxResults) : data.results;
   const images: ImageSearchResult[] = results.map((photo) => ({
     id: photo.id,
+    source: "unsplash",
     width: photo.width,
     height: photo.height,
     alt: photo.alt_description ?? photo.description ?? "",
