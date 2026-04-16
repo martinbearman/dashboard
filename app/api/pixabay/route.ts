@@ -2,9 +2,9 @@ import { ImageSearchResult, ImageSearchResponse } from "@/lib/types/search";
 
 interface PixabayHit {
   id: number;
-  webformatURL: string;
-  largeImageURL: string;
-  previewURL: string;
+  webformatURL?: string;
+  largeImageURL?: string;
+  previewURL?: string;
   tags: string;
   user: string;
   pageURL: string;
@@ -14,6 +14,19 @@ interface PixabayHit {
 
 interface PixabaySearchResult {
   hits: PixabayHit[];
+}
+
+function normalizePixabayImageUrl(url?: string): string | null {
+  if (!url) return null;
+  const normalized = url.trim().replace(/^http:\/\//i, "https://");
+  if (!normalized) return null;
+  try {
+    const parsed = new URL(normalized);
+    if (!parsed.hostname.toLowerCase().includes("pixabay.com")) return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
 }
 
 async function runSearch(query: string) {
@@ -60,19 +73,33 @@ async function runSearch(query: string) {
     : undefined;
   const hits = maxResults ? data.hits.slice(0, maxResults) : data.hits;
 
-  const images: ImageSearchResult[] = hits.map((hit) => ({
-    id: String(hit.id),
-    source: "pixabay",
-    width: hit.imageWidth,
-    height: hit.imageHeight,
-    alt: hit.tags ?? "",
-    thumbUrl: hit.previewURL,
-    smallUrl: hit.webformatURL,
-    regularUrl: hit.webformatURL,
-    fullUrl: hit.largeImageURL,
-    photographerName: hit.user,
-    photographerUrl: hit.pageURL,
-  }));
+  const images: ImageSearchResult[] = hits.flatMap((hit) => {
+    const previewUrl = normalizePixabayImageUrl(hit.previewURL);
+    const webformatUrl = normalizePixabayImageUrl(hit.webformatURL);
+    const largeImageUrl = normalizePixabayImageUrl(hit.largeImageURL);
+
+    const regularUrl = webformatUrl ?? previewUrl ?? largeImageUrl;
+    if (!regularUrl) return [];
+
+    const thumbUrl = previewUrl ?? regularUrl;
+    const smallUrl = webformatUrl ?? regularUrl;
+    // Prefer CDN-hosted URLs for full-size too, since pixabay.com/get links are less reliable.
+    const fullUrl = largeImageUrl ?? webformatUrl ?? previewUrl ?? regularUrl;
+
+    return [{
+      id: String(hit.id),
+      source: "pixabay",
+      width: hit.imageWidth,
+      height: hit.imageHeight,
+      alt: hit.tags ?? "",
+      thumbUrl,
+      smallUrl,
+      regularUrl,
+      fullUrl,
+      photographerName: hit.user,
+      photographerUrl: hit.pageURL,
+    }];
+  });
 
   const payload: ImageSearchResponse = {
     query,
