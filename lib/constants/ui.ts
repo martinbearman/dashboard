@@ -1,0 +1,2 @@
+export const DRAG_HEIGHT_RESET_DELAY_MS = 300;
+export const ORGANISE_MODE_ANIMATION_MS = 300;

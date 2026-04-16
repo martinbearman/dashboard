@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import clsx from "clsx";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
+import { ORGANISE_MODE_ANIMATION_MS } from "@/lib/constants/ui";
 import {
   type MultiMenuMode,
   setMultiMenuMode,
@@ -83,7 +84,7 @@ export default function MultiModeMenu() {
 
       // Trigger animation
       setOrganiseAnimating(true);
-      setTimeout(() => setOrganiseAnimating(false), 300);
+      setTimeout(() => setOrganiseAnimating(false), ORGANISE_MODE_ANIMATION_MS);
       return;
     }
 

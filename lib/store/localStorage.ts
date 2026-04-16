@@ -4,8 +4,7 @@ import { createInitialGlobalConfigState } from "./slices/globalConfigSlice";
 import { createInitialModuleConfigsState } from "./slices/moduleConfigsSlice";
 import { createInitialTimerState } from "@/modules/timer/store/slices/timerSlice";
 import type { TodoState } from "./slices/todoSlice";
-
-const STORAGE_KEY = "dashboard-state";
+import { DASHBOARD_LOCAL_STORAGE_KEY } from "@/lib/constants/store";
 
 /**
  * Load state from localStorage (browser only)
@@ -19,7 +18,7 @@ export function loadState(): Partial<RootState> | null {
   }
 
   try {
-    const serializedState = localStorage.getItem(STORAGE_KEY);
+    const serializedState = localStorage.getItem(DASHBOARD_LOCAL_STORAGE_KEY);
     if (serializedState === null) {
       return null;
     }
@@ -92,7 +91,7 @@ export function saveState(state: RootState): void {
 
   try {
     const serializedState = JSON.stringify(state);
-    localStorage.setItem(STORAGE_KEY, serializedState);
+    localStorage.setItem(DASHBOARD_LOCAL_STORAGE_KEY, serializedState);
   } catch (error) {
     console.warn("Failed to save state to localStorage:", error);
     // localStorage might be full or disabled
@@ -108,7 +107,7 @@ export function clearState(): void {
   }
 
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(DASHBOARD_LOCAL_STORAGE_KEY);
   } catch (error) {
     console.warn("Failed to clear state from localStorage:", error);
   }
