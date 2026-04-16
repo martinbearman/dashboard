@@ -1,7 +1,7 @@
 "use client";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { syncLocalStateToSupabase } from "@/lib/store/remoteState";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -17,25 +17,6 @@ function parseOAuthParams() {
   const url = new URL(window.location.href);
   const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
   return { search: url.searchParams, hash: hashParams };
-}
-
-async function syncLocalStateToSupabase(supabase: SupabaseClient, userId: string) {
-  const raw = localStorage.getItem(DASHBOARD_LOCAL_STORAGE_KEY);
-  if (!raw) return;
-
-  try {
-    const parsed = JSON.parse(raw);
-    const { error } = await supabase.from("user_dashboard_state").upsert({
-      user_id: userId,
-      state: parsed,
-      updated_at: new Date().toISOString(),
-    });
-    if (error) {
-      console.warn("Failed syncing local dashboard state to Supabase:", error.message);
-    }
-  } catch (error) {
-    console.warn("Skipping dashboard sync because localStorage state is invalid JSON:", error);
-  }
 }
 
 export default function AuthCallbackClient() {
