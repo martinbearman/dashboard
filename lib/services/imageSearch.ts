@@ -44,3 +44,48 @@ export async function searchUnsplash(
   const data = (await res.json()) as { payload: ImageSearchResponse };
   return data.payload;
 }
+
+export async function searchPixabay(
+  query: string
+): Promise<ImageSearchResponse> {
+  const res = await fetch("/api/pixabay", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ q: query, context: query }),
+  });
+
+  if (!res.ok) {
+    let errorMessage = "Image search failed";
+    try {
+      const data = (await res.json()) as UnsplashErrorBody;
+      const parts: string[] = [];
+      if (data.error) parts.push(data.error);
+      if (data.message) parts.push(data.message);
+      if (parts.length) errorMessage = parts.join(" ");
+    } catch {
+      errorMessage = `Image search failed (${res.status})`;
+    }
+    throw new Error(errorMessage);
+  }
+
+  const data = (await res.json()) as { payload: ImageSearchResponse };
+  return data.payload;
+}
+
+export async function searchImagesAcrossProviders(
+  query: string
+): Promise<{ images: ImageSearchResponse["images"]; errors: string[] }> {
+  const settled = await Promise.allSettled([searchUnsplash(query), searchPixabay(query)]);
+  const images: ImageSearchResponse["images"] = [];
+  const errors: string[] = [];
+
+  for (const result of settled) {
+    if (result.status === "fulfilled") {
+      images.push(...result.value.images);
+    } else {
+      errors.push(result.reason instanceof Error ? result.reason.message : "Search provider failed");
+    }
+  }
+
+  return { images, errors };
+}

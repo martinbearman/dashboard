@@ -222,16 +222,16 @@ export const addSelectedSearchResultsToDashboard =
     const selected = results.filter((r) => selectedResultIds.includes(r.id));
     const images = selected.filter((r): r is SearchResult & { type: "image" } => r.type === "image").map((r) => r.data);
     if (images.length > 0) {
-      dispatch(addUnsplashImagesToDashboard(images));
+      dispatch(addSearchedImagesToDashboard(images));
     }
     dispatch(clearSearchResultSelection());
   };
 
 /**
- * Thunk to add Unsplash search results as image modules to the active dashboard.
+ * Thunk to add searched image results as image modules to the active dashboard.
  * No-op if there is no active dashboard. Uses grid params from state for sizing.
  */
-export const addUnsplashImagesToDashboard =
+export const addSearchedImagesToDashboard =
   (images: ImageSearchResult[]) =>
   (dispatch: AppDispatch, getState: () => RootState): void => {
     const state = getState();
@@ -254,11 +254,12 @@ export const addUnsplashImagesToDashboard =
           position: { w, h },
           initialConfig: {
             imageUrl: img.regularUrl,
-            alt: altText || "Unsplash image",
+            alt: altText || `${img.source === "pixabay" ? "Pixabay" : "Unsplash"} image`,
             caption: altText || undefined,
             photographerName: img.photographerName,
             photographerUrl: img.photographerUrl,
-            unsplashPhotoUrl: `https://unsplash.com/photos/${img.id}`,
+            unsplashPhotoUrl:
+              img.source === "unsplash" ? `https://unsplash.com/photos/${img.id}` : undefined,
           },
         })
       );

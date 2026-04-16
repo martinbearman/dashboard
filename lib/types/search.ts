@@ -1,5 +1,6 @@
 export interface ImageSearchResult {
   id: string;
+  source?: "unsplash" | "pixabay";
   width: number;
   height: number;
   alt: string;

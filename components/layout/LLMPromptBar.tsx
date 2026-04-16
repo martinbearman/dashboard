@@ -7,7 +7,7 @@ import {
   buildQueryFromModuleContext,
 } from "@/lib/store/thunks/dashboardThunks";
 import { openSearchResultsPanel } from "@/lib/store/slices/uiSlice";
-import { searchUnsplash } from "@/lib/services/imageSearch";
+import { searchImagesAcrossProviders } from "@/lib/services/imageSearch";
 import type { SearchResult } from "@/lib/types/search";
 
 /**
@@ -34,8 +34,8 @@ function getContextTooltip(item: Record<string, unknown>): string {
 }
 
 /**
- * Search bar for Unsplash images.
- * Disables the LLM and uses the input to search Unsplash, then adds results as image modules to the dashboard.
+ * Search bar for curated image providers (Unsplash + Pixabay).
+ * Disables the LLM and uses the input to fetch image results in parallel.
  */
 export default function LLMPromptBar() {
   const [input, setInput] = useState("");
@@ -77,13 +77,15 @@ export default function LLMPromptBar() {
 
     void (async () => {
       try {
-        const data = await searchUnsplash(searchQuery);
-        const images = data.images ?? [];
+        const { images, errors } = await searchImagesAcrossProviders(searchQuery);
         const results: SearchResult[] = images.map((img) => ({
           type: "image" as const,
-          id: img.id,
+          id: `${img.source ?? "unknown"}:${img.id}`,
           data: img,
         }));
+        if (errors.length > 0 && results.length > 0) {
+          setError(`Some sources failed: ${errors.join(" | ")}`);
+        }
         dispatch(
           openSearchResultsPanel({
             query: searchQuery,
@@ -117,7 +119,7 @@ export default function LLMPromptBar() {
               ? "border-red-400/60 text-red-700 placeholder-red-600 focus:border-red-500/60 focus:ring-2 focus:ring-red-300/30"
               : "border-slate-300/40 text-slate-700/90 placeholder-slate-600 focus:border-slate-400/60 focus:ring-2 focus:ring-slate-300/30"
           }`}
-          aria-label="Search Unsplash images"
+          aria-label="Search images"
           aria-invalid={error ? "true" : "false"}
         />
         <button

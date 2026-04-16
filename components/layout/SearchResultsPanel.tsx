@@ -42,6 +42,11 @@ function ResultItem({
               sizes="(max-width: 448px) 100vw, 448px"
             />
             <span className="text-sm text-slate-700 line-clamp-2">{result.data.alt || "Image"}</span>
+            {result.data.source && (
+              <span className="text-xs uppercase tracking-wide text-slate-500">
+                Source: {result.data.source}
+              </span>
+            )}
           </span>
         )}
         {result.type === "text" && (

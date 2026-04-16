@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_VERSION: packageJson.version,
   },
   images: {
-    domains: ["images.unsplash.com"],
+    domains: ["images.unsplash.com", "cdn.pixabay.com", "pixabay.com"],
   },
   webpack: (config) => {
     config.module.rules.push({
