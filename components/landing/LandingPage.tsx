@@ -1,5 +1,6 @@
 import Link from "next/link";
 import GoogleSignInButton from "@/components/landing/GoogleSignInButton";
+import LandingHeaderUser from "@/components/landing/LandingHeaderUser";
 
 function BrandMark() {
   return (
@@ -55,6 +56,7 @@ export default function LandingPage() {
           <Link href="/" className="text-lg font-bold tracking-tight text-neutral-900">
             Universal Dashboard
           </Link>
+          <LandingHeaderUser />
         </div>
       </header>
 

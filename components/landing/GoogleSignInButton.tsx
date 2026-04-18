@@ -37,11 +37,27 @@ export default function GoogleSignInButton() {
     async function readCurrentUser() {
       const { data } = await supabase.auth.getUser();
       const user = data.user;
-      const label = user?.email ?? user?.user_metadata?.full_name ?? null;
+      if (!user) {
+        setUserLabel(null);
+        return;
+      }
+      const fullName = user.user_metadata?.full_name;
+      const label =
+        typeof fullName === "string" && fullName.trim()
+          ? fullName.trim()
+          : user.email ?? null;
       setUserLabel(label);
     }
 
     void readCurrentUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void readCurrentUser();
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function handleGoogle() {
