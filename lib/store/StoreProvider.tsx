@@ -6,7 +6,7 @@ import { Toaster, toast } from "sonner";
 import { makeStore, type AppStore } from "./store";
 import { loadState } from "./localStorage";
 import { loadStateFromSupabase, startDebouncedCloudSync } from "./remoteState";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, isCloudDashboardSyncEnabled } from "@/lib/supabase/client";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
 
 let clientStore: AppStore | undefined;
@@ -20,6 +20,7 @@ function stopCloudSync() {
 }
 
 function startCloudSyncForUser(userId: string, store: AppStore) {
+  if (!isCloudDashboardSyncEnabled()) return;
   const supabase = getSupabaseBrowserClient();
   if (currentCloudSyncUserId === userId && cloudSyncController) {
     return;
@@ -73,12 +74,14 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
           data: { user },
         } = await supabase.auth.getUser();
 
-        const preloaded = user
-          ? (await loadStateFromSupabase(supabase, user.id)) ?? local
-          : local;
+        const cloudSync = isCloudDashboardSyncEnabled();
+        const preloaded =
+          user && cloudSync
+            ? (await loadStateFromSupabase(supabase, user.id)) ?? local
+            : local;
 
         const nextStore = makeStore(preloaded);
-        if (user) {
+        if (user && cloudSync) {
           startCloudSyncForUser(user.id, nextStore);
           setIsCloudSyncEnabled(true);
           setCloudSyncStatus("synced");
@@ -145,9 +148,13 @@ export default function StoreProvider({ children }: { children: React.ReactNode 
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       const userId = session?.user?.id ?? null;
-      if (userId) {
+      if (userId && isCloudDashboardSyncEnabled()) {
         startCloudSyncForUser(userId, store);
         setIsCloudSyncEnabled(true);
+        setCloudSyncStatus("synced");
+      } else if (userId) {
+        stopCloudSync();
+        setIsCloudSyncEnabled(false);
         setCloudSyncStatus("synced");
       } else {
         stopCloudSync();
