@@ -77,19 +77,23 @@ export default function GoogleSignInButton() {
         type="button"
         onClick={handleGoogle}
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-80"
+        className="flex w-full items-center rounded-md border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-[#1D63ED] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-80"
       >
-        <GoogleMark />
-        {loading ? (
-          "Redirecting…"
-        ) : userLabel ? (
-          <span className="flex min-w-0 items-center gap-1">
-            <span>Logged in as</span>
-            <span className="max-w-[8ch] truncate">{userLabel}</span>
-          </span>
-        ) : (
-          "Continue with Google"
-        )}
+        <span className="flex w-9 shrink-0 justify-start">
+          <GoogleMark />
+        </span>
+        <span className="flex-1 pr-9 text-center">
+          {loading ? (
+            "Redirecting…"
+          ) : userLabel ? (
+            <span className="inline-flex min-w-0 max-w-full items-center justify-center gap-1">
+              <span>Logged in as</span>
+              <span className="max-w-[10ch] truncate">{userLabel}</span>
+            </span>
+          ) : (
+            "Continue with Google"
+          )}
+        </span>
       </button>
       {message ? <p className="text-center text-sm text-red-600">{message}</p> : null}
     </div>
