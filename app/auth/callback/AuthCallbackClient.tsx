@@ -1,6 +1,6 @@
 "use client";
 
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, isCloudDashboardSyncEnabled } from "@/lib/supabase/client";
 import { DASHBOARD_LOCAL_STORAGE_KEY } from "@/lib/constants/store";
 import { syncLocalStateToSupabase } from "@/lib/store/remoteState";
 import { useRouter } from "next/navigation";
@@ -57,7 +57,9 @@ export default function AuthCallbackClient() {
         return session;
       };
       const completeSignIn = async (userId: string) => {
-        await syncLocalStateToSupabase(supabase, userId);
+        if (isCloudDashboardSyncEnabled()) {
+          await syncLocalStateToSupabase(supabase, userId);
+        }
         if (!cancelled) {
           router.replace("/dashboard");
         }
