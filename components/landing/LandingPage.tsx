@@ -58,7 +58,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col items-center justify-center px-4 py-12 sm:py-16">
+      <main className="flex w-full flex-1 flex-col items-center justify-center bg-gradient-to-b from-slate-600 to-blue-100 px-4 py-12 sm:py-16">
         <div className="w-full max-w-[400px] space-y-3">
           <div className="rounded-md border border-neutral-300 bg-white px-8 py-10 shadow-sm">
             <div className="mb-8 flex flex-col items-center gap-1">
