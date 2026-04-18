@@ -1,193 +1,136 @@
 import Link from "next/link";
 import GoogleSignInButton from "@/components/landing/GoogleSignInButton";
+import LandingHeaderUser from "@/components/landing/LandingHeaderUser";
+
+function BrandMark() {
+  return (
+    <svg
+      className="h-9 w-9 shrink-0 text-[#1D63ED]"
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <rect x="2" y="2" width="12" height="12" rx="2" fill="currentColor" opacity="0.95" />
+      <rect x="18" y="2" width="12" height="12" rx="2" fill="currentColor" opacity="0.75" />
+      <rect x="2" y="18" width="12" height="12" rx="2" fill="currentColor" opacity="0.75" />
+      <rect x="18" y="18" width="12" height="12" rx="2" fill="currentColor" opacity="0.55" />
+    </svg>
+  );
+}
+
+function GitHubMark() {
+  return (
+    <svg className="h-5 w-5 shrink-0 text-neutral-900" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M12 2C6.477 2 2 6.463 2 11.97c0 4.404 2.865 8.14 6.839 9.458.5.092.682-.216.682-.481 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.114 2.504.336 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.107 22 16.373 22 11.969 22 6.463 17.522 2 12 2z"
+      />
+    </svg>
+  );
+}
+
+function KeyMark() {
+  return (
+    <svg
+      className="h-5 w-5 shrink-0 text-neutral-500"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+    </svg>
+  );
+}
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-800">
-      <header className="border-b border-slate-300 bg-white/90 shadow-sm backdrop-blur-sm">
+    <div className="flex min-h-screen flex-col bg-[#f9f9f9] text-neutral-900">
+      <header className="w-full shrink-0 border-b border-neutral-300 bg-white/90 shadow-sm backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 md:gap-4 md:px-6">
-          <Link href="/" className="text-lg font-bold tracking-tight text-slate-900">
+          <Link href="/" className="text-lg font-bold tracking-tight text-neutral-900">
             Universal Dashboard
           </Link>
-          {/* <nav
-            className="order-3 flex w-full justify-center gap-6 text-sm font-medium text-slate-500 md:order-none md:w-auto md:gap-8"
-            aria-label="Primary"
-          >
-            <a href="#product" className="transition hover:text-slate-900">
-              Product
-            </a>
-            <a href="#workspace" className="transition hover:text-slate-900">
-              Solutions
-            </a>
-            <span className="cursor-not-allowed text-slate-400" title="Coming soon">
-              Pricing
-            </span>
-            <span className="cursor-not-allowed text-slate-400" title="Coming soon">
-              Support
-            </span>
-          </nav> */}
+          <LandingHeaderUser />
         </div>
       </header>
 
-      <div className="flex w-full flex-1 flex-col bg-gradient-to-b to-blue-100 from-slate-600">
-        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 md:px-6 lg:flex-row lg:min-h-0 lg:gap-8">
-        {/* Left: hero + anonymous card */}
-        <section
-          id="product"
-          className="relative flex flex-col justify-center px-0 pb-0 pt-12 sm:px-6 sm:py-14 lg:flex-1 lg:min-w-0 lg:px-8 lg:py-16"
-        >
-          {/* <div className="max-w-xl space-y-6">
-            <h1 className="text-4xl font-bold tracking-tight text-slate-800 md:text-5xl lg:text-[2.75rem] lg:leading-tight">
-              Atmospheric Clarity
-            </h1>
-            <p className="text-base leading-relaxed text-slate-600 md:text-lg">
-              Our platform provides institutional stability and high-fidelity precision, ensuring your digital assets are
-              managed within a transparent, serene environment designed for focus and performance.
-            </p>
-          </div> */}
-
-          <div id="workspace" className="h-full">
-            <div className="relative flex h-full flex-1 flex-col rounded-xl border border-slate-200/80 bg-white/90 p-6 shadow-lg shadow-slate-200/60 backdrop-blur-sm">
-              <p
-                id="auth-soon-note"
-                className="mb-6 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500"
-              >
-                Quick Start (local Storage only)
-              </p>
-              <div className="">
-                <div className="mx-auto w-full max-w-md text-center lg:text-left">
-                  <h1 className="text-2xl font-semibold text-slate-900">Create a Dashboard</h1>
-                  <p className="mt-2 text-sm text-slate-600">
-                    No account required.
-                  </p>
-                </div>
-                <Link
-                  href="/dashboard"
-                  className="mt-6 flex w-full min-w-0 max-w-full items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 via-sky-600 to-slate-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition hover:from-sky-400 hover:via-sky-500 hover:to-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 sm:w-1/2 max-lg:mx-auto lg:mx-0"
-                >
-                  Create new dashboard
-                </Link>
+      <main className="flex w-full flex-1 flex-col items-center justify-center bg-gradient-to-b from-slate-600 to-blue-100 px-4 py-12 sm:py-16">
+        <div className="w-full max-w-[400px] space-y-3">
+          <div className="rounded-md border border-neutral-300 bg-white px-8 py-10 shadow-sm">
+            <div className="mb-8 flex flex-col items-center gap-1">
+              <div className="flex items-center gap-2.5">
+                <BrandMark />
+                <span className="text-[1.35rem] font-semibold tracking-tight text-[#1D63ED]">
+                  Universal Dashboard
+                </span>
               </div>
+            </div>
+
+            <div className="mt-8 space-y-4">
+              <div className="mx-auto w-full max-w-md text-center">
+                {/* <h2 className="text-xl font-semibold text-neutral-900">Create a Dashboard</h2> */}
+                <p className="mt-2 text-sm text-neutral-600">No account required. (Local Storage Only)</p>
+              </div>
+              <Link
+                href="/dashboard"
+                className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 via-sky-600 to-slate-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-sky-500/20 transition hover:from-sky-400 hover:via-sky-500 hover:to-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2"
+              >
+                Got to your dashboard
+              </Link>
+            </div>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center" aria-hidden>
+                <div className="w-full border-t border-neutral-200" />
+              </div>
+              <div className="relative flex justify-center text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+                <span className="bg-white px-3">or</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="mx-auto w-full max-w-md space-y-3 text-center">
+                <p className="mt-2 text-sm text-neutral-600">
+                  Sign in to save your dashboard in the cloud and access it on any device.
+                </p>
+                <GoogleSignInButton />
+              </div>
+
+              <button
+                type="button"
+                disabled
+                title="Coming soon"
+                className="flex w-full cursor-not-allowed items-center rounded-md border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-500 opacity-70"
+              >
+                <span className="flex w-9 shrink-0 justify-start">
+                  <GitHubMark />
+                </span>
+                <span className="flex-1 pr-9 text-center">Continue with GitHub</span>
+              </button>
+              <button
+                type="button"
+                disabled
+                title="Coming soon"
+                className="flex w-full cursor-not-allowed items-center rounded-md border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-500 opacity-70"
+              >
+                <span className="flex w-9 shrink-0 justify-start">
+                  <KeyMark />
+                </span>
+                <span className="flex-1 pr-9 text-center">Continue with SSO</span>
+              </button>
             </div>
           </div>
-        </section>
-
-        {/* Right: auth */}
-        <section className="flex flex-1 flex-col justify-center py-12 lg:min-w-0 lg:py-16">
-          <div className="mx-auto flex h-full w-full max-w-md">
-            <div
-              role="region"
-              aria-labelledby="auth-heading"
-              aria-describedby="auth-soon-note"
-              className="flex h-full flex-1 flex-col rounded-2xl border border-dashed border-slate-300/90 bg-slate-100/70 p-6 shadow-inner ring-1 ring-slate-200/40 md:p-8"
-            >
-              <p
-                id="auth-soon-note"
-                className="mb-6 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500"
-              >
-                Account sign-in
-              </p>
-
-              <div className="mb-8 space-y-1 text-center lg:text-left">
-                <h2 id="auth-heading" className="text-2xl font-semibold text-slate-900">
-                  Welcome back
-                </h2>
-                <p className="text-sm text-slate-500">Sign in with Google.</p>
-              </div>
-
-              <div className="space-y-5">
-                <GoogleSignInButton />
-
-                <div className="pointer-events-none select-none hidden">
-                  <div className="relative py-1">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-200" />
-                    </div>
-                    <div className="relative flex justify-center text-xs font-medium uppercase tracking-wide">
-                      <span className="bg-slate-100/90 px-3 text-slate-400">or</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 pt-5">
-                    <div>
-                      <label
-                        htmlFor="landing-email"
-                        className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600"
-                      >
-                        Email address
-                      </label>
-                      <input
-                        id="landing-email"
-                        type="email"
-                        placeholder="name@company.com"
-                        disabled
-                        tabIndex={-1}
-                        autoComplete="email"
-                        className="w-full cursor-not-allowed rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400"
-                      />
-                    </div>
-                    <div>
-                      <div className="mb-1.5 flex items-center justify-between">
-                        <label
-                          htmlFor="landing-password"
-                          className="text-xs font-semibold uppercase tracking-wide text-slate-600"
-                        >
-                          Password
-                        </label>
-                        <span className="cursor-not-allowed text-xs font-medium text-slate-400">Forgot?</span>
-                      </div>
-                      <input
-                        id="landing-password"
-                        type="password"
-                        placeholder="••••••••"
-                        disabled
-                        tabIndex={-1}
-                        autoComplete="current-password"
-                        className="w-full cursor-not-allowed rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled
-                    className="w-full cursor-not-allowed rounded-lg bg-gradient-to-r from-sky-500 via-sky-600 to-slate-600 py-3.5 text-sm font-semibold text-white"
-                    title="Coming soon"
-                  >
-                    Sign in — coming soon
-                  </button>
-
-                  <p className="text-center text-sm text-slate-600">
-                    Don&apos;t have an account?{" "}
-                    <span className="cursor-not-allowed font-bold text-slate-800">Create account</span>
-                  </p>
-                </div>
-                </div>
-              </div>
-            </div>
-        </section>
         </div>
-      </div>
+      </main>
 
-      <footer className="border-t border-slate-200 bg-slate-50/80 py-6">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-xs text-slate-500 md:flex-row md:justify-between md:px-6">
-          {/* <span className="font-semibold text-slate-700">Universal Dashboard</span> */}
-          <p className="text-center">© 2026 Universal Dashboard. All rights reserved.</p>
-          {/* <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2" aria-label="Footer">
-            <a href="#" className="hover:text-slate-800">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-slate-800">
-              Terms of Service
-            </a>
-            <a href="#" className="hover:text-slate-800">
-              Cookies
-            </a>
-            <Link href="/guide" className="font-medium text-sky-700 hover:text-sky-800">
-              How to use
-            </Link>
-          </nav> */}
-        </div>
+      <footer className="border-t border-neutral-200/80 py-5">
+        <p className="text-center text-xs text-neutral-500">© 2026 Universal Dashboard. All rights reserved.</p>
       </footer>
     </div>
   );

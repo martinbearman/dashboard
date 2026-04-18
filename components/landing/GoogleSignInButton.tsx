@@ -37,11 +37,27 @@ export default function GoogleSignInButton() {
     async function readCurrentUser() {
       const { data } = await supabase.auth.getUser();
       const user = data.user;
-      const label = user?.email ?? user?.user_metadata?.full_name ?? null;
+      if (!user) {
+        setUserLabel(null);
+        return;
+      }
+      const fullName = user.user_metadata?.full_name;
+      const label =
+        typeof fullName === "string" && fullName.trim()
+          ? fullName.trim()
+          : user.email ?? null;
       setUserLabel(label);
     }
 
     void readCurrentUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void readCurrentUser();
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   async function handleGoogle() {
@@ -77,19 +93,27 @@ export default function GoogleSignInButton() {
         type="button"
         onClick={handleGoogle}
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-80"
+        className="flex w-full min-w-0 items-center rounded-md border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-[#1D63ED] focus:ring-offset-2 disabled:cursor-wait disabled:opacity-80"
       >
-        <GoogleMark />
-        {loading ? (
-          "Redirecting…"
-        ) : userLabel ? (
-          <span className="flex min-w-0 items-center gap-1">
-            <span>Logged in as</span>
-            <span className="max-w-[8ch] truncate">{userLabel}</span>
-          </span>
-        ) : (
-          "Continue with Google"
-        )}
+        <span className="flex w-9 shrink-0 justify-start">
+          <GoogleMark />
+        </span>
+        <span className="min-w-0 flex-1 pr-9 text-center">
+          {loading ? (
+            "Redirecting…"
+          ) : userLabel ? (
+            <span className="flex w-full min-w-0 flex-col items-center gap-0.5 text-center">
+              <span className="text-xs font-normal text-neutral-500">
+                Logged in as
+              </span>
+              <span className="min-w-0 max-w-full break-words font-medium text-neutral-900">
+                {userLabel}
+              </span>
+            </span>
+          ) : (
+            "Continue with Google"
+          )}
+        </span>
       </button>
       {message ? <p className="text-center text-sm text-red-600">{message}</p> : null}
     </div>
