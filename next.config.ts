@@ -32,20 +32,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  turbopack: {
-    rules: {
-      "*.properties": {
-        type: "raw",
-      },
-    },
-  },
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.properties$/,
-      type: "asset/source",
-    });
-    return config;
-  },
 };
 
 export default nextConfig;
