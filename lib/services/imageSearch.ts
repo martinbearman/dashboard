@@ -55,16 +55,26 @@ export async function searchPixabay(
   });
 
   if (!res.ok) {
-    let errorMessage = "Image search failed";
+    let data: UnsplashErrorBody | null = null;
     try {
-      const data = (await res.json()) as UnsplashErrorBody;
-      const parts: string[] = [];
-      if (data.error) parts.push(data.error);
-      if (data.message) parts.push(data.message);
-      if (parts.length) errorMessage = parts.join(" ");
+      data = (await res.json()) as UnsplashErrorBody;
     } catch {
-      errorMessage = `Image search failed (${res.status})`;
+      // ignore parse failure; handled below
     }
+    // Missing API key is optional: Unsplash-only deploys should not surface a "sources failed" warning.
+    if (
+      res.status === 503 &&
+      typeof data?.error === "string" &&
+      data.error.includes("PIXABAY_API_KEY")
+    ) {
+      return { query, images: [] };
+    }
+
+    const parts: string[] = [];
+    if (data?.error) parts.push(data.error);
+    if (data?.message) parts.push(data.message);
+    const errorMessage =
+      parts.length > 0 ? parts.join(" ") : `Image search failed (${res.status})`;
     throw new Error(errorMessage);
   }
 
