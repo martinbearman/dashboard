@@ -16,6 +16,14 @@ const nextConfig: NextConfig = {
   images: {
     domains: ["images.unsplash.com", "cdn.pixabay.com", "pixabay.com"],
   },
+  turbopack: {
+    rules: {
+      "*.properties": {
+        loaders: ["raw-loader"],
+        as: "*.js",
+      },
+    },
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.properties$/,
