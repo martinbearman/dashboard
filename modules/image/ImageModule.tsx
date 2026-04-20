@@ -17,6 +17,7 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
   const { imageUrl, imageRef, alt, caption, photographerName, photographerUrl, unsplashPhotoUrl } = imageConfig;
 
   const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const gridPosition = useAppSelector((state) =>
     selectModuleGridPosition(state, moduleId, "lg")
@@ -41,13 +42,24 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
     <figure className="group flex h-full w-full flex-col overflow-hidden border border-slate-200 bg-white/80 shadow-sm">
       <div className="relative flex min-h-0 flex-1 w-full flex-col bg-slate-100">
         {hasError ? (
-          <div className="flex min-h-0 flex-1 w-full flex-col items-center justify-center gap-1 px-4 py-6 text-xs text-red-600">
+          <div className="flex min-h-0 flex-1 w-full flex-col items-center justify-center gap-2 px-4 py-6 text-xs text-red-600">
             <span>Failed to load image.</span>
+            <button
+              type="button"
+              className="rounded border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50"
+              onClick={() => {
+                setHasError(false);
+                setRetryCount((count) => count + 1);
+              }}
+            >
+              Retry
+            </button>
           </div>
         ) : hasValidSrc ? (
           /* Using plain img for maximum flexibility; can be swapped to next/image later */
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
+            key={retryCount}
             src={src}
             alt={alt || caption || "Dashboard image"}
             className="h-full w-full object-cover"
