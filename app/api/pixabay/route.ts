@@ -41,13 +41,23 @@ async function runSearch(query: string) {
     );
   }
 
-  const pixabayUrl =
-    "https://pixabay.com/api/" +
-    `?key=${encodeURIComponent(pixabayApiKey)}` +
-    `&q=${encodeURIComponent(query)}` +
-    "&image_type=photo&safesearch=true&per_page=30";
+  const pixabayUrl = new URL("https://pixabay.com/api/");
+        pixabayUrl.searchParams.set("key", pixabayApiKey);
+        pixabayUrl.searchParams.set("q", query);
+        pixabayUrl.searchParams.set("image_type", "photo");
+        pixabayUrl.searchParams.set("safesearch", "true");
+        pixabayUrl.searchParams.set("per_page", "30");
 
-  const res = await fetch(pixabayUrl, { cache: "no-store" });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  const res = await fetch(pixabayUrl.toString(), {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "DashboardApp/1.0 (+https://dashboard.local)",
+    },
+    cache: "no-store",
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeout));
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
