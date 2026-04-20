@@ -64,7 +64,6 @@ export default function ImageModule({ moduleId, config }: ModuleProps) {
             alt={alt || caption || "Dashboard image"}
             className="h-full w-full object-cover"
             loading="lazy"
-            referrerPolicy="no-referrer"
             onError={() => setHasError(true)}
           />
         ) : (
