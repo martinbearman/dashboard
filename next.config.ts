@@ -14,22 +14,23 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_VERSION: packageJson.version,
   },
   images: {
-    domains: ["images.unsplash.com", "cdn.pixabay.com", "pixabay.com"],
-  },
-  turbopack: {
-    rules: {
-      "*.properties": {
-        loaders: ["raw-loader"],
-        as: "*.js",
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
       },
-    },
-  },
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.properties$/,
-      type: "asset/source",
-    });
-    return config;
+      {
+        protocol: "https",
+        hostname: "cdn.pixabay.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pixabay.com",
+        pathname: "/**",
+      },
+    ],
   },
 };
 
