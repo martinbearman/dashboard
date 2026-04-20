@@ -9,6 +9,7 @@ import type { ImageSearchResult } from "@/lib/types/search";
 import type { SearchResult } from "@/lib/types/search";
 import { GRID_COLS } from "@/lib/constants/grid";
 import { computeGridSizeForModule } from "@/lib/utils/gridLayout";
+import { toImageModuleConfig } from "@/lib/utils/imageMapping";
 import type { MultiMenuMode } from "../slices/uiSlice";
 import { setMultiMenuMode, clearSelectedModules, clearSearchResultSelection } from "../slices/uiSlice";
 import ModuleService from "@/lib/services/moduleService";
@@ -241,7 +242,6 @@ export const addSearchedImagesToDashboard =
     const gridParams = state.ui.gridContainerParams ?? undefined;
 
     for (const img of images) {
-      const altText = img.alt ? img.alt.charAt(0).toUpperCase() + img.alt.slice(1) : undefined;
       const { w, h } = computeGridSizeForModule(
         "image",
         { kind: "image", width: img.width, height: img.height },
@@ -252,15 +252,7 @@ export const addSearchedImagesToDashboard =
           dashboardId: activeId,
           type: "image",
           position: { w, h },
-          initialConfig: {
-            imageUrl: img.regularUrl,
-            alt: altText || `${img.source === "pixabay" ? "Pixabay" : "Unsplash"} image`,
-            caption: altText || undefined,
-            photographerName: img.photographerName,
-            photographerUrl: img.photographerUrl,
-            unsplashPhotoUrl:
-              img.source === "unsplash" ? `https://unsplash.com/photos/${img.id}` : undefined,
-          },
+          initialConfig: toImageModuleConfig(img) as Record<string, unknown>,
         })
       );
     }
