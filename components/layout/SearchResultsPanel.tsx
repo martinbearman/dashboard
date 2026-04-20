@@ -9,6 +9,7 @@ import {
 } from "@/lib/store/slices/uiSlice";
 import { addSelectedSearchResultsToDashboard } from "@/lib/store/thunks/dashboardThunks";
 import type { SearchResult } from "@/lib/types/search";
+import { pickDisplayUrl } from "@/lib/utils/imageMapping";
 
 function ResultItem({
   result,
@@ -34,7 +35,7 @@ function ResultItem({
         {result.type === "image" && (
           <span className="flex flex-col gap-2">
             <Image
-              src={result.data.regularUrl}
+              src={pickDisplayUrl(result.data)}
               alt={result.data.alt || ""}
               width={result.data.width}
               height={result.data.height}
