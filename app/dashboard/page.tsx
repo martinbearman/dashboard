@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [cloudStatus, setCloudStatus] = useState<"pending" | "synced" | "error">("synced");
   const [cloudEnabled, setCloudEnabled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showMobileMultiMenu, setShowMobileMultiMenu] = useState(false);
   // Read the active dashboard and all dashboards from Redux
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
@@ -158,10 +159,16 @@ export default function DashboardPage() {
         ? "bg-rose-500"
         : "bg-emerald-500";
 
+  useEffect(() => {
+    if (multiMenuMode === "search") {
+      setShowMobileMultiMenu(false);
+    }
+  }, [multiMenuMode]);
+
   return (
     <main className="relative min-h-screen bg-gradient-to-b to-blue-100 from-slate-600">
       <div className="relative sticky top-0 z-10 pt-2 pb-2 space-y-3">
-        <div className="absolute left-3 top-3 z-20">
+        <div className="absolute left-3 top-3 z-20 !mt-0">
           <button
             type="button"
             onClick={() => setIsMenuOpen(true)}
@@ -180,6 +187,45 @@ export default function DashboardPage() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
+          </button>
+        </div>
+        <div className="absolute right-3 top-3 z-20 !mt-0 md:hidden">
+          <button
+            type="button"
+            onClick={() => setShowMobileMultiMenu((prev) => !prev)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/40 bg-white/40 text-slate-800 shadow-md backdrop-blur transition hover:bg-white/60 hover:text-slate-900"
+            aria-label={showMobileMultiMenu ? "Hide mode controls" : "Show mode controls"}
+            aria-pressed={showMobileMultiMenu}
+          >
+            <span className="sr-only">
+              {showMobileMultiMenu ? "Hide mode controls" : "Show mode controls"}
+            </span>
+            {showMobileMultiMenu ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.8}
+                stroke="currentColor"
+                className="h-5 w-5"
+                aria-hidden
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="h-5 w-5"
+                aria-hidden
+              >
+                <rect x="5" y="5" width="5" height="5" rx="1" />
+                <rect x="14" y="5" width="5" height="5" rx="1" />
+                <rect x="5" y="14" width="5" height="5" rx="1" />
+                <rect x="14" y="14" width="5" height="5" rx="1" />
+              </svg>
+            )}
           </button>
         </div>
         <DashboardTabs />
@@ -217,7 +263,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Floating mode & add buttons */}
-      <MultiModeMenu />
+      {showMobileMultiMenu && (
+        <div className="md:hidden">
+          <MultiModeMenu />
+        </div>
+      )}
+      <div className="hidden md:block">
+        <MultiModeMenu />
+      </div>
       <AddModuleButton />
       
       {/* Version display */}

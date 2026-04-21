@@ -103,7 +103,7 @@ export default function LLMPromptBar() {
   const canSubmit = (input.trim().length > 0 || contextPills.length > 0) && !isLoadingImages;
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-4 gap-3">
+    <div className="flex w-full max-w-2xl flex-col items-center gap-3 px-14 md:px-4 mx-auto">
       <form onSubmit={onSubmit} className="flex items-center gap-2 w-full">
         <input
           type="text"
