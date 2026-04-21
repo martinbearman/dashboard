@@ -31,7 +31,7 @@ export default function MainMenuPanel({
 }: MainMenuPanelProps) {
   return (
     <>
-      <header className="mb-6">
+      <header className="mb-6 border-b border-[#e4e7f2] pb-6">
         <div className="flex items-start gap-3">
           <button
             type="button"
