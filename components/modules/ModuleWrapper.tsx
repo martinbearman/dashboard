@@ -39,14 +39,14 @@ export default function ModuleWrapper({
     context: "hover:ring-4 hover:ring-green-500",
     organise: "hover:ring-4 hover:ring-yellow-400",
     remove: "hover:ring-4 hover:ring-red-500",
-    search: "hover:ring-4 hover:ring-blue-500",
+    search: "",
   };
 
   const selectedRingByMode: Record<Exclude<MultiMenuMode, null>, string> = {
     context: "ring-4 ring-green-500",
     organise: "ring-4 ring-yellow-400",
     remove: "ring-4 ring-red-500",
-    search: "ring-4 ring-blue-500",
+    search: "",
   };
 
   let modeRingClass = "";
@@ -63,6 +63,8 @@ export default function ModuleWrapper({
 
   const handleMultiModeInteraction = () => {
     if (!mode) return;
+    // Search mode should not participate in legacy module selection.
+    if (mode === "search") return;
     if (locked && mode === "remove") {
       toast.warning(toastMessages.lockedRemove.directTitle(), {
         description: toastMessages.lockedRemove.directDescription(moduleName),
