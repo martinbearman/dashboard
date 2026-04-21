@@ -108,8 +108,8 @@ body {
   animation: slide-out-to-right 0.3s ease-out forwards;
 }
 
-/* Organise button animation - seamless "there and back" */
-@keyframes organise-pop {
+/* Multi-mode button click animation - up-right and back */
+@keyframes organise-pop-up-right {
   0% {
     transform: translate(0, 0) scale(1);
   }
@@ -121,7 +121,24 @@ body {
   }
 }
 
+/* Multi-mode button click animation - down-right and back */
+@keyframes search-pop-down-right {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  40% {
+    transform: translate(10px, 10px) scale(1.05);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
 .organise-pop-animation {
-  animation: organise-pop 0.3s ease-in-out;
+  animation: organise-pop-up-right 0.3s ease-in-out;
+}
+
+.search-pop-animation {
+  animation: search-pop-down-right 0.3s ease-in-out;
 }
 

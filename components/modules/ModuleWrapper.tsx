@@ -51,9 +51,14 @@ export default function ModuleWrapper({
 
   let modeRingClass = "";
   if (mode) {
-    modeRingClass = isSelected
-      ? selectedRingByMode[mode]
-      : hoverRingByMode[mode];
+    // In search mode, selected modules should not remain visibly highlighted.
+    if (mode === "search" && isSelected) {
+      modeRingClass = "";
+    } else {
+      modeRingClass = isSelected
+        ? selectedRingByMode[mode]
+        : hoverRingByMode[mode];
+    }
   }
 
   const handleMultiModeInteraction = () => {

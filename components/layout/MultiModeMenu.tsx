@@ -60,6 +60,7 @@ export default function MultiModeMenu() {
     (s) => s.ui
   );
   const [organiseAnimating, setOrganiseAnimating] = useState(false);
+  const [searchAnimating, setSearchAnimating] = useState(false);
   const dashboardList = Object.values(dashboards);
 
   // Log accumulated context whenever selection changes in context mode
@@ -92,7 +93,15 @@ export default function MultiModeMenu() {
       return;
     }
 
-    // If clicking the active mode while modules are selected, execute the action
+    if (mode === "search") {
+      setSearchAnimating(true);
+      setTimeout(() => setSearchAnimating(false), ORGANISE_MODE_ANIMATION_MS);
+      dispatch(setMultiMenuMode(activeMode === mode ? null : mode));
+      return;
+    }
+
+    // If clicking the active mode while modules are selected, execute the action.
+    // Search is a pure toggle mode, so it should never trigger apply-on-click.
     if (activeMode === mode && selectedModuleIds.length > 0) {
       console.log("Execute multi mode action", selectedModuleIds);
       dispatch(executeMultiModeAction());
@@ -134,19 +143,22 @@ export default function MultiModeMenu() {
   };
 
   return (
-    <div className="fixed right-4 top-16 z-40 md:top-4">
+    <div className="fixed right-4 top-16 z-40 md:top-6">
       <div className="flex w-24 flex-col gap-4">
         <div className="aspect-square grid grid-cols-2 grid-rows-2 rounded-xl overflow-visible shadow-xl">
           {modes.map((m) => {
             const isOrganise = m.id === "organise";
-            const isActive = activeMode === m.id && !isOrganise;
+            const isSearch = m.id === "search";
+            const isActive = activeMode === m.id && !isOrganise && !isSearch;
+            const showApplyPulse =
+              activeMode === m.id && m.id !== "search" && selectedModuleIds.length > 0;
 
             return (
               <button
                 key={m.id}
                 type="button"
                 title={
-                  activeMode === m.id && selectedModuleIds.length > 0
+                  showApplyPulse
                     ? `${m.title} – apply to ${selectedModuleIds.length} selected module${
                         selectedModuleIds.length > 1 ? "s" : ""
                       }`
@@ -164,11 +176,11 @@ export default function MultiModeMenu() {
                     ? clsx(
                         "z-10 ring-2 ring-white shadow-inner scale-[1.03]",
                         m.activeOffset,
-                        selectedModuleIds.length > 0 &&
-                          "animate-pulse ring-4 ring-white shadow-xl"
+                        showApplyPulse && "animate-pulse ring-4 ring-white shadow-xl"
                       )
                     : "opacity-80 hover:opacity-100",
-                  isOrganise && organiseAnimating && "organise-pop-animation"
+                  isOrganise && organiseAnimating && "organise-pop-animation",
+                  isSearch && searchAnimating && "search-pop-animation"
                 )}
               >
                 {m.label}

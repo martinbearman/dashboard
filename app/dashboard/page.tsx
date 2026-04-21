@@ -3,7 +3,7 @@
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DashboardTabs from "@/components/layout/DashboardTabs";
 import LLMPromptBar from "@/components/layout/LLMPromptBar";
 import AddModuleButton from "@/components/layout/AddModuleButton";
@@ -34,6 +34,8 @@ export default function DashboardPage() {
   const [cloudEnabled, setCloudEnabled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showMobileMultiMenu, setShowMobileMultiMenu] = useState(false);
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const previousModeRef = useRef<typeof multiMenuMode>(null);
   // Read the active dashboard and all dashboards from Redux
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
@@ -161,8 +163,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (multiMenuMode === "search") {
-      setShowMobileMultiMenu(false);
+      setIsSearchBarVisible(true);
+    } else if (previousModeRef.current === "search" && multiMenuMode === null) {
+      // Only hide when search is explicitly toggled off.
+      setIsSearchBarVisible(false);
     }
+
+    previousModeRef.current = multiMenuMode;
   }, [multiMenuMode]);
 
   return (
@@ -229,7 +236,7 @@ export default function DashboardPage() {
           </button>
         </div>
         <DashboardTabs />
-        {multiMenuMode === "search" && <LLMPromptBar />}
+        {isSearchBarVisible && <LLMPromptBar />}
       </div>
 
       <div className="mx-auto px-2 pb-24 max-w-full">
