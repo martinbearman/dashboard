@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import clsx from "clsx";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import { ORGANISE_MODE_ANIMATION_MS } from "@/lib/constants/ui";
+import { addDashboard, setActiveDashboard } from "@/lib/store/slices/dashboardsSlice";
+import type { Dashboard } from "@/lib/types/dashboard";
 import {
   type MultiMenuMode,
   setMultiMenuMode,
@@ -53,10 +55,12 @@ const modes: {
 export default function MultiModeMenu() {
   const dispatch = useAppDispatch();
   const store = useAppStore();
+  const dashboards = useAppSelector((s) => s.dashboards.dashboards);
   const { multiMenuMode: activeMode, selectedModuleIds } = useAppSelector(
     (s) => s.ui
   );
   const [organiseAnimating, setOrganiseAnimating] = useState(false);
+  const dashboardList = Object.values(dashboards);
 
   // Log accumulated context whenever selection changes in context mode
   useEffect(() => {
@@ -97,6 +101,36 @@ export default function MultiModeMenu() {
 
     // Otherwise, toggle the mode on/off
     dispatch(setMultiMenuMode(activeMode === mode ? null : mode));
+  };
+
+  const handleAddDashboard = () => {
+    const existingNumbers = dashboardList
+      .map((dash) => {
+        const [, suffix] = dash.id.split("-");
+        const parsed = Number(suffix);
+        return Number.isNaN(parsed) ? null : parsed;
+      })
+      .filter((value): value is number => value !== null)
+      .sort((a, b) => a - b);
+
+    let nextNumber = 1;
+    while (existingNumbers.includes(nextNumber)) {
+      nextNumber += 1;
+    }
+
+    const pinnedCount = dashboardList.filter((dash) => dash.pinned ?? false).length;
+    const newId = `board-${nextNumber}`;
+    const newDashboard: Dashboard = {
+      id: newId,
+      name: `Board ${nextNumber}`,
+      shortName: `B${nextNumber}`,
+      group: "General",
+      pinned: pinnedCount < 4,
+      modules: [],
+    };
+
+    dispatch(addDashboard(newDashboard));
+    dispatch(setActiveDashboard(newId));
   };
 
   return (
@@ -144,6 +178,7 @@ export default function MultiModeMenu() {
         </div>
         <button
           type="button"
+          onClick={handleAddDashboard}
           className="grid h-10 w-full place-items-center rounded-xl bg-white/90 text-2xl leading-none text-slate-700 shadow-xl transition hover:bg-white"
           aria-label="Add dashboard"
           title="Add dashboard"

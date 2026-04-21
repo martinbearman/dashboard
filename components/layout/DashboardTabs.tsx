@@ -6,7 +6,6 @@ import {
   addDashboard,
   setActiveDashboard,
   updateDashboardName,
-  updateDashboardMeta,
   toggleDashboardPinned,
 } from "@/lib/store/slices/dashboardsSlice";
 import DashboardService from "@/lib/services/dashboardService";
@@ -127,7 +126,7 @@ export default function DashboardTabs() {
 
   return (
     <>
-      <div className="w-full flex justify-center">
+      <div className="hidden w-full justify-center md:flex">
         <div className="flex items-center gap-3">
           <div className="backdrop-blur rounded-full bg-white/25 px-2 py-2 flex gap-2 border border-slate-300/30 shadow-md">
             {dashboardList.length > 0 ? (
@@ -194,22 +193,6 @@ export default function DashboardTabs() {
             aria-label="Add dashboard"
           >
             <span className="text-lg leading-none translate-y-[-1px]">+</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const firstUnpinned = sortedDashboards.find((dash) => !(dash.pinned ?? false));
-              if (firstUnpinned) {
-                dispatch(updateDashboardMeta({ dashboardId: firstUnpinned.id, changes: { pinned: true } }));
-                dispatch(setActiveDashboard(firstUnpinned.id));
-              }
-            }}
-            className="flex items-center gap-2 rounded-full border border-slate-300/40 bg-white/40 px-3 py-2 text-xs text-slate-700/90 transition hover:bg-white/55 hover:text-slate-900 disabled:pointer-events-none disabled:opacity-50"
-            disabled={!sortedDashboards.some((dash) => !(dash.pinned ?? false))}
-            aria-label="Pin next dashboard"
-            title="Pin next dashboard"
-          >
-            Pin
           </button>
         </div>
       </div>
