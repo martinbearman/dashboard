@@ -44,31 +44,11 @@ export default function LeftSidebarMenu({
   const dispatch = useAppDispatch();
   const [isExiting, setIsExiting] = useState(false);
   const [activePanel, setActivePanel] = useState<MenuPanel>("main");
-  const [selectedGroup, setSelectedGroup] = useState<string>("General");
   const dashboards = useAppSelector((s) => s.dashboards.dashboards);
   const activeDashboardId = useAppSelector((s) => s.dashboards.activeDashboardId);
   const theme = useAppSelector((s) => s.globalConfig.theme);
 
   const sortedDashboards = useMemo(() => Object.values(dashboards).sort(sortDashboards), [dashboards]);
-
-  const groupedDashboards = useMemo(() => {
-    const groupMap = new Map<string, typeof sortedDashboards>();
-    sortedDashboards.forEach((dashboard) => {
-      const group = dashboard.group?.trim() || "General";
-      const list = groupMap.get(group) ?? [];
-      list.push(dashboard);
-      groupMap.set(group, list);
-    });
-    return Array.from(groupMap.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [sortedDashboards]);
-
-  const groupNames = groupedDashboards.map(([group]) => group);
-
-  useEffect(() => {
-    if (!groupNames.includes(selectedGroup)) {
-      setSelectedGroup(groupNames[0] ?? "General");
-    }
-  }, [groupNames, selectedGroup]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -103,15 +83,6 @@ export default function LeftSidebarMenu({
 
   if (!isOpen && !isExiting) return null;
 
-  const dashboardsForGroup =
-    groupedDashboards.find(([group]) => group === selectedGroup)?.[1] ?? [];
-
-  const navLinks = [
-    { label: "Home", icon: "home" },
-    { label: "Pinned", icon: "pin" },
-    { label: "Analytics", icon: "chart" },
-  ] as const satisfies ReadonlyArray<{ label: string; icon: "home" | "pin" | "chart" }>;
-
   return (
     <>
       <div
@@ -136,9 +107,7 @@ export default function LeftSidebarMenu({
             isAuthenticated={isAuthenticated}
             onClose={requestClose}
             onLogout={onLogout}
-            navLinks={navLinks}
-            selectedGroup={selectedGroup}
-            dashboardsForGroup={dashboardsForGroup}
+            sortedDashboards={sortedDashboards}
             activeDashboardId={activeDashboardId}
             getInitials={initialsFromName}
             onOpenSettings={() => setActivePanel("settings")}

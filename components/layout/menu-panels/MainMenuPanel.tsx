@@ -1,18 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import type { Dashboard } from "@/lib/types/dashboard";
-
-type NavIcon = "home" | "pin" | "chart";
 
 type MainMenuPanelProps = {
   username: string;
   isAuthenticated: boolean;
   onClose: () => void;
   onLogout: () => Promise<void> | void;
-  navLinks: ReadonlyArray<{ label: string; icon: NavIcon }>;
-  selectedGroup: string;
-  dashboardsForGroup: Dashboard[];
+  sortedDashboards: Dashboard[];
   activeDashboardId: string | null;
   getInitials: (name: string) => string;
   onOpenSettings: () => void;
@@ -25,9 +20,7 @@ export default function MainMenuPanel({
   isAuthenticated,
   onClose,
   onLogout,
-  navLinks,
-  selectedGroup,
-  dashboardsForGroup,
+  sortedDashboards,
   activeDashboardId,
   getInitials,
   onOpenSettings,
@@ -36,7 +29,7 @@ export default function MainMenuPanel({
 }: MainMenuPanelProps) {
   return (
     <>
-      <header>
+      <header className="mb-6">
         <div className="flex items-start gap-3">
           <button
             type="button"
@@ -66,56 +59,13 @@ export default function MainMenuPanel({
           </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-5 text-base font-medium">
-          <Link href="/" onClick={onClose} className="text-[#40527d] hover:text-[#2f3f65]">
-            Start Page
-          </Link>
-        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto pb-5">
-        <button
-          type="button"
-          className="mb-5 flex w-full items-center gap-3 rounded-2xl bg-[#e8ebf3] px-4 py-3 text-left text-lg font-semibold text-[#4f628b]"
-        >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
-            <path d="M3 3h8v8H3V3Zm10 0h8v5h-8V3ZM13 10h8v11h-8V10ZM3 13h8v8H3v-8Z" />
-          </svg>
-          <span>Dashboards</span>
-        </button>
-
-        <nav className="mb-8 space-y-1.5">
-          {navLinks.map((link) => (
-            <button
-              key={link.label}
-              type="button"
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-base text-[#1f2436] hover:bg-[#eceff8]"
-            >
-              {link.icon === "home" ? (
-                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor" aria-hidden>
-                  <path d="M3 10.9 12 3l9 7.9V21h-6v-7h-6v7H3v-10.1Z" />
-                </svg>
-              ) : null}
-              {link.icon === "pin" ? (
-                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor" aria-hidden>
-                  <path d="M8 4h8v2l-2 3v4l3 2v2h-4v5h-2v-5H7v-2l3-2V9L8 6V4Z" />
-                </svg>
-              ) : null}
-              {link.icon === "chart" ? (
-                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor" aria-hidden>
-                  <path d="M3 3h18v18H3V3Zm4 13h2v3H7v-3Zm4-6h2v9h-2v-9Zm4 3h2v6h-2v-6Z" />
-                </svg>
-              ) : null}
-              <span>{link.label}</span>
-            </button>
-          ))}
-        </nav>
-
-        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#72788d]">Dashboard Groups</div>
-        <div className="mb-4 text-base text-[#444b62]">{selectedGroup}</div>
+        <div className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#72788d]">Dashboards</div>
 
         <ul className="space-y-3">
-          {dashboardsForGroup.map((dash) => {
+          {sortedDashboards.map((dash) => {
             const isPinned = dash.pinned ?? false;
             const isActive = dash.id === activeDashboardId;
             return (
