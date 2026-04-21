@@ -97,12 +97,7 @@ export default function MainMenuPanel({
                       title={dash.name}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="grid h-12 w-12 place-items-center rounded-xl bg-white text-[#667193]">
-                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
-                            <path d="M4 4h16v2H4V4Zm2 4h12l-1.5 8H7.5L6 8Zm2 10a2 2 0 1 0 .001 3.999A2 2 0 0 0 8 18Zm8 0a2 2 0 1 0 .001 3.999A2 2 0 0 0 16 18Z" />
-                          </svg>
-                        </div>
-                        <span className="truncate text-lg font-medium text-[#23293a]">{dash.name}</span>
+                        <span className="truncate text-base font-medium text-[#23293a]">{dash.name}</span>
                       </div>
                     </button>
 
