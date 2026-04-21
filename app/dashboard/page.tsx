@@ -183,7 +183,7 @@ export default function DashboardPage() {
           </button>
         </div>
         <DashboardTabs />
-        <LLMPromptBar />
+        {multiMenuMode === "search" && <LLMPromptBar />}
       </div>
 
       <div className="mx-auto px-2 pb-24 max-w-full">

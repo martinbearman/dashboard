@@ -42,10 +42,10 @@ const modes: {
     activeOffset: "-translate-x-[10px] translate-y-[10px]",
   },
   {
-    id: "stash",
+    id: "search",
     label: "S",
     color: "bg-blue-500",
-    title: "Stash",
+    title: "Search",
     activeOffset: "translate-x-[10px] translate-y-[10px]",
   },
 ];
@@ -125,7 +125,7 @@ export default function MultiModeMenu() {
                   m.id === "context" && "rounded-tl-xl",
                   m.id === "organise" && "rounded-tr-xl",
                   m.id === "remove" && "rounded-bl-xl",
-                  m.id === "stash" && "rounded-br-xl",
+                  m.id === "search" && "rounded-br-xl",
                   isActive
                     ? clsx(
                         "z-10 ring-2 ring-white shadow-inner scale-[1.03]",

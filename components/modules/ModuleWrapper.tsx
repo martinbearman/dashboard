@@ -39,14 +39,14 @@ export default function ModuleWrapper({
     context: "hover:ring-4 hover:ring-green-500",
     organise: "hover:ring-4 hover:ring-yellow-400",
     remove: "hover:ring-4 hover:ring-red-500",
-    stash: "hover:ring-4 hover:ring-blue-500",
+    search: "hover:ring-4 hover:ring-blue-500",
   };
 
   const selectedRingByMode: Record<Exclude<MultiMenuMode, null>, string> = {
     context: "ring-4 ring-green-500",
     organise: "ring-4 ring-yellow-400",
     remove: "ring-4 ring-red-500",
-    stash: "ring-4 ring-blue-500",
+    search: "ring-4 ring-blue-500",
   };
 
   let modeRingClass = "";

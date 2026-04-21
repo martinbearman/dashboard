@@ -316,9 +316,9 @@ export const executeMultiModeAction =
         break;
       }
 
-      case "stash":
-        // TODO: Implement stash functionality
-        console.log("Stash mode not yet implemented", selectedModuleIds);
+      case "search":
+        // TODO: Implement search mode action functionality
+        console.log("Search mode action not yet implemented", selectedModuleIds);
         break;
 
       case "context": {
