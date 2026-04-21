@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import { setActiveDashboard, toggleDashboardPinned } from "@/lib/store/slices/dashboardsSlice";
 import { setTheme } from "@/lib/store/slices/globalConfigSlice";
+import DashboardService from "@/lib/services/dashboardService";
 import MainMenuPanel from "@/components/layout/menu-panels/MainMenuPanel";
 import SettingsMenuPanel from "@/components/layout/menu-panels/SettingsMenuPanel";
 
@@ -42,6 +43,7 @@ export default function LeftSidebarMenu({
   onLogout,
 }: LeftSidebarMenuProps) {
   const dispatch = useAppDispatch();
+  const store = useAppStore();
   const [isExiting, setIsExiting] = useState(false);
   const [activePanel, setActivePanel] = useState<MenuPanel>("main");
   const dashboards = useAppSelector((s) => s.dashboards.dashboards);
@@ -116,6 +118,9 @@ export default function LeftSidebarMenu({
               requestClose();
             }}
             onTogglePinned={(dashboardId) => dispatch(toggleDashboardPinned(dashboardId))}
+            onRemoveDashboard={(dashboardId) =>
+              DashboardService.removeDashboard(dispatch, store.getState, dashboardId)
+            }
           />
         ) : (
           <SettingsMenuPanel

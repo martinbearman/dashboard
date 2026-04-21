@@ -101,45 +101,55 @@ export default function MultiModeMenu() {
 
   return (
     <div className="fixed top-4 right-4 z-40">
-      <div className="w-24 aspect-square grid grid-cols-2 grid-rows-2 rounded-xl overflow-visible shadow-xl">
-        {modes.map((m) => {
-          const isOrganise = m.id === "organise";
-          const isActive = activeMode === m.id && !isOrganise;
+      <div className="flex w-24 flex-col gap-4">
+        <div className="aspect-square grid grid-cols-2 grid-rows-2 rounded-xl overflow-visible shadow-xl">
+          {modes.map((m) => {
+            const isOrganise = m.id === "organise";
+            const isActive = activeMode === m.id && !isOrganise;
 
-          return (
-            <button
-              key={m.id}
-              type="button"
-              title={
-                activeMode === m.id && selectedModuleIds.length > 0
-                  ? `${m.title} – apply to ${selectedModuleIds.length} selected module${
-                      selectedModuleIds.length > 1 ? "s" : ""
-                    }`
-                  : m.title
-              }
-              onClick={() => handleClick(m.id)}
-              className={clsx(
-                "relative flex items-center justify-center text-white text-lg font-semibold transition-all",
-                m.color,
-                m.id === "context" && "rounded-tl-xl",
-                m.id === "organise" && "rounded-tr-xl",
-                m.id === "remove" && "rounded-bl-xl",
-                m.id === "stash" && "rounded-br-xl",
-                isActive
-                  ? clsx(
-                      "z-10 ring-2 ring-white shadow-inner scale-[1.03]",
-                      m.activeOffset,
-                      selectedModuleIds.length > 0 &&
-                        "animate-pulse ring-4 ring-white shadow-xl"
-                    )
-                  : "opacity-80 hover:opacity-100",
-                isOrganise && organiseAnimating && "organise-pop-animation"
-              )}
-            >
-              {m.label}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={m.id}
+                type="button"
+                title={
+                  activeMode === m.id && selectedModuleIds.length > 0
+                    ? `${m.title} – apply to ${selectedModuleIds.length} selected module${
+                        selectedModuleIds.length > 1 ? "s" : ""
+                      }`
+                    : m.title
+                }
+                onClick={() => handleClick(m.id)}
+                className={clsx(
+                  "relative flex items-center justify-center text-white text-lg font-semibold transition-all",
+                  m.color,
+                  m.id === "context" && "rounded-tl-xl",
+                  m.id === "organise" && "rounded-tr-xl",
+                  m.id === "remove" && "rounded-bl-xl",
+                  m.id === "stash" && "rounded-br-xl",
+                  isActive
+                    ? clsx(
+                        "z-10 ring-2 ring-white shadow-inner scale-[1.03]",
+                        m.activeOffset,
+                        selectedModuleIds.length > 0 &&
+                          "animate-pulse ring-4 ring-white shadow-xl"
+                      )
+                    : "opacity-80 hover:opacity-100",
+                  isOrganise && organiseAnimating && "organise-pop-animation"
+                )}
+              >
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          className="grid h-10 w-full place-items-center rounded-xl bg-white/90 text-2xl leading-none text-slate-700 shadow-xl transition hover:bg-white"
+          aria-label="Add dashboard"
+          title="Add dashboard"
+        >
+          +
+        </button>
       </div>
     </div>
   );

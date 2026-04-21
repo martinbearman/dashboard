@@ -165,20 +165,7 @@ export default function DashboardTabs() {
                         {tabLabel}
                       </button>
                     )}
-                    {!isEditing && (
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          dispatch(toggleDashboardPinned(dash.id));
-                        }}
-                        className="absolute -bottom-1.5 -right-1.5 hidden h-5 w-5 items-center justify-center rounded-full bg-white/80 text-slate-700 shadow group-hover:flex hover:bg-slate-700 hover:text-white"
-                        aria-label={`Unpin ${dash.name}`}
-                        title="Unpin dashboard"
-                      >
-                        •
-                      </button>
-                    )}
+      
                     {canRemove && !isEditing && (
                       <button
                         type="button"

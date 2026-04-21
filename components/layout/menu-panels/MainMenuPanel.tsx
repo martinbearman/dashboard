@@ -13,6 +13,7 @@ type MainMenuPanelProps = {
   onOpenSettings: () => void;
   onSelectDashboard: (dashboardId: string) => void;
   onTogglePinned: (dashboardId: string) => void;
+  onRemoveDashboard: (dashboardId: string) => void;
 };
 
 export default function MainMenuPanel({
@@ -26,6 +27,7 @@ export default function MainMenuPanel({
   onOpenSettings,
   onSelectDashboard,
   onTogglePinned,
+  onRemoveDashboard,
 }: MainMenuPanelProps) {
   return (
     <>
@@ -64,17 +66,29 @@ export default function MainMenuPanel({
       <div className="flex-1 overflow-y-auto pb-5">
         <div className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#72788d]">Dashboards</div>
 
-        <ul className="space-y-3">
+        <ul className="space-y-3 pr-3">
           {sortedDashboards.map((dash) => {
             const isPinned = dash.pinned ?? false;
             const isActive = dash.id === activeDashboardId;
+            const canRemove = sortedDashboards.length > 1 && dash.id !== "board-1";
             return (
               <li key={dash.id}>
                 <div
-                  className={`rounded-2xl border border-[#ebedf5] px-5 py-4 shadow-[0_1px_0_rgba(34,46,79,0.02)] ${
+                  className={`relative rounded-2xl border border-[#ebedf5] px-5 py-4 shadow-[0_1px_0_rgba(34,46,79,0.02)] ${
                     isActive ? "bg-[#eef1fb]" : "bg-[#f5f6fb]"
                   }`}
                 >
+                  {canRemove ? (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveDashboard(dash.id)}
+                      className="absolute -right-2 -top-2 z-10 grid h-6 w-6 place-items-center rounded-full bg-white/90 text-sm text-[#7a8197] shadow transition hover:bg-red-500 hover:text-white"
+                      aria-label={`Remove ${dash.name}`}
+                      title={`Remove ${dash.name}`}
+                    >
+                      ×
+                    </button>
+                  ) : null}
                   <div className="flex items-center justify-between gap-3">
                     <button
                       type="button"
