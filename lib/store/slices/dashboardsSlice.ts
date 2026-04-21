@@ -15,6 +15,9 @@ export const createInitialDashboardsState = (): DashboardsState => ({
     "board-1": {
       id: "board-1",
       name: "Board 1",
+      shortName: "B1",
+      group: "General",
+      pinned: true,
       modules: [],
       layouts: {
         lg: [],
@@ -194,7 +197,23 @@ const dashboardsSlice = createSlice({
       if (trimmedName.length > 0) {
         dashboard.name = trimmedName;
       }
-    }
+    },
+    updateDashboardMeta: (
+      state,
+      action: PayloadAction<{
+        dashboardId: string;
+        changes: Partial<Pick<Dashboard, "shortName" | "group" | "pinned">>;
+      }>
+    ) => {
+      const dashboard = state.dashboards[action.payload.dashboardId];
+      if (!dashboard) return;
+      Object.assign(dashboard, action.payload.changes);
+    },
+    toggleDashboardPinned: (state, action: PayloadAction<string>) => {
+      const dashboard = state.dashboards[action.payload];
+      if (!dashboard) return;
+      dashboard.pinned = !(dashboard.pinned ?? false);
+    },
   },
 });
 
@@ -205,7 +224,9 @@ export const {
   removeModule,
   removeDashboard,
   updateDashboardLayouts,
-  updateDashboardName
+  updateDashboardName,
+  updateDashboardMeta,
+  toggleDashboardPinned,
 } = dashboardsSlice.actions;
 
 export default dashboardsSlice.reducer;
