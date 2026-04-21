@@ -61,8 +61,8 @@ const uiSlice = createSlice({
     },
     setMultiMenuMode: (state, action: PayloadAction<MultiMenuMode>) => {
       state.multiMenuMode = action.payload;
-      // Clear selection when turning mode off
-      if (!action.payload) {
+      // Clear legacy module selection when turning mode off or entering search mode.
+      if (!action.payload || action.payload === "search") {
         state.selectedModuleIds = [];
       }
     },
