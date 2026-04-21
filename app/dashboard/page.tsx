@@ -3,12 +3,12 @@
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import DashboardTabs from "@/components/layout/DashboardTabs";
 import LLMPromptBar from "@/components/layout/LLMPromptBar";
 import AddModuleButton from "@/components/layout/AddModuleButton";
 import AppVersion from "@/components/layout/AppVersion";
+import LeftSidebarMenu from "@/components/layout/LeftSidebarMenu";
 import ConfigSheet from "@/components/ui/ConfigSheet";
 import SearchResultsPanel from "@/components/layout/SearchResultsPanel";
 import SearchResultsTab from "@/components/layout/SearchResultsTab";
@@ -32,6 +32,10 @@ export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [cloudStatus, setCloudStatus] = useState<"pending" | "synced" | "error">("synced");
   const [cloudEnabled, setCloudEnabled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showMobileMultiMenu, setShowMobileMultiMenu] = useState(false);
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(false);
+  const previousModeRef = useRef<typeof multiMenuMode>(null);
   // Read the active dashboard and all dashboards from Redux
   const { activeDashboardId, dashboards } = useAppSelector((s) => s.dashboards);
   const active = activeDashboardId ? dashboards[activeDashboardId] : null;
@@ -149,13 +153,6 @@ export default function DashboardPage() {
     setIsAuthenticated(false);
   }
 
-  const statusText = !cloudEnabled
-    ? "Saved locally"
-    : cloudStatus === "pending"
-      ? "Syncing..."
-      : cloudStatus === "error"
-        ? "Saved locally"
-        : "Saved";
   const statusDotClass = !cloudEnabled
     ? "bg-slate-400"
     : cloudStatus === "pending"
@@ -164,43 +161,82 @@ export default function DashboardPage() {
         ? "bg-rose-500"
         : "bg-emerald-500";
 
+  useEffect(() => {
+    if (multiMenuMode === "search") {
+      setIsSearchBarVisible(true);
+    } else if (previousModeRef.current === "search" && multiMenuMode === null) {
+      // Only hide when search is explicitly toggled off.
+      setIsSearchBarVisible(false);
+    }
+
+    previousModeRef.current = multiMenuMode;
+  }, [multiMenuMode]);
+
   return (
     <main className="relative min-h-screen bg-gradient-to-b to-blue-100 from-slate-600">
       <div className="relative sticky top-0 z-10 pt-2 pb-2 space-y-3">
-        <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
-          <Link
-            href="/"
+        <div className="absolute left-3 top-3 z-20 !mt-0">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(true)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/40 bg-white/40 text-slate-800 shadow-md backdrop-blur transition hover:bg-white/60 hover:text-slate-900"
-            aria-label="Back to home"
+            aria-label="Open menu"
           >
+            <span className="sr-only">Open menu</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={1.5}
+              strokeWidth={1.8}
               stroke="currentColor"
               className="h-5 w-5"
               aria-hidden
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
-          </Link>
-          {isAuthenticated ? (
-            <div className="inline-flex items-center gap-1 text-xs leading-none text-slate-100">
-              <span>Logged in as</span>
-              <span className="font-semibold text-white">{username || "User"}</span>
-              <Link href="/" onClick={handleLogout} className="underline hover:text-white">
-                Logout
-              </Link>
-            </div>
-          ) : null}
+          </button>
+        </div>
+        <div className="absolute right-3 top-3 z-20 !mt-0 md:hidden">
+          <button
+            type="button"
+            onClick={() => setShowMobileMultiMenu((prev) => !prev)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300/40 bg-white/40 text-slate-800 shadow-md backdrop-blur transition hover:bg-white/60 hover:text-slate-900"
+            aria-label={showMobileMultiMenu ? "Hide mode controls" : "Show mode controls"}
+            aria-pressed={showMobileMultiMenu}
+          >
+            <span className="sr-only">
+              {showMobileMultiMenu ? "Hide mode controls" : "Show mode controls"}
+            </span>
+            {showMobileMultiMenu ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.8}
+                stroke="currentColor"
+                className="h-5 w-5"
+                aria-hidden
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="h-5 w-5"
+                aria-hidden
+              >
+                <rect x="5" y="5" width="5" height="5" rx="1" />
+                <rect x="14" y="5" width="5" height="5" rx="1" />
+                <rect x="5" y="14" width="5" height="5" rx="1" />
+                <rect x="14" y="14" width="5" height="5" rx="1" />
+              </svg>
+            )}
+          </button>
         </div>
         <DashboardTabs />
-        <LLMPromptBar />
+        {isSearchBarVisible && <LLMPromptBar />}
       </div>
 
       <div className="mx-auto px-2 pb-24 max-w-full">
@@ -234,7 +270,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Floating mode & add buttons */}
-      <MultiModeMenu />
+      {showMobileMultiMenu && (
+        <div className="md:hidden">
+          <MultiModeMenu />
+        </div>
+      )}
+      <div className="hidden md:block">
+        <MultiModeMenu />
+      </div>
       <AddModuleButton />
       
       {/* Version display */}
@@ -246,6 +289,13 @@ export default function DashboardPage() {
       {/* Search results tab (right edge, only when results exist) and off-canvas panel */}
       <SearchResultsTab />
       <SearchResultsPanel />
+      <LeftSidebarMenu
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        username={username}
+        isAuthenticated={Boolean(isAuthenticated)}
+        onLogout={handleLogout}
+      />
       {/* Cloud/local sync status indicator dot (bottom-left) */}
       <CloudStatusIndicator statusDotClass={statusDotClass} />
     </main>

@@ -103,8 +103,15 @@ export default function LLMPromptBar() {
   const canSubmit = (input.trim().length > 0 || contextPills.length > 0) && !isLoadingImages;
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto px-4 gap-3">
-      <form onSubmit={onSubmit} className="flex items-center gap-2 w-full">
+    <div className="flex w-full max-w-2xl flex-col items-center gap-3 px-14 md:px-4 mx-auto">
+      <form
+        onSubmit={onSubmit}
+        className={`relative w-full rounded-full border bg-white/40 backdrop-blur transition ${
+          error
+            ? "border-red-400/60 focus-within:border-red-500/60 focus-within:ring-2 focus-within:ring-red-300/30"
+            : "border-slate-300/40 focus-within:border-slate-400/60 focus-within:ring-2 focus-within:ring-slate-300/30"
+        }`}
+      >
         <input
           type="text"
           value={input}
@@ -114,10 +121,8 @@ export default function LLMPromptBar() {
           }}
           placeholder={error || "Search for images..."}
           disabled={isLoadingImages}
-          className={`flex-1 min-w-0 rounded-full border bg-white/40 backdrop-blur px-4 py-2.5 text-sm outline-none transition disabled:opacity-70 ${
-            error
-              ? "border-red-400/60 text-red-700 placeholder-red-600 focus:border-red-500/60 focus:ring-2 focus:ring-red-300/30"
-              : "border-slate-300/40 text-slate-700/90 placeholder-slate-600 focus:border-slate-400/60 focus:ring-2 focus:ring-slate-300/30"
+          className={`w-full min-w-0 rounded-full bg-transparent py-2.5 pl-4 pr-12 text-sm outline-none transition disabled:opacity-70 ${
+            error ? "text-red-700 placeholder-red-600" : "text-slate-700/90 placeholder-slate-600"
           }`}
           aria-label="Search images"
           aria-invalid={error ? "true" : "false"}
@@ -125,13 +130,14 @@ export default function LLMPromptBar() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition disabled:opacity-50 disabled:pointer-events-none ${
+          className={`absolute right-1.5 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full border text-xs font-semibold transition disabled:opacity-50 disabled:pointer-events-none ${
             contextPills.length > 0 && canSubmit
               ? "border-green-400/80 bg-green-500/90 text-white shadow-lg animate-glow-up hover:bg-green-500 hover:border-green-400"
               : "border-slate-300/40 bg-white/40 text-slate-700/90 hover:bg-white/55 hover:text-slate-900"
           }`}
+          aria-label="Search images"
         >
-          {isLoadingImages ? "…" : "Search"}
+          {isLoadingImages ? "…" : "S"}
         </button>
       </form>
 

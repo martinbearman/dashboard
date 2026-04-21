@@ -18,6 +18,9 @@ export interface ModuleInstance {
 export interface Dashboard {
   id: string;
   name: string;
+  shortName?: string;
+  group?: string;
+  pinned?: boolean;
   modules: ModuleInstance[];
   layouts?: Partial<Record<Breakpoint, Layout[]>>;
 }

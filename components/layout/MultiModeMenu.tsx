@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import clsx from "clsx";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import { ORGANISE_MODE_ANIMATION_MS } from "@/lib/constants/ui";
+import { addDashboard, setActiveDashboard } from "@/lib/store/slices/dashboardsSlice";
+import type { Dashboard } from "@/lib/types/dashboard";
 import {
   type MultiMenuMode,
   setMultiMenuMode,
@@ -42,10 +44,10 @@ const modes: {
     activeOffset: "-translate-x-[10px] translate-y-[10px]",
   },
   {
-    id: "stash",
+    id: "search",
     label: "S",
     color: "bg-blue-500",
-    title: "Stash",
+    title: "Search",
     activeOffset: "translate-x-[10px] translate-y-[10px]",
   },
 ];
@@ -53,10 +55,13 @@ const modes: {
 export default function MultiModeMenu() {
   const dispatch = useAppDispatch();
   const store = useAppStore();
+  const dashboards = useAppSelector((s) => s.dashboards.dashboards);
   const { multiMenuMode: activeMode, selectedModuleIds } = useAppSelector(
     (s) => s.ui
   );
   const [organiseAnimating, setOrganiseAnimating] = useState(false);
+  const [searchAnimating, setSearchAnimating] = useState(false);
+  const dashboardList = Object.values(dashboards);
 
   // Log accumulated context whenever selection changes in context mode
   useEffect(() => {
@@ -88,7 +93,15 @@ export default function MultiModeMenu() {
       return;
     }
 
-    // If clicking the active mode while modules are selected, execute the action
+    if (mode === "search") {
+      setSearchAnimating(true);
+      setTimeout(() => setSearchAnimating(false), ORGANISE_MODE_ANIMATION_MS);
+      dispatch(setMultiMenuMode(activeMode === mode ? null : mode));
+      return;
+    }
+
+    // If clicking the active mode while modules are selected, execute the action.
+    // Search is a pure toggle mode, so it should never trigger apply-on-click.
     if (activeMode === mode && selectedModuleIds.length > 0) {
       console.log("Execute multi mode action", selectedModuleIds);
       dispatch(executeMultiModeAction());
@@ -99,47 +112,91 @@ export default function MultiModeMenu() {
     dispatch(setMultiMenuMode(activeMode === mode ? null : mode));
   };
 
-  return (
-    <div className="fixed top-4 right-4 z-40">
-      <div className="w-24 aspect-square grid grid-cols-2 grid-rows-2 rounded-xl overflow-visible shadow-xl">
-        {modes.map((m) => {
-          const isOrganise = m.id === "organise";
-          const isActive = activeMode === m.id && !isOrganise;
+  const handleAddDashboard = () => {
+    const existingNumbers = dashboardList
+      .map((dash) => {
+        const [, suffix] = dash.id.split("-");
+        const parsed = Number(suffix);
+        return Number.isNaN(parsed) ? null : parsed;
+      })
+      .filter((value): value is number => value !== null)
+      .sort((a, b) => a - b);
 
-          return (
-            <button
-              key={m.id}
-              type="button"
-              title={
-                activeMode === m.id && selectedModuleIds.length > 0
-                  ? `${m.title} – apply to ${selectedModuleIds.length} selected module${
-                      selectedModuleIds.length > 1 ? "s" : ""
-                    }`
-                  : m.title
-              }
-              onClick={() => handleClick(m.id)}
-              className={clsx(
-                "relative flex items-center justify-center text-white text-lg font-semibold transition-all",
-                m.color,
-                m.id === "context" && "rounded-tl-xl",
-                m.id === "organise" && "rounded-tr-xl",
-                m.id === "remove" && "rounded-bl-xl",
-                m.id === "stash" && "rounded-br-xl",
-                isActive
-                  ? clsx(
-                      "z-10 ring-2 ring-white shadow-inner scale-[1.03]",
-                      m.activeOffset,
-                      selectedModuleIds.length > 0 &&
-                        "animate-pulse ring-4 ring-white shadow-xl"
-                    )
-                  : "opacity-80 hover:opacity-100",
-                isOrganise && organiseAnimating && "organise-pop-animation"
-              )}
-            >
-              {m.label}
-            </button>
-          );
-        })}
+    let nextNumber = 1;
+    while (existingNumbers.includes(nextNumber)) {
+      nextNumber += 1;
+    }
+
+    const pinnedCount = dashboardList.filter((dash) => dash.pinned ?? false).length;
+    const newId = `board-${nextNumber}`;
+    const newDashboard: Dashboard = {
+      id: newId,
+      name: `Board ${nextNumber}`,
+      shortName: `B${nextNumber}`,
+      group: "General",
+      pinned: pinnedCount < 4,
+      modules: [],
+    };
+
+    dispatch(addDashboard(newDashboard));
+    dispatch(setActiveDashboard(newId));
+  };
+
+  return (
+    <div className="fixed right-4 top-16 z-40 md:top-6">
+      <div className="flex w-24 flex-col gap-4">
+        <div className="aspect-square grid grid-cols-2 grid-rows-2 rounded-xl overflow-visible shadow-xl">
+          {modes.map((m) => {
+            const isOrganise = m.id === "organise";
+            const isSearch = m.id === "search";
+            const isActive = activeMode === m.id && !isOrganise && !isSearch;
+            const showApplyPulse =
+              activeMode === m.id && m.id !== "search" && selectedModuleIds.length > 0;
+
+            return (
+              <button
+                key={m.id}
+                type="button"
+                title={
+                  showApplyPulse
+                    ? `${m.title} – apply to ${selectedModuleIds.length} selected module${
+                        selectedModuleIds.length > 1 ? "s" : ""
+                      }`
+                    : m.title
+                }
+                onClick={() => handleClick(m.id)}
+                className={clsx(
+                  "relative flex items-center justify-center text-white text-lg font-semibold transition-all",
+                  m.color,
+                  m.id === "context" && "rounded-tl-xl",
+                  m.id === "organise" && "rounded-tr-xl",
+                  m.id === "remove" && "rounded-bl-xl",
+                  m.id === "search" && "rounded-br-xl",
+                  isActive
+                    ? clsx(
+                        "z-10 ring-2 ring-white shadow-inner scale-[1.03]",
+                        m.activeOffset,
+                        showApplyPulse && "animate-pulse ring-4 ring-white shadow-xl"
+                      )
+                    : "opacity-80 hover:opacity-100",
+                  isOrganise && organiseAnimating && "organise-pop-animation",
+                  isSearch && searchAnimating && "search-pop-animation"
+                )}
+              >
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          onClick={handleAddDashboard}
+          className="grid h-10 w-full place-items-center rounded-xl bg-white/90 text-2xl leading-none text-slate-700 shadow-xl transition hover:bg-white"
+          aria-label="Add dashboard"
+          title="Add dashboard"
+        >
+          +
+        </button>
       </div>
     </div>
   );

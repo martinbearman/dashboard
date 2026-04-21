@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { makeStore, type RootState } from "../../store";
 import { setModuleConfig } from "../../slices/moduleConfigsSlice";
 import { createInitialDashboardsState } from "../../slices/dashboardsSlice";
@@ -8,7 +8,9 @@ import {
   populateContentList,
   getContextForSelectedModules,
   buildQueryFromModuleContext,
+  executeMultiModeAction,
 } from "../dashboardThunks";
+import { setMultiMenuMode, toggleModuleSelected } from "../../slices/uiSlice";
 
 const BOARD_ID = "board-1";
 
@@ -331,5 +333,29 @@ describe("buildQueryFromModuleContext", () => {
   it("returns empty string for empty context", () => {
     expect(buildQueryFromModuleContext([])).toBe("");
     expect(buildQueryFromModuleContext([], { types: ["image"] })).toBe("");
+  });
+});
+
+describe("executeMultiModeAction", () => {
+  it("handles search mode and clears mode/selection", () => {
+    const store = makeStore();
+    const moduleId = store.dispatch(
+      addModuleToDashboard({ dashboardId: BOARD_ID, type: "quote" })
+    );
+
+    store.dispatch(setMultiMenuMode("search"));
+    store.dispatch(toggleModuleSelected(moduleId));
+
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    store.dispatch(executeMultiModeAction());
+
+    expect(logSpy).toHaveBeenCalledWith(
+      "Search mode action not yet implemented",
+      [moduleId]
+    );
+    expect(store.getState().ui.multiMenuMode).toBeNull();
+    expect(store.getState().ui.selectedModuleIds).toEqual([]);
+
+    logSpy.mockRestore();
   });
 });

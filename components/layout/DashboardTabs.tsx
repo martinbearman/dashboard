@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useAppDispatch, useAppSelector, useAppStore } from "@/lib/store/hooks";
 import {
   addDashboard,
   setActiveDashboard,
   updateDashboardName,
+  toggleDashboardPinned,
 } from "@/lib/store/slices/dashboardsSlice";
 import DashboardService from "@/lib/services/dashboardService";
 import type { Dashboard } from "@/lib/types/dashboard";
@@ -22,15 +23,28 @@ export default function DashboardTabs() {
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sort by numeric ID suffix so tab order matches removeDashboard's "adjacent" logic
-  const dashboardList = Object.values(dashboards).sort((a, b) => {
+  const sortedDashboards = useMemo(() => Object.values(dashboards).sort((a, b) => {
     const [, aSuffix] = a.id.split("-");
     const [, bSuffix] = b.id.split("-");
     const aNum = Number(aSuffix);
     const bNum = Number(bSuffix);
     if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) return aNum - bNum;
     return a.id.localeCompare(b.id);
-  });
+  }), [dashboards]);
+  const dashboardList = useMemo(
+    () => sortedDashboards.filter((dash) => dash.pinned ?? false),
+    [sortedDashboards]
+  );
+
+  const abbreviateDashboardName = (name: string): string => {
+    const trimmed = name.trim();
+    if (!trimmed) return "Board";
+    const words = trimmed.split(/\s+/);
+    if (words.length >= 2) {
+      return words.slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
+    }
+    return trimmed.length > 8 ? `${trimmed.slice(0, 7)}...` : trimmed;
+  };
   const tabClass = (isActive: boolean) =>
     clsx(
       "px-4 py-2 rounded-full text-sm transition",
@@ -77,7 +91,7 @@ export default function DashboardTabs() {
 
   const handleAddDashboard = () => {
     // Collect the numeric suffix for every dashboard id (e.g. board-2 -> 2).
-    const existingNumbers = dashboardList
+    const existingNumbers = sortedDashboards
       .map((dash) => {
         const [, suffix] = dash.id.split("-");
         const parsed = Number(suffix);
@@ -95,6 +109,9 @@ export default function DashboardTabs() {
     const newDashboard: Dashboard = {
       id: newId,
       name: `Board ${nextNumber}`,
+      shortName: `B${nextNumber}`,
+      group: "General",
+      pinned: dashboardList.length < 4,
       modules: [],
     };
 
@@ -109,14 +126,14 @@ export default function DashboardTabs() {
 
   return (
     <>
-      <div className="w-full flex justify-center">
+      <div className="hidden w-full justify-center md:flex">
         <div className="flex items-center gap-3">
           <div className="backdrop-blur rounded-full bg-white/25 px-2 py-2 flex gap-2 border border-slate-300/30 shadow-md">
             {dashboardList.length > 0 ? (
               dashboardList.map((dash) => {
-                const canRemove =
-                  dashboardList.length > 1 && dash.id !== "board-1";
+                const canRemove = sortedDashboards.length > 1 && dash.id !== "board-1";
                 const isEditing = editingId === dash.id;
+                const tabLabel = dash.shortName?.trim() || abbreviateDashboardName(dash.name);
                 return (
                   <div key={dash.id} className="relative group">
                     {isEditing ? (
@@ -144,9 +161,10 @@ export default function DashboardTabs() {
                         }}
                         title="Double-click to rename"
                       >
-                        {dash.name}
+                        {tabLabel}
                       </button>
                     )}
+      
                     {canRemove && !isEditing && (
                       <button
                         type="button"
@@ -164,7 +182,7 @@ export default function DashboardTabs() {
                 );
               })
             ) : (
-              <div className={tabClass(false)}>Dashboard</div>
+              <div className={tabClass(false)}>No pinned dashboards</div>
             )}
           </div>
 
